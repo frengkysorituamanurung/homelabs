@@ -8,11 +8,17 @@ postgresql-ha:
 
 postgresql:
   enabled: true
+  image:
+    tag: 16
   primary:
     persistence:
       enabled: true
       size: 5Gi
       storageClassName: local-path
+
+redis-cluster:
+  image:
+    tag: 7.2
 
 gitea:
   admin:
