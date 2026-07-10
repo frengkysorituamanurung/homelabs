@@ -1,7 +1,7 @@
 persistence:
   enabled: true
   size: 30Gi
-  storageClassName: local-path
+  storageClass: local-path
 
 postgresql-ha:
   enabled: false
@@ -9,16 +9,33 @@ postgresql-ha:
 postgresql:
   enabled: true
   image:
-    tag: 16
+    repository: bitnamilegacy/postgresql
+  global:
+    postgresql:
+      auth:
+        password: gitea
+        database: gitea
+        username: gitea
+      service:
+        ports:
+          postgresql: 5432
   primary:
     persistence:
       enabled: true
       size: 5Gi
-      storageClassName: local-path
+      storageClass: local-path
 
-redis-cluster:
-  image:
-    tag: 7.2
+valkey-cluster:
+  enabled: true
+  usePassword: false
+  usePasswordFiles: false
+  cluster:
+    nodes: 3
+    replicas: 0
+  persistence:
+    enabled: true
+    storageClass: local-path
+    size: 8Gi
 
 gitea:
   admin:
