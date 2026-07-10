@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: harbor-core.harbor.svc.cluster.local
+    repoURL: harbor.frengky.xyz
     chart: helm-repos/prometheus-node-exporter
     targetRevision: "4.45.0"
     helm:

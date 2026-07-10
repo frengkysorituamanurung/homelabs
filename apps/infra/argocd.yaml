@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: harbor-core.harbor.svc.cluster.local
+    - repoURL: harbor.frengky.xyz
       chart: helm-repos/argo-cd
       targetRevision: "7.8.23"
       helm:

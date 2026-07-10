@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: harbor-core.harbor.svc.cluster.local
+    repoURL: harbor.frengky.xyz
     chart: helm-repos/kube-state-metrics
     targetRevision: "5.30.0"
     helm:
