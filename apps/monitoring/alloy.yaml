@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: oci://harbor-registry-tls.harbor.svc.cluster.local/helm-repos
-      chart: alloy
+    - repoURL: harbor-registry-tls.harbor.svc.cluster.local
+      chart: helm-repos/alloy
       targetRevision: "0.12.5"
       helm:
         valueFiles:

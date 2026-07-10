@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: oci://harbor-registry-tls.harbor.svc.cluster.local/helm-repos
-      chart: argo-cd
+    - repoURL: harbor-registry-tls.harbor.svc.cluster.local
+      chart: helm-repos/argo-cd
       targetRevision: "7.8.23"
       helm:
         valueFiles:

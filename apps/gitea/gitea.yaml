@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: oci://harbor-registry-tls.harbor.svc.cluster.local/helm-repos
-      chart: gitea
+    - repoURL: harbor-registry-tls.harbor.svc.cluster.local
+      chart: helm-repos/gitea
       targetRevision: "10.6.0"
       helm:
         valueFiles:

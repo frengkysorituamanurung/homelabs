@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: oci://harbor-registry-tls.harbor.svc.cluster.local/helm-repos
+    - repoURL: harbor-registry-tls.harbor.svc.cluster.local
       chart: victoria-metrics-single
       targetRevision: "0.42.0"
       helm:
