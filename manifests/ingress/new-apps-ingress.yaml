@@ -41,27 +41,3 @@ spec:
                 name: vault
                 port:
                   number: 8200
----
-# Harbor Ingress
-# Note: Harbor juga punya ingress bawaan dari chart (harbor.values.yaml expose.type: ingress)
-# File ini sebagai backup / override jika diperlukan
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: harbor-core
-  namespace: harbor
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
-spec:
-  ingressClassName: traefik
-  rules:
-    - host: harbor.frengky.xyz
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: harbor-core
-                port:
-                  number: 80
