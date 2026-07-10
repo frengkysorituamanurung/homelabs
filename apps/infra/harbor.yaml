@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://helm.goharbor.io
-      chart: harbor
+    - repoURL: harbor-core.harbor.svc.cluster.local
+      chart: helm-repos/harbor
       targetRevision: "1.16.2"
       helm:
         valueFiles:

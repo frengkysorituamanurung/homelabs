@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://helm.releases.hashicorp.com
-      chart: vault
+    - repoURL: harbor-core.harbor.svc.cluster.local
+      chart: helm-repos/vault
       targetRevision: "0.29.1"
       helm:
         valueFiles:

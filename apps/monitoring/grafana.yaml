@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://grafana.github.io/helm-charts
-      chart: grafana
+    - repoURL: harbor-core.harbor.svc.cluster.local
+      chart: helm-repos/grafana
       targetRevision: "8.10.4"
       helm:
         valueFiles:

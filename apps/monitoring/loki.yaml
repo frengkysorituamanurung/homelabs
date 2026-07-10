@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://grafana.github.io/helm-charts
-      chart: loki
+    - repoURL: harbor-core.harbor.svc.cluster.local
+      chart: helm-repos/loki
       targetRevision: "6.30.1"
       helm:
         valueFiles:

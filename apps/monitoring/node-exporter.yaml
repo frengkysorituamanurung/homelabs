@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://prometheus-community.github.io/helm-charts
-    chart: prometheus-node-exporter
+    repoURL: harbor-core.harbor.svc.cluster.local
+    chart: helm-repos/prometheus-node-exporter
     targetRevision: "4.45.0"
     helm:
       parameters:
