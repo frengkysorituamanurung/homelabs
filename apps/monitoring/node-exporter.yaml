@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: harbor-registry-tls.harbor.svc.cluster.local
-    chart: prometheus-node-exporter
+    chart: helm-repos/prometheus-node-exporter
     targetRevision: "4.45.0"
     helm:
       parameters:

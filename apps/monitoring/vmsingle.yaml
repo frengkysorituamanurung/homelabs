@@ -9,7 +9,7 @@ spec:
   project: default
   sources:
     - repoURL: harbor-registry-tls.harbor.svc.cluster.local
-      chart: victoria-metrics-single
+      chart: helm-repos/victoria-metrics-single
       targetRevision: "0.42.0"
       helm:
         valueFiles:
