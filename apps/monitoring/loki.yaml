@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: harbor-core.harbor.svc.cluster.local
-      chart: helm-repos/loki
+    - repoURL: oci://harbor-core.harbor.svc.cluster.local/helm-repos
+      chart: loki
       targetRevision: "6.30.1"
       helm:
         valueFiles:
