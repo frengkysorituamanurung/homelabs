@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: harbor.frengky.xyz
+    - repoURL: harbor-core.harbor.svc.cluster.local
       chart: helm-repos/gitea
       targetRevision: "10.6.0"
       helm:
