@@ -1,0 +1,8 @@
+server:
+  retentionPeriod: 30d
+  persistentVolume:
+    size: 10Gi
+    storageClass: local-path
+  service:
+    type: LoadBalancer
+    servicePort: 8428

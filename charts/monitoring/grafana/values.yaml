@@ -1,0 +1,56 @@
+adminUser: admin
+adminPassword: changeme123
+
+# Gunakan ExternalSecret setelah Vault + ESO ready:
+# admin.existingSecret: grafana-admin-secret
+# admin.userKey: admin-user
+# admin.passwordKey: admin-password
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClassName: local-path
+
+initChownData:
+  enabled: true
+  securityContext:
+    runAsNonRoot: false
+    runAsUser: 0
+    runAsGroup: 0
+    capabilities:
+      add:
+        - CHOWN
+        - DAC_OVERRIDE
+        - FOWNER
+      drop:
+        - ALL
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: VictoriaMetrics
+        type: prometheus
+        access: proxy
+        url: http://vmsingle-victoria-metrics-single-server.monitoring.svc.cluster.local:8428
+        isDefault: true
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki.monitoring.svc.cluster.local:3100
+
+grafana.ini:
+  analytics:
+    check_for_updates: false
+    reporting_enabled: false
+  server:
+    domain: grafana.frengky.xyz
+    root_url: "https://grafana.frengky.xyz"
+    enforce_domain: false
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false  # Ingress dikelola terpisah di manifests/ingress/grafana-ingress.yaml

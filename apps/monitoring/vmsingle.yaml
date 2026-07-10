@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vmsingle
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  sources:
+    - repoURL: https://victoriametrics.github.io/helm-charts
+      chart: victoria-metrics-single
+      targetRevision: "0.14.8"
+      helm:
+        valueFiles:
+          - $values/charts/monitoring/vmsingle/values.yaml
+    - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

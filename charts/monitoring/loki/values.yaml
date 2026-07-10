@@ -1,0 +1,44 @@
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: filesystem
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+  storageConfig:
+    tsdb_shipper:
+      active_index_directory: /var/loki/tsdb-index
+      cache_location: /var/loki/tsdb-cache
+    filesystem:
+      directory: /var/loki/chunks
+  limits_config:
+    retention_period: 720h   # 30 hari, sesuaikan kalau perlu
+
+deploymentMode: SingleBinary
+singleBinary:
+  replicas: 1
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: local-path
+
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+gateway:
+  enabled: false
+test:
+  enabled: false
+lokiCanary:
+  enabled: false

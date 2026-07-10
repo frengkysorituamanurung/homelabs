@@ -1,0 +1,47 @@
+persistence:
+  enabled: true
+  size: 30Gi
+  storageClassName: local-path
+
+postgresql-ha:
+  enabled: false
+
+postgresql:
+  enabled: true
+  primary:
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClassName: local-path
+
+gitea:
+  admin:
+    username: frengky
+    password: "admin12345"
+    email: "frengky@doku.com"
+  config:
+    actions:
+      ENABLED: true
+    server:
+      DOMAIN: gitea.frengky.xyz
+      ROOT_URL: https://gitea.frengky.xyz/
+      SSH_DOMAIN: gitea.frengky.xyz
+    database:
+      DB_TYPE: postgres
+
+service:
+  http:
+    type: ClusterIP
+    port: 3000
+  ssh:
+    type: ClusterIP
+    port: 22
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - host: gitea.frengky.xyz
+      paths:
+        - path: /
+          pathType: Prefix

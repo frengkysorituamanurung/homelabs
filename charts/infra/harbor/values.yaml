@@ -1,0 +1,82 @@
+# Harbor Helm values
+# Menggunakan local-path StorageClass untuk homelabs k3s
+
+expose:
+  type: ingress
+  ingress:
+    className: traefik
+    hosts:
+      core: harbor.frengky.xyz
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: web
+  tls:
+    enabled: false  # TLS diterminate oleh Cloudflare
+
+externalURL: https://harbor.frengky.xyz
+
+# Nonaktifkan ipFamily untuk menghindari issue di single-node k3s
+ipFamily:
+  ipv6:
+    enabled: false
+
+persistence:
+  enabled: true
+  resourcePolicy: "keep"
+  persistentVolumeClaim:
+    registry:
+      storageClass: local-path
+      accessMode: ReadWriteOnce
+      size: 50Gi
+    chartmuseum:
+      storageClass: local-path
+      accessMode: ReadWriteOnce
+      size: 5Gi
+    jobservice:
+      jobLog:
+        storageClass: local-path
+        accessMode: ReadWriteOnce
+        size: 1Gi
+    database:
+      storageClass: local-path
+      accessMode: ReadWriteOnce
+      size: 5Gi
+    redis:
+      storageClass: local-path
+      accessMode: ReadWriteOnce
+      size: 1Gi
+    trivy:
+      storageClass: local-path
+      accessMode: ReadWriteOnce
+      size: 5Gi
+
+# Password default Harbor admin (GANTI setelah setup awal!)
+harborAdminPassword: "Harbor12345"
+
+# Nonaktifkan fitur yang tidak dibutuhkan di homelabs
+chartmuseum:
+  enabled: true
+
+notary:
+  enabled: false
+
+trivy:
+  enabled: true
+
+# Resource requests ringan untuk single-node
+core:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+jobservice:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+registry:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi

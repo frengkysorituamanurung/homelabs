@@ -1,0 +1,56 @@
+# ArgoCD Helm values
+# TLS dihandle oleh Cloudflare Tunnel, ArgoCD berjalan dalam mode insecure
+
+global:
+  domain: argocd.frengky.xyz
+
+server:
+  # Jangan aktifkan ingress di sini, kita manage manual via manifests/ingress/
+  ingress:
+    enabled: false
+  extraArgs:
+    - --insecure
+
+configs:
+  params:
+    # Karena TLS diterminate di Cloudflare/Traefik level
+    server.insecure: "true"
+  cm:
+    # Disable admin login via UI setelah SSO dikonfigurasi
+    admin.enabled: "true"
+    # URL untuk SSO callback (jika diaktifkan di masa depan)
+    url: "https://argocd.frengky.xyz"
+    # Repositories yang dipercaya (tambahkan setelah Gitea ready)
+    # repositories: |
+    #   - url: http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git
+
+# Resource limits untuk single-node cluster
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+repoServer:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+applicationSet:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+notifications:
+  enabled: false
