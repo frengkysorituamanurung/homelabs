@@ -4,7 +4,7 @@ main-app:
   environment: production
   image:
     repository: harbor-registry-tls.harbor.svc.cluster.local:443/frontend/hello-world
-    tag: "632c20a"
+    tag: "f7c15b0"
     pullPolicy: Always
   service:
     enabled: true
