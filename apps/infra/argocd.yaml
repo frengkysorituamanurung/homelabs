@@ -10,7 +10,7 @@ spec:
   sources:
     - repoURL: harbor-registry-tls.harbor.svc.cluster.local
       chart: helm-repos/argo-cd
-      targetRevision: "7.8.23"
+      targetRevision: "10.1.3"
       helm:
         valueFiles:
           - $values/charts/infra/argocd/values.yaml
