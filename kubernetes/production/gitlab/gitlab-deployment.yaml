@@ -65,12 +65,10 @@ spec:
             gitlab_rails['gitlab_shell_ssh_port'] = 22
             # Disable unnecessary services to save RAM
             prometheus['enable'] = false
-            grafana['enable'] = false
             alertmanager['enable'] = false
             registry['enable'] = false
             gitlab_kas['enable'] = false
             gitlab_pages['enable'] = false
-            mattermost['enable'] = false
         ports:
         - containerPort: 80
           name: http
