@@ -76,8 +76,6 @@ spec:
             registry['enable'] = false
             gitlab_kas['enable'] = false
             gitlab_pages['enable'] = false
-            grafana['enable'] = false
-            gitlab_exporter['enable'] = false
 
             # Tune Puma workers - kurangi dari default (2 workers cukup untuk homelabs)
             puma['worker_processes'] = 2
