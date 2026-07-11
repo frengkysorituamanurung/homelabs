@@ -19,7 +19,7 @@ build-and-deploy:
     - echo "search svc.cluster.local cluster.local" >> /etc/resolv.conf
     
     # 2. Get the Deployment Tool script
-    - wget -q http://gitlab-http.gitlab.svc.cluster.local/frengky/deployment-tools/-/raw/main/scripts/build-and-deploy.sh
+    - wget -q http://gitlab-http.gitlab.svc.cluster.local/devops/deployment-tools/-/raw/main/scripts/build-and-deploy.sh
     - chmod +x build-and-deploy.sh
     
     # 3. Execute the pipeline using the Vault Token

@@ -15,7 +15,7 @@ sync-argocd:
     - ARGOCD_TOKEN=$(echo "$SECRETS_JSON" | grep -o '"argocd_token":"[^"]*' | grep -o '[^"]*$')
     
     # Download argocd-sync tool
-    - wget -q http://gitlab-http.gitlab.svc.cluster.local/frengky/deployment-tools/-/raw/main/scripts/argocd-sync.sh
+    - wget -q http://gitlab-http.gitlab.svc.cluster.local/devops/deployment-tools/-/raw/main/scripts/argocd-sync.sh
     - chmod +x argocd-sync.sh
     
     # Dapatkan file yang berubah
