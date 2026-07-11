@@ -17,5 +17,5 @@ main-app:
     stripPath: false
     hosts:
       - host: hello.frengky.xyz
-        path: /hello
+        path: /
         port: 80
