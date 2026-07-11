@@ -27,4 +27,4 @@ main-app:
     enabled: true
     mounts:
       - name: glance-config
-        target: /app/glance.yml
+        target: /app/config/glance.yml
