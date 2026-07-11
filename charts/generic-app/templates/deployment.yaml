@@ -42,6 +42,12 @@ spec:
       labels:
         {{- include "generic-app.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if $values.hostNetwork }}
+      hostNetwork: {{ $values.hostNetwork }}
+      {{- end }}
+      {{- if $values.dnsPolicy }}
+      dnsPolicy: {{ $values.dnsPolicy }}
+      {{- end }}
       containers:
         - name: {{ $values.baseName | default .Chart.Name }}
           image: "{{ $values.image.repository }}:{{ $values.image.tag | default .Chart.AppVersion }}"

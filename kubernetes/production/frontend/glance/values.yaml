@@ -3,6 +3,8 @@ main-app:
   baseNamespace: frontend
   baseName: glance
   environment: production
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
   image:
     repository: glanceapp/glance
     tag: "v0.8.5"
