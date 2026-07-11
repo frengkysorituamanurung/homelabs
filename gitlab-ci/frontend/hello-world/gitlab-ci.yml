@@ -3,7 +3,7 @@ stages:
 
 variables:
   APP_NAME: "hello-world"
-  IMAGE_REPO: "harbor-registry-tls.harbor.svc.cluster.local:443/frontend/hello-world"
+  IMAGE_REPO: "harbor.frengky.xyz/frontend/hello-world"
   VALUES_PATH: "kubernetes/production/frontend/hello-world/values.yaml"
   DOCKER_HOST: "tcp://localhost:2375"
   DOCKER_TLS_CERTDIR: ""
