@@ -3,7 +3,7 @@ main-app:
   baseName: hello-world
   environment: production
   image:
-    repository: harbor-registry-tls.harbor.svc.cluster.local:443/frontend/hello-world
+    repository: harbor.frengky.xyz/frontend/hello-world
     tag: "37c5f0b"
     pullPolicy: Always
   service:
