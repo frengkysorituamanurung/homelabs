@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git
     targetRevision: main
-    path: apps
+    path: kubernetes/applications
     directory:
       recurse: true
       exclude: "root-app.yaml"

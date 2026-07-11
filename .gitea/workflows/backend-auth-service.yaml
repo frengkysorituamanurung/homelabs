@@ -1,0 +1,26 @@
+name: Backend Auth-Service Deployment
+
+# Pipeline ini dipicu ketika ada push ke branch main di repo auth-service
+on:
+  workflow_call:
+    secrets:
+      harbor_username:
+        required: true
+      harbor_password:
+        required: true
+      gitops_token:
+        required: true
+
+jobs:
+  deploy-nonprod:
+    uses: frengky/gitops/.gitea/workflows/templates/k8s.yml@main
+    with:
+      app_name: "auth-service"
+      image_repo: "harbor.frengky.xyz/backend/auth-service"
+      values_path: "kubernetes/staging/backend/auth-service/values.yaml"
+    secrets: inherit
+
+  # Jika menggunakan Argo Rollouts, kita bisa tambahkan job canary/blue-green di sini
+  # prod-deploy-preview:
+  #   needs: deploy-nonprod
+  #   ...
