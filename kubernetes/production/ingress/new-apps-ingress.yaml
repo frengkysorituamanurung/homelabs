@@ -4,8 +4,6 @@ kind: Ingress
 metadata:
   name: argocd
   namespace: argocd
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
   ingressClassName: traefik
   rules:
@@ -26,8 +24,6 @@ kind: Ingress
 metadata:
   name: vault
   namespace: vault
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
   ingressClassName: traefik
   rules:

@@ -7,8 +7,6 @@ expose:
     className: traefik
     hosts:
       core: harbor.frengky.xyz
-    annotations:
-      traefik.ingress.kubernetes.io/router.entrypoints: web
   tls:
     enabled: false  # TLS diterminate oleh Cloudflare
 
