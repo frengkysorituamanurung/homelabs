@@ -29,6 +29,8 @@ main-app:
       - host: glance.frengky.xyz
         path: /
         port: 8080
+  deploymentStrategy:
+    type: RollingUpdate
   healthCheck:
     enabled: true
     endpoint: /
