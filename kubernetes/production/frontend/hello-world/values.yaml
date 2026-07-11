@@ -12,3 +12,10 @@ main-app:
     ports:
       - name: http
         port: 80
+  ingress:
+    enabled: true
+    stripPath: true
+    hosts:
+      - host: api.partner.komerce.id
+        path: /komcards
+        port: 80
