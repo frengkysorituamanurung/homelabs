@@ -1,0 +1,76 @@
+name: Auto Sync Apps to ArgoCD
+
+# Pipeline ini akan berjalan jika ada perubahan pada konfigurasi kubernetes
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'kubernetes/production/**'
+      - 'kubernetes/staging/**'
+      - 'kubernetes/development/**'
+      - 'kubernetes/applications/**'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Secrets from Vault
+        run: |
+          curl -s -H "X-Vault-Token: ${{ secrets.VAULT_TOKEN }}" http://vault.vault.svc.cluster.local:8200/v1/secret/data/ci/credentials > vault.json
+          node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('vault.json')); fs.appendFileSync(process.env.GITHUB_ENV, 'ARGOCD_TOKEN=' + data.data.data.argocd_token + '\n');"
+
+      - name: Checkout Code
+        run: |
+          git clone "http://gitops-bot:${{ secrets.gitops_token }}@gitea-http.gitea.svc.cluster.local:3000/frengky/${{ github.repository }}.git" .
+          git checkout ${{ github.sha }}
+
+      - name: Download Sync Tool
+        run: |
+          wget -q http://gitea-http.gitea.svc.cluster.local:3000/frengky/deployment-tools/raw/branch/main/scripts/argocd-sync.sh
+          chmod +x argocd-sync.sh
+
+      - name: Detect Changed Apps and Trigger ArgoCD Sync
+        run: |
+          echo "Mencari aplikasi yang berubah pada commit ini..."
+          
+          # Mendapatkan daftar file yang berubah
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          
+          declare -A SYNCED_APPS
+          
+          for file in $CHANGED_FILES; do
+            # Cek jika file ada di direktori production/staging/development
+            if [[ $file =~ ^kubernetes/(production|staging|development)/([^/]+)/ ]]; then
+              ENV="${BASH_REMATCH[1]}"
+              APP_DIR="${BASH_REMATCH[2]}"
+              
+              # Cari file manifest argocd untuk mendapatkan nama aplikasi sebenarnya
+              MATCHED_FILE=$(grep -rl "kubernetes/.*/$APP_DIR" kubernetes/applications/ | head -n 1)
+              
+              if [[ -n "$MATCHED_FILE" ]]; then
+                APP_NAME=$(grep -E "^  name:" "$MATCHED_FILE" | awk '{print $2}')
+                
+                # Cek jika aplikasi belum disinkronisasi dalam loop ini
+                if [[ -n "$APP_NAME" && -z "${SYNCED_APPS[$APP_NAME]}" ]]; then
+                  echo "Ditemukan perubahan pada $APP_DIR. Memicu sinkronisasi untuk ArgoCD App: $APP_NAME"
+                  ./argocd-sync.sh "http://argocd-server.argocd.svc.cluster.local:80" "${{ env.ARGOCD_TOKEN }}" "$APP_NAME"
+                  SYNCED_APPS[$APP_NAME]=1
+                fi
+              fi
+            fi
+            
+            # Cek jika file yang berubah adalah file definisi aplikasi argocd itu sendiri
+            if [[ $file =~ ^kubernetes/applications/.*/([^/]+)\.yaml$ ]]; then
+              APP_NAME=$(grep -E "^  name:" "$file" | awk '{print $2}')
+              if [[ -n "$APP_NAME" && -z "${SYNCED_APPS[$APP_NAME]}" ]]; then
+                echo "Ditemukan perubahan pada file definisi aplikasi $file. Memicu sinkronisasi untuk ArgoCD App: $APP_NAME"
+                ./argocd-sync.sh "http://argocd-server.argocd.svc.cluster.local:80" "${{ env.ARGOCD_TOKEN }}" "$APP_NAME"
+                SYNCED_APPS[$APP_NAME]=1
+              fi
+            fi
+          done
+          
+          if [[ ${#SYNCED_APPS[@]} -eq 0 ]]; then
+            echo "Tidak ada aplikasi ArgoCD yang perlu disinkronisasi berdasarkan perubahan file."
+          fi
