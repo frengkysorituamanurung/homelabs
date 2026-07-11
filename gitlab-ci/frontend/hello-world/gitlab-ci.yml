@@ -15,6 +15,7 @@ build-and-deploy:
   before_script:
     - echo "nameserver 10.43.0.10" > /etc/resolv.conf
     - echo "search svc.cluster.local cluster.local" >> /etc/resolv.conf
+    - echo "151.101.130.132 dl-cdn.alpinelinux.org" >> /etc/hosts
     - apk add --no-cache curl git bash wget sed
   script:
     
