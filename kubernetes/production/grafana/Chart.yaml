@@ -4,4 +4,4 @@ version: 1.0.0
 dependencies:
   - name: grafana
     version: 8.10.4
-    repository: oci://harbor-registry-tls.harbor.svc.cluster.local/helm-repos
+    repository: https://grafana.github.io/helm-charts
