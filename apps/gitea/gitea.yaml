@@ -78,8 +78,6 @@ spec:
         ingress:
           enabled: true
           className: traefik
-          annotations:
-            traefik.ingress.kubernetes.io/router.middlewares: gitea-tailscale-whitelist@kubernetescrd
           hosts:
             - host: gitea.frengky.xyz
               paths:
