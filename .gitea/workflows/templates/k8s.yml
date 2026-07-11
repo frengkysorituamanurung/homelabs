@@ -29,6 +29,11 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Kubernetes DNS
+        run: |
+          echo "nameserver 10.43.0.10" > /etc/resolv.conf
+          echo "search svc.cluster.local cluster.local" >> /etc/resolv.conf
+
       - name: Checkout Application Code
         run: |
           git clone "http://gitops-bot:${{ secrets.gitops_token }}@gitea-http.gitea.svc.cluster.local:3000/frengky/${{ github.repository }}.git" .
