@@ -37,7 +37,7 @@ grafana:
   
   grafana.ini:
     analytics:
-      check_for_updates: false
+      check_for_updates: true
       reporting_enabled: false
     server:
       domain: grafana.frengky.xyz
