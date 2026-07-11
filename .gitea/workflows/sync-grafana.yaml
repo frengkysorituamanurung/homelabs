@@ -14,12 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Secrets from Vault
-        uses: hashicorp/vault-action@v3
-        with:
-          url: http://vault.vault.svc.cluster.local:8200
-          token: ${{ secrets.VAULT_TOKEN }}
-          secrets: |
-            secret/data/ci/credentials argocd_token | ARGOCD_TOKEN
+        run: |
+          curl -s -H "X-Vault-Token: ${{ secrets.VAULT_TOKEN }}" http://vault.vault.svc.cluster.local:8200/v1/secret/data/ci/credentials > vault.json
+          node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('vault.json')); fs.appendFileSync(process.env.GITHUB_ENV, 'ARGOCD_TOKEN=' + data.data.data.argocd_token + '\n');"
 
       - name: Download Sync Tool
         run: |

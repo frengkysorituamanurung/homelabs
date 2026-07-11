@@ -30,18 +30,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Application Code
-        uses: actions/checkout@v3
+        run: |
+          git clone "https://gitops-bot:${{ secrets.gitops_token }}@gitea.frengky.xyz/${{ github.repository }}.git" .
+          git checkout ${{ github.sha }}
 
       - name: Get Short SHA for Image Tag
         id: vars
         run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Login to Harbor
-        uses: docker/login-action@v2
-        with:
-          registry: harbor.frengky.xyz
-          username: ${{ secrets.harbor_username }}
-          password: ${{ secrets.harbor_password }}
+        run: |
+          echo "${{ secrets.harbor_password }}" | docker login harbor.frengky.xyz -u "${{ secrets.harbor_username }}" --password-stdin
 
       - name: Download Deployment Tool
         run: |
