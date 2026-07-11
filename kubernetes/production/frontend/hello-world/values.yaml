@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: harbor-registry-tls.harbor.svc.cluster.local:443/frontend/hello-world
-  tag: "latest"
+  tag: "632c20a"
   pullPolicy: Always
 
 service:
