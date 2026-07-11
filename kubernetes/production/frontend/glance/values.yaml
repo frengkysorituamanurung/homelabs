@@ -7,6 +7,13 @@ main-app:
     repository: glanceapp/glance
     tag: "v0.8.5"
     pullPolicy: Always
+  resources:
+    requests:
+      memory: 32Mi
+      cpu: 6m
+    limits:
+      memory: 200Mi
+      cpu: 100m
   service:
     enabled: true
     type: ClusterIP
