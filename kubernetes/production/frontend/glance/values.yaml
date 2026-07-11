@@ -1,3 +1,4 @@
+# Trigger pipeline sync
 main-app:
   baseNamespace: frontend
   baseName: glance
