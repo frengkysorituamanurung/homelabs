@@ -8,13 +8,13 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git
+    - repoURL: http://gitlab-http.gitlab.svc.cluster.local/frengky/gitops.git
       path: charts/generic-app
       targetRevision: main
       helm:
         valueFiles:
           - $values/kubernetes/production/frontend/hello-world/values.yaml
-    - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git
+    - repoURL: http://gitlab-http.gitlab.svc.cluster.local/frengky/gitops.git
       targetRevision: main
       ref: values
   destination:

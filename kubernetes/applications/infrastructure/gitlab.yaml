@@ -1,22 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gitea-runner
+  name: gitlab
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   source:
-    repoURL: http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git
+    repoURL: http://gitlab-http.gitlab.svc.cluster.local/frengky/gitops.git
     targetRevision: main
-    path: kubernetes/production/gitea-runner
+    path: kubernetes/production/gitlab
   destination:
     server: https://kubernetes.default.svc
-    namespace: gitea-runner
+    namespace: gitlab
   syncPolicy:
     automated:
-      prune: false
+      prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
