@@ -16,6 +16,6 @@ main-app:
     enabled: true
     stripPath: true
     hosts:
-      - host: api.partner.komerce.id
-        path: /komcards
+      - host: hello.frengky.xyz
+        path: /hello
         port: 80
