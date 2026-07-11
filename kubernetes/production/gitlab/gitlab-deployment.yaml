@@ -61,7 +61,9 @@ spec:
         env:
         - name: GITLAB_OMNIBUS_CONFIG
           value: |
-            external_url 'http://gitlab-http.gitlab.svc.cluster.local'
+            external_url 'https://gitlab.frengky.xyz'
+            nginx['listen_port'] = 80
+            nginx['listen_https'] = false
             gitlab_rails['gitlab_shell_ssh_port'] = 22
             # Disable unnecessary services to save RAM
             prometheus['enable'] = false
