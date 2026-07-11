@@ -13,7 +13,7 @@ spec:
       targetRevision: "10.1.3"
       helm:
         valueFiles:
-          - $values/charts/infra/argocd/values.yaml
+          - $values/kubernetes/production/argocd/values.yaml
     - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git
       targetRevision: main
       ref: values

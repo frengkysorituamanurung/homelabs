@@ -13,7 +13,7 @@ spec:
       targetRevision: "1.16.2"
       helm:
         valueFiles:
-          - $values/charts/infra/harbor/values.yaml
+          - $values/kubernetes/production/harbor/values.yaml
     - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git
       targetRevision: main
       ref: values
