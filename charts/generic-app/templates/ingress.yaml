@@ -22,7 +22,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ $values.baseName | default (include "generic-app.fullname" .) }}{{ if and $values.deploymentStrategy (eq $values.deploymentStrategy.type "BlueGreen") }}-active{{ end }}
+                name: {{ $values.baseName | default (include "generic-app.fullname" $) }}{{ if and $values.deploymentStrategy (eq $values.deploymentStrategy.type "BlueGreen") }}-active{{ end }}
                 port:
                   number: {{ .port }}
     {{- end }}
