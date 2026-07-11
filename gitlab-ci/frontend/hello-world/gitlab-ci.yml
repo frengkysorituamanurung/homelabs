@@ -3,20 +3,18 @@ stages:
 
 variables:
   APP_NAME: "hello-world"
-  IMAGE_REPO: "harbor.frengky.xyz/frontend/hello-world"
+  IMAGE_REPO: "harbor-registry-tls.harbor.svc.cluster.local:443/frontend/hello-world"
   VALUES_PATH: "kubernetes/production/frontend/hello-world/values.yaml"
 
 build-and-deploy:
   stage: build-and-deploy
-  image: docker:20.10.16
+  image: harbor-registry-tls.harbor.svc.cluster.local:443/library/docker:20.10.16-tools
   services:
-    - name: docker:20.10.16-dind
+    - name: harbor-registry-tls.harbor.svc.cluster.local:443/library/docker:20.10.16-dind
       command: ["--mtu=1450"]
   before_script:
     - echo "nameserver 10.43.0.10" > /etc/resolv.conf
     - echo "search svc.cluster.local cluster.local" >> /etc/resolv.conf
-    - echo "151.101.130.132 dl-cdn.alpinelinux.org" >> /etc/hosts
-    - apk add --no-cache curl git bash wget sed
   script:
     
     # 2. Get the Deployment Tool script

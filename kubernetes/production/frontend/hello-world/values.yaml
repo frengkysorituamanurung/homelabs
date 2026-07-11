@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: harbor.frengky.xyz/frontend/hello-world
+  repository: harbor-registry-tls.harbor.svc.cluster.local:443/frontend/hello-world
   tag: "latest"
   pullPolicy: Always
 
