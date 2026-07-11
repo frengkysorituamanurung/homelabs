@@ -27,7 +27,9 @@ jobs:
 
       - name: Checkout Code
         run: |
-          git clone "http://gitops-bot:${{ secrets.gitops_token }}@gitea-http.gitea.svc.cluster.local:3000/frengky/${{ github.repository }}.git" .
+          git init
+          git remote add origin "http://gitops-bot:${{ secrets.gitops_token }}@gitea-http.gitea.svc.cluster.local:3000/${{ github.repository }}.git"
+          git fetch origin
           git checkout ${{ github.sha }}
 
       - name: Download Sync Tool
