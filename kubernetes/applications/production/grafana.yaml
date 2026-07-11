@@ -12,7 +12,7 @@ spec:
       helm:
         valueFiles:
           - $values/kubernetes/production/grafana/values.yaml
-    - repoURL: 'http://gitlab-http.gitlab.svc.cluster.local/frengky/gitops.git'
+    - repoURL: 'http://gitlab-http.gitlab.svc.cluster.local/root/gitops.git'
       targetRevision: main
       ref: values
   destination:

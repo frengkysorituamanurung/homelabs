@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: http://gitlab-http.gitlab.svc.cluster.local/frengky/gitops.git
+    repoURL: http://gitlab-http.gitlab.svc.cluster.local/root/gitops.git
     targetRevision: main
     path: kubernetes/applications
     directory:
