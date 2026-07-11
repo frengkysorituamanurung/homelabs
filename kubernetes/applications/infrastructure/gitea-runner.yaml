@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git
     targetRevision: main
-    path: manifests/gitea-runner
+    path: kubernetes/production/gitea-runner
   destination:
     server: https://kubernetes.default.svc
     namespace: gitea-runner

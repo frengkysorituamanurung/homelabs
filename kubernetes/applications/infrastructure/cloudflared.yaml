@@ -1,25 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: new-apps-ingress
+  name: cloudflared
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   source:
     repoURL: http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git
     targetRevision: main
-    path: manifests/ingress
-    directory:
-      include: "new-apps-ingress.yaml"
+    path: kubernetes/production/cloudflare
   destination:
     server: https://kubernetes.default.svc
-    # namespace intentionally omitted - manifest contains multiple namespaces
-    namespace: argocd
+    namespace: cloudflare
   syncPolicy:
     automated:
-      prune: true
+      prune: false
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
