@@ -20,7 +20,7 @@ jobs:
 
       - name: Download Sync Tool
         run: |
-          wget -q https://gitea.frengky.xyz/frengky/deployment-tools/raw/branch/main/scripts/argocd-sync.sh
+          wget -q http://gitea-http.gitea.svc.cluster.local:3000/frengky/deployment-tools/raw/branch/main/scripts/argocd-sync.sh
           chmod +x argocd-sync.sh
 
       - name: Trigger ArgoCD Sync

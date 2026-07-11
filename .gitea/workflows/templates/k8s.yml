@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Checkout Application Code
         run: |
-          git clone "https://gitops-bot:${{ secrets.gitops_token }}@gitea.frengky.xyz/${{ github.repository }}.git" .
+          git clone "http://gitops-bot:${{ secrets.gitops_token }}@gitea-http.gitea.svc.cluster.local:3000/frengky/${{ github.repository }}.git" .
           git checkout ${{ github.sha }}
 
       - name: Get Short SHA for Image Tag
@@ -44,7 +44,7 @@ jobs:
 
       - name: Download Deployment Tool
         run: |
-          wget -q https://gitea.frengky.xyz/frengky/gitops/raw/branch/main/scripts/deployment-tool.sh
+          wget -q http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops/raw/branch/main/scripts/deployment-tool.sh
           chmod +x deployment-tool.sh
 
       - name: Run Deployment Tool
@@ -53,11 +53,11 @@ jobs:
             "${{ inputs.app_name }}" \
             "${{ inputs.image_repo }}" \
             "${{ env.IMAGE_TAG }}" \
-            "https://gitops-bot:${{ secrets.gitops_token }}@gitea.frengky.xyz/frengky/gitops.git" \
+            "http://gitops-bot:${{ secrets.gitops_token }}@gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git" \
             "${{ inputs.values_path }}"
 
       - name: Trigger ArgoCD Auto-Sync
         run: |
-          wget -q https://gitea.frengky.xyz/frengky/deployment-tools/raw/branch/main/scripts/argocd-sync.sh
+          wget -q http://gitea-http.gitea.svc.cluster.local:3000/frengky/deployment-tools/raw/branch/main/scripts/argocd-sync.sh
           chmod +x argocd-sync.sh
-          ./argocd-sync.sh argocd.frengky.xyz "${{ secrets.argocd_token }}" "${{ inputs.app_name }}"
+          ./argocd-sync.sh http://argocd-server.argocd.svc.cluster.local:80 "${{ secrets.argocd_token }}" "${{ inputs.app_name }}"
