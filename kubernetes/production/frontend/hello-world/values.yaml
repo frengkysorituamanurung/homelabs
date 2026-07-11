@@ -1,0 +1,10 @@
+replicaCount: 1
+
+image:
+  repository: harbor.frengky.xyz/frontend/hello-world
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80

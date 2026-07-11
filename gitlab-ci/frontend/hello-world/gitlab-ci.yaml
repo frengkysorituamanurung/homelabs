@@ -1,0 +1,67 @@
+name: Frontend CI/CD Template
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        required: true
+        type: string
+      image_repo:
+        required: true
+        type: string
+      values_path:
+        required: true
+        type: string
+    secrets:
+      harbor_username:
+        required: true
+      harbor_password:
+        required: true
+      gitops_token:
+        required: true
+      argocd_token:
+        required: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Kubernetes DNS
+        run: |
+          echo "nameserver 10.43.0.10" > /etc/resolv.conf
+          echo "search svc.cluster.local cluster.local" >> /etc/resolv.conf
+
+      - name: Checkout Application Code
+        run: |
+          git init
+          git remote add origin "http://gitops-bot:${{ secrets.gitops_token }}@gitea-http.gitea.svc.cluster.local:3000/frengky/${{ github.repository }}.git"
+          git fetch origin
+          git checkout ${{ github.sha }}
+
+      - name: Get Short SHA for Image Tag
+        id: vars
+        run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Login to Harbor
+        run: |
+          echo "${{ secrets.harbor_password }}" | docker login harbor.frengky.xyz -u "${{ secrets.harbor_username }}" --password-stdin
+
+      - name: Download Deployment Tool
+        run: |
+          wget -q http://gitea-http.gitea.svc.cluster.local:3000/frengky/gitops/raw/branch/main/scripts/deployment-tool.sh
+          chmod +x deployment-tool.sh
+
+      - name: Run Deployment Tool (Build, Push, GitOps Commit)
+        run: |
+          ./deployment-tool.sh \
+            "${{ inputs.app_name }}" \
+            "${{ inputs.image_repo }}" \
+            "${{ env.IMAGE_TAG }}" \
+            "http://gitops-bot:${{ secrets.gitops_token }}@gitea-http.gitea.svc.cluster.local:3000/frengky/gitops.git" \
+            "${{ inputs.values_path }}"
+
+      - name: Trigger ArgoCD Auto-Sync
+        run: |
+          wget -q http://gitea-http.gitea.svc.cluster.local:3000/frengky/deployment-tools/raw/branch/main/scripts/argocd-sync.sh
+          chmod +x argocd-sync.sh
+          ./argocd-sync.sh http://argocd-server.argocd.svc.cluster.local:80 "${{ secrets.argocd_token }}" "${{ inputs.app_name }}"

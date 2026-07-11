@@ -43,16 +43,10 @@ git clone ${GITOPS_REPO_URL} ${TEMP_DIR}
 
 cd ${TEMP_DIR}
 
-# Download yq jika belum ada (untuk parsing/edit YAML dengan aman)
-if ! command -v yq &> /dev/null; then
-    echo "Mendownload yq..."
-    wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-    chmod a+x /usr/local/bin/yq
-fi
-
-# Update tag di values.yaml (Mengasumsikan format standard Helm: image.tag)
+# Update tag di values.yaml menggunakan sed
 if [ -f "${VALUES_FILE_PATH}" ]; then
-    yq e ".image.tag = \"${IMAGE_TAG}\"" -i ${VALUES_FILE_PATH}
+    # Mencari baris tag: dan menggantinya dengan tag baru di dalam blok image
+    sed -i -E "s/tag: .*/tag: \"${IMAGE_TAG}\"/" "${VALUES_FILE_PATH}"
     
     # Setup identitas Git
     git config user.name "GitOps Bot"
