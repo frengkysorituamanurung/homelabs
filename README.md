@@ -78,6 +78,8 @@ Secrets **tidak** disimpan di repo ini. Workflow:
 
 Lihat [`secrets/README.md`](secrets/README.md) untuk panduan lengkap.
 
+Untuk pengelolaan sertifikat SSL/TLS otomatis via Tailscale, lihat [`docs/gitops-cert-manager.md`](docs/gitops-cert-manager.md).
+
 ## Komponen yang Di-manage
 
 | Komponen | Namespace | Type | Chart Version |
@@ -96,6 +98,7 @@ Lihat [`secrets/README.md`](secrets/README.md) untuk panduan lengkap.
 | **Harbor** | harbor | Helm | harbor/harbor ~1.16.x |
 | **Vault** | vault | Helm | hashicorp/vault ~0.29.x |
 | **ESO** | external-secrets | Helm | external-secrets ~0.10.x |
+| **Cert-Manager** | cert-manager | Manifest (GitOps) | v1.15.1 |
 
 ## Useful Commands
 
