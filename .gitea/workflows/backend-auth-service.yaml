@@ -10,6 +10,8 @@ on:
         required: true
       gitops_token:
         required: true
+      argocd_token:
+        required: true
 
 jobs:
   deploy-nonprod:

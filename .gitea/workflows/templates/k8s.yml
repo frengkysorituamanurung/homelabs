@@ -22,6 +22,8 @@ on:
         required: true
       gitops_token:
         required: true
+      argocd_token:
+        required: true
 
 jobs:
   build-and-deploy:
@@ -42,7 +44,6 @@ jobs:
           password: ${{ secrets.harbor_password }}
 
       - name: Download Deployment Tool
-        # Mengambil script deployment-tool dari repo GitOps
         run: |
           wget -q https://gitea.frengky.xyz/frengky/gitops/raw/branch/main/scripts/deployment-tool.sh
           chmod +x deployment-tool.sh
@@ -55,3 +56,9 @@ jobs:
             "${{ env.IMAGE_TAG }}" \
             "https://gitops-bot:${{ secrets.gitops_token }}@gitea.frengky.xyz/frengky/gitops.git" \
             "${{ inputs.values_path }}"
+
+      - name: Trigger ArgoCD Auto-Sync
+        run: |
+          wget -q https://gitea.frengky.xyz/frengky/deployment-tools/raw/branch/main/scripts/argocd-sync.sh
+          chmod +x argocd-sync.sh
+          ./argocd-sync.sh argocd.frengky.xyz "${{ secrets.argocd_token }}" "${{ inputs.app_name }}"
