@@ -1,0 +1,26 @@
+stages:
+  - build-and-deploy
+
+variables:
+  APP_NAME: "hello-world"
+  IMAGE_REPO: "harbor.frengky.xyz/frontend/hello-world"
+  VALUES_PATH: "kubernetes/production/frontend/hello-world/values.yaml"
+
+build-and-deploy:
+  stage: build-and-deploy
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - apk add --no-cache curl git bash wget sed
+  script:
+    # 1. Setup DNS for internal cluster resolution
+    - echo "nameserver 10.43.0.10" > /etc/resolv.conf
+    - echo "search svc.cluster.local cluster.local" >> /etc/resolv.conf
+    
+    # 2. Get the Deployment Tool script
+    - wget -q http://gitlab-http.gitlab.svc.cluster.local/frengky/deployment-tools/-/raw/main/scripts/build-and-deploy.sh
+    - chmod +x build-and-deploy.sh
+    
+    # 3. Execute the pipeline using the Vault Token
+    - ./build-and-deploy.sh "$APP_NAME" "$IMAGE_REPO" "$VALUES_PATH"
