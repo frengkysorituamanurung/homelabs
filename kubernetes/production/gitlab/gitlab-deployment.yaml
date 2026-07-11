@@ -64,13 +64,52 @@ spec:
             external_url 'https://gitlab.frengky.xyz'
             nginx['listen_port'] = 80
             nginx['listen_https'] = false
+            nginx['proxy_set_headers'] = {
+              "X-Forwarded-Proto" => "https",
+              "X-Forwarded-Ssl" => "on"
+            }
             gitlab_rails['gitlab_shell_ssh_port'] = 22
+
             # Disable unnecessary services to save RAM
             prometheus['enable'] = false
             alertmanager['enable'] = false
             registry['enable'] = false
             gitlab_kas['enable'] = false
             gitlab_pages['enable'] = false
+            grafana['enable'] = false
+            gitlab_exporter['enable'] = false
+
+            # Tune Puma workers - kurangi dari default (2 workers cukup untuk homelabs)
+            puma['worker_processes'] = 2
+            puma['min_threads'] = 2
+            puma['max_threads'] = 4
+
+            # Tune Sidekiq concurrency
+            sidekiq['concurrency'] = 5
+
+            # Tune PostgreSQL - kurangi shared_buffers dan max_connections
+            postgresql['shared_buffers'] = "128MB"
+            postgresql['max_connections'] = 50
+            postgresql['work_mem'] = "8MB"
+            postgresql['maintenance_work_mem'] = "32MB"
+
+            # Tune Gitaly
+            gitaly['configuration'] = {
+              concurrency: [
+                {
+                  rpc: "/gitaly.SmartHTTPService/PostReceivePack",
+                  max_per_repo: 3,
+                },
+                {
+                  rpc: "/gitaly.SSHService/SSHUploadPack",
+                  max_per_repo: 3,
+                },
+              ],
+            }
+
+            # Redis tuning
+            redis['maxmemory'] = "256mb"
+            redis['maxmemory_policy'] = "allkeys-lru"
         ports:
         - containerPort: 80
           name: http
@@ -87,10 +126,10 @@ spec:
           mountPath: /var/opt/gitlab
         resources:
           requests:
-            memory: "1Gi"
+            memory: "512Mi"
             cpu: "500m"
           limits:
-            memory: "6Gi"
+            memory: "8Gi"
             cpu: "3000m"
       volumes:
       - name: gitlab-config
