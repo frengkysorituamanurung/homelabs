@@ -12,11 +12,12 @@ spec:
     chart: helm-repos/prometheus-node-exporter
     targetRevision: "4.45.0"
     helm:
-      parameters:
-        - name: tolerations[0].operator
-          value: "Exists"
-        - name: hostRootFsMount.enabled
-          value: "false"
+      valuesObject:
+        tolerations:
+          - operator: "Exists"
+        hostRootFsMount:
+          enabled: false
+          mountPropagation: "None"
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

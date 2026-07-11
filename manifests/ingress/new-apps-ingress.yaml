@@ -1,4 +1,4 @@
-# ArgoCD Ingress
+# ArgoCD Ingress - Tailscale Only Access
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -6,6 +6,7 @@ metadata:
   namespace: argocd
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: argocd-tailscale-whitelist@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
@@ -20,7 +21,7 @@ spec:
                 port:
                   number: 80
 ---
-# Vault Ingress
+# Vault Ingress - Tailscale Only Access
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -28,6 +29,7 @@ metadata:
   namespace: vault
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: vault-tailscale-whitelist@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

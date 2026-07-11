@@ -1,8 +1,11 @@
+# Grafana Ingress - Tailscale Only Access
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: grafana
   namespace: monitoring
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: monitoring-tailscale-whitelist@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
