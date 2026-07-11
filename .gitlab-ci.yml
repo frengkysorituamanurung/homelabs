@@ -3,12 +3,10 @@ stages:
 
 sync-argocd:
   stage: sync
-  image: alpine:latest
+  image: harbor-registry-tls.harbor.svc.cluster.local:443/library/docker:20.10.16-tools
   before_script:
     - echo "nameserver 10.43.0.10" > /etc/resolv.conf
     - echo "search svc.cluster.local cluster.local" >> /etc/resolv.conf
-    - echo "151.101.130.132 dl-cdn.alpinelinux.org" >> /etc/hosts
-    - apk add --no-cache curl bash wget git
   script:
 
     
