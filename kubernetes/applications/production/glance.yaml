@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: glance
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: default
+  sources:
+    - repoURL: http://gitlab-http.gitlab.svc.cluster.local/devops/gitops.git
+      path: charts/generic-app
+      targetRevision: main
+      helm:
+        valueFiles:
+          - $values/kubernetes/production/frontend/glance/values.yaml
+    - repoURL: http://gitlab-http.gitlab.svc.cluster.local/devops/gitops.git
+      path: kubernetes/production/frontend/glance/manifests
+      targetRevision: main
+    - repoURL: http://gitlab-http.gitlab.svc.cluster.local/devops/gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: frontend
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

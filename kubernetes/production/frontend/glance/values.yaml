@@ -1,0 +1,30 @@
+main-app:
+  baseNamespace: frontend
+  baseName: glance
+  environment: production
+  image:
+    repository: glanceapp/glance
+    tag: "v0.8.5"
+    pullPolicy: Always
+  service:
+    enabled: true
+    type: ClusterIP
+    ports:
+      - name: http
+        port: 8080
+  ingress:
+    enabled: true
+    stripPath: false
+    hosts:
+      - host: glance.frengky.xyz
+        path: /
+        port: 8080
+  healthCheck:
+    enabled: true
+    endpoint: /
+    port: 8080
+  mount:
+    enabled: true
+    mounts:
+      - name: glance-config
+        target: /app/glance.yml
