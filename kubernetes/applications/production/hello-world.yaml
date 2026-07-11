@@ -19,7 +19,7 @@ spec:
       ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: hello-world
+    namespace: frontend
   syncPolicy:
     automated:
       prune: true
