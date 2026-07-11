@@ -8,20 +8,12 @@ sync-argocd:
     - echo "nameserver 10.43.0.10" > /etc/resolv.conf
     - echo "search svc.cluster.local cluster.local" >> /etc/resolv.conf
   script:
-
-    
-    # Ambil ARGOCD_TOKEN dari Vault
     - SECRETS_JSON=$(wget -qO- --header="X-Vault-Token: $VAULT_TOKEN" http://vault.vault.svc.cluster.local:8200/v1/secret/data/ci/credentials)
     - ARGOCD_TOKEN=$(echo "$SECRETS_JSON" | grep -o '"argocd_token":"[^"]*' | grep -o '[^"]*$')
-    
-    # Download argocd-sync tool
     - git clone http://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab-http.gitlab.svc.cluster.local/devops/deployment-tools.git
     - cp deployment-tools/scripts/argocd-sync.sh .
     - chmod +x argocd-sync.sh
-    
-    # Dapatkan file yang berubah
     - CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r $CI_COMMIT_SHA)
-    
     - |
       for file in $CHANGED_FILES; do
         if [[ $file =~ ^kubernetes/(production|staging|development)/([^/]+)/ ]]; then
