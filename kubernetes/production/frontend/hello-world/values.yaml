@@ -1,4 +1,4 @@
-main-app:
+generic-app:
   baseNamespace: frontend
   baseName: hello-world
   environment: production
