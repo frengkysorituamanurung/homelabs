@@ -1,0 +1,21 @@
+generic-app:
+  baseNamespace: backend
+  baseName: sample-api
+  environment: production
+  image:
+    repository: harbor.frengky.xyz/backend/sample-api
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    enabled: true
+    type: ClusterIP
+    ports:
+      - name: http
+        port: 8080
+  ingress:
+    enabled: true
+    stripPath: false
+    hosts:
+      - host: api.frengky.xyz
+        path: /
+        port: 8080
