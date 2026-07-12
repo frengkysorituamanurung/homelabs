@@ -1,5 +1,4 @@
-# Trigger pipeline sync 2
-main-app:
+generic-app:
   baseNamespace: frontend
   baseName: glance
   environment: production
@@ -29,8 +28,6 @@ main-app:
       - host: glance.frengky.xyz
         path: /
         port: 8080
-  # deploymentStrategy:
-  #   type: RollingUpdate
   healthCheck:
     enabled: true
     endpoint: /
