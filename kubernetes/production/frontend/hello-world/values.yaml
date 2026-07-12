@@ -19,10 +19,3 @@ generic-app:
       - host: hello.frengky.xyz
         path: /
         port: 80
-  envFrom:
-    - secretRef:
-        name: hello-world-secrets
-  externalSecret:
-    enabled: true
-    data:
-      - secretKey: APP_ENV
