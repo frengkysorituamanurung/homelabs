@@ -6,7 +6,7 @@
 server:
   # Dev mode: untuk setup awal dan eksplorasi
   dev:
-    enabled: true
+    enabled: false
     devRootToken: "root"  # Root token - GANTI SETELAH PRODUCTION!
 
   # Ingress dikelola manual di manifests/ingress/
