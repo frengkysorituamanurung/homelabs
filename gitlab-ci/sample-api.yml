@@ -1,0 +1,8 @@
+include:
+  - project: 'devops/deployment-tools'
+    file: '/templates/.gitlab-ci-template.yml'
+
+variables:
+  APP_NAME: "sample-api"
+  IMAGE_REPO: "harbor.frengky.xyz/backend/sample-api"
+  VALUES_PATH: "kubernetes/production/backend/sample-api/values.yaml"
