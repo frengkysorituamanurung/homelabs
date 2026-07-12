@@ -4,7 +4,7 @@ generic-app:
   environment: production
   image:
     repository: harbor.frengky.xyz/backend/sample-api
-    tag: "latest"
+    tag: "bb839c3"
     pullPolicy: Always
   service:
     enabled: true
