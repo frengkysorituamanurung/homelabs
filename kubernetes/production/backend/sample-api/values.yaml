@@ -19,7 +19,17 @@ generic-app:
       - host: api.frengky.xyz
         path: /
         port: 8080
+    preview:
+      enabled: true
+      hosts:
+        - host: api-preview.frengky.xyz
+          path: /
+          port: 8080
   deploymentStrategy:
-    type: BlueGreen
-    blueGreen:
-      autoPromotionEnabled: false
+    type: Canary
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {}
+        - setWeight: 50
+        - pause: { duration: 10s }
