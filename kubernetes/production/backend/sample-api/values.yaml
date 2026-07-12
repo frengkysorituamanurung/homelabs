@@ -16,7 +16,7 @@ generic-app:
     enabled: true
     stripPath: false
     hosts:
-      - host: api.frengky.xyz
+      - host: apis.frengky.xyz
         path: /
         port: 8080
   deploymentStrategy:
