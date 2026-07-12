@@ -19,3 +19,5 @@ generic-app:
       - host: api.frengky.xyz
         path: /
         port: 8080
+  deploymentStrategy:
+    type: RollingUpdate
