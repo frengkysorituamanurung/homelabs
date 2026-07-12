@@ -1,0 +1,6 @@
+dependencies:
+- name: generic-app
+  repository: oci://harbor.frengky.xyz/helm-repos
+  version: 0.1.8
+digest: sha256:beb2cc96c008eb6abd98e70f8b9d451998b1d8bdd26b64b30bb2c0c3a4ee9cc0
+generated: "2026-07-12T23:30:17.376784061+07:00"
