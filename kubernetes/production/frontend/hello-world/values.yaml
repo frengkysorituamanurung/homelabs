@@ -19,6 +19,3 @@ main-app:
       - host: hello.frengky.xyz
         path: /
         port: 80
-generic-app:
-  image:
-    tag: 3217c33
