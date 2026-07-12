@@ -19,3 +19,5 @@ generic-app:
       - host: hello.frengky.xyz
         path: /
         port: 80
+
+# optimized CI run
