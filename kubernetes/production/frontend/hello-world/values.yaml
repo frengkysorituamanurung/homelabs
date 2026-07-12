@@ -22,3 +22,7 @@ generic-app:
   envFrom:
     - secretRef:
         name: hello-world-secrets
+  externalSecret:
+    enabled: true
+    data:
+      - secretKey: APP_ENV
