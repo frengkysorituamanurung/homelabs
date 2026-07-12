@@ -28,6 +28,8 @@ generic-app:
       - host: glance.frengky.xyz
         path: /
         port: 8080
+  deploymentStrategy:
+    type: Recreate
   healthCheck:
     enabled: true
     endpoint: /
