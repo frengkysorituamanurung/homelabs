@@ -20,4 +20,4 @@ generic-app:
         path: /
         port: 80
 
-# optimized CI run
+# optimized CI run - test gitea sync
