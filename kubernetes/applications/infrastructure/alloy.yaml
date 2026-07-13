@@ -14,7 +14,7 @@ spec:
       helm:
         valueFiles:
           - $values/kubernetes/production/alloy/values.yaml
-    - repoURL: http://gitlab-http.gitlab.svc.cluster.local/devops/gitops.git
+    - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
       targetRevision: main
       ref: values
   destination:

@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: http://gitlab-http.gitlab.svc.cluster.local/devops/gitops.git
+    repoURL: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
     targetRevision: main
     path: kubernetes/production/ingress
     directory:
