@@ -1,0 +1,23 @@
+name: Sync ArgoCD Applications
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync-argocd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure DNS
+        run: |
+          echo "nameserver 10.43.0.10" > /etc/resolv.conf
+          echo "search svc.cluster.local cluster.local" >> /etc/resolv.conf
+
+      - name: Run sync script
+        run: |
+          chmod +x ./scripts/sync-apps.sh
+          ./scripts/sync-apps.sh
