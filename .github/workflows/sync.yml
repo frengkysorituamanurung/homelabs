@@ -18,6 +18,8 @@ jobs:
           echo "search svc.cluster.local cluster.local" >> /etc/resolv.conf
 
       - name: Run sync script
+        env:
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
         run: |
           chmod +x ./scripts/sync-apps.sh
           ./scripts/sync-apps.sh

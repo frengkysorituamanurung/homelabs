@@ -1,17 +1,18 @@
 #!/bin/bash
 set -e
 
-# Ambil ARGOCD_TOKEN dari Vault
+# Ambil token dari Vault
 SECRETS_JSON=$(wget -qO- --header="X-Vault-Token: $VAULT_TOKEN" http://vault.vault.svc.cluster.local:8200/v1/secret/data/ci/credentials)
 ARGOCD_TOKEN=$(echo "$SECRETS_JSON" | grep -o '"argocd_token":"[^"]*' | grep -o '[^"]*$')
+GITOPS_TOKEN=$(echo "$SECRETS_JSON" | grep -o '"gitops_token":"[^"]*' | grep -o '[^"]*$')
 
-# Download argocd-sync tool
-git clone http://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab-http.gitlab.svc.cluster.local/devops/deployment-tools.git
+# Download argocd-sync tool from Gitea
+git clone "http://gitea_admin:${GITOPS_TOKEN}@gitea-http.gitea.svc.cluster.local:3000/devops/deployment-tools.git"
 cp deployment-tools/scripts/argocd-sync.sh .
 chmod +x argocd-sync.sh
 
-# Dapatkan file yang berubah
-CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r $CI_COMMIT_SHA)
+# Dapatkan file yang berubah pada commit HEAD
+CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
 
 for file in $CHANGED_FILES; do
   if [[ $file =~ ^kubernetes/(production|staging|development)/([^/]+)/ ]]; then
