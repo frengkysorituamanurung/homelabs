@@ -1,0 +1,16 @@
+enabled: true
+
+giteaRootURL: http://gitea-http.gitea.svc.cluster.local:3000/
+
+existingSecret: gitea-runner-token
+existingSecretKey: token
+
+global:
+  storageClass: "local-path"
+
+statefulset:
+  replicas: 1
+  persistence:
+    size: 2Gi
+  dind:
+    tag: 24.0.9-dind

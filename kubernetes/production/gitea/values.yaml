@@ -1,0 +1,81 @@
+# Gitea configuration values
+global:
+  storageClass: "local-path"
+
+strategy:
+  type: "Recreate"
+
+gitea:
+  admin:
+    username: "gitea_admin"
+    password: "Gitea_Admin_Password_Secure123!"
+    email: "admin@frengky.xyz"
+    passwordMode: keepUpdated
+
+  config:
+    APP_NAME: "Gitea: Git with a cup of tea"
+    RUN_MODE: prod
+    server:
+      DOMAIN: gitea.frengky.xyz
+      ROOT_URL: https://gitea.frengky.xyz/
+      SSH_DOMAIN: gitea.frengky.xyz
+      SSH_PORT: 2222
+      SSH_LISTEN_PORT: 22
+    migrations:
+      ALLOW_LOCALNETWORKS: true
+    actions:
+      ENABLED: true
+
+service:
+  http:
+    type: ClusterIP
+    port: 3000
+  ssh:
+    type: NodePort
+    port: 22
+    nodePort: 32222
+
+ingress:
+  enabled: true
+  className: "traefik"
+  hosts:
+    - host: gitea.frengky.xyz
+      paths:
+        - path: /
+          pathType: Prefix
+
+persistence:
+  enabled: true
+  storageClass: "local-path"
+  size: 5Gi
+
+postgresql-ha:
+  enabled: false
+
+postgresql:
+  enabled: true
+  global:
+    postgresql:
+      auth:
+        database: gitea
+        username: gitea
+        password: gitea-secure-db-password-123
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "local-path"
+      size: 5Gi
+
+valkey-cluster:
+  enabled: false
+
+valkey:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
