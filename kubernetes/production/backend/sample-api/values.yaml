@@ -20,10 +20,11 @@ generic-app:
         path: /
         port: 8080
   deploymentStrategy:
-    type: Canary
-    canary:
-      steps:
-        - setWeight: 20
-        - pause: {}
-        - setWeight: 50
-        - pause: { duration: 10s }
+    type: RollingUpdate
+    # type: Canary
+    # canary:
+    #   steps:
+    #     - setWeight: 20
+    #     - pause: {}
+    #     - setWeight: 50
+    #     - pause: { duration: 10s }
