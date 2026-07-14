@@ -34,7 +34,7 @@ spec:
               value: "https"
             - name: NODE_ENV
               value: "production"
-            - name: WEBHOOK_URL
+            - name: N8N_WEBHOOK_URL
               value: "https://n8n.frengky.xyz/"
             - name: N8N_ENCRYPTION_KEY
               value: "n8n-encryption-key-for-frengky-xyz"
