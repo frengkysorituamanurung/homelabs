@@ -2,7 +2,7 @@ generic-app:
   baseNamespace: backend
   baseName: sample-api
   environment: production
-  replicaCount: 2
+  replicaCount: 1
   image:
     repository: harbor.frengky.xyz/backend/sample-api
     tag: "3638114"
