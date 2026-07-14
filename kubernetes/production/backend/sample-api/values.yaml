@@ -2,7 +2,7 @@ generic-app:
   baseNamespace: backend
   baseName: sample-api
   environment: production
-  replicaCount: 10
+  replicaCount: 1
   image:
     repository: harbor.frengky.xyz/backend/sample-api
     tag: "3638114"
@@ -23,8 +23,8 @@ generic-app:
   deploymentStrategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1       # Membuat 1 pod baru terlebih dahulu sebelum menghapus pod lama
-      maxUnavailable: 0
+      maxSurge: 1     # Membuat 1 pod baru terlebih dahulu sebelum menghapus pod lama
+      maxUnavailable: 1
     # type: Canary
     # canary:
     #   steps:
