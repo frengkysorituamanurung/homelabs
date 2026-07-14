@@ -24,7 +24,11 @@ generic-app:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1     # Membuat 1 pod baru terlebih dahulu sebelum menghapus pod lama
-      maxUnavailable: 1
+      maxUnavailable: 0
+  healthCheck:
+    enabled: true
+    endpoint: /
+    port: 8080
     # type: Canary
     # canary:
     #   steps:
