@@ -12,7 +12,7 @@ Pola akses untuk n8n dikonfigurasi secara privat menggunakan model **Tailscale-o
 2. **Domain/DNS**: Subdomain `n8n.frengky.xyz` diarahkan secara langsung ke IP Tailscale Host (`100.120.133.63`) di Cloudflare (DNS-Only / Gray Cloud). Trafik dari luar Tailscale mesh network secara alami tidak dapat merutekan ke IP CGNAT Tailscale ini.
 3. **Traefik Ingress**: Ingress dikonfigurasi menggunakan Ingress Class `traefik` untuk routing internal.
 4. **SSL/TLS**: SSL otomatis dilayani oleh Traefik menggunakan default TLSStore wildcard certificate (`wildcard-frengky-xyz-tls`) yang diterbitkan oleh Let's Encrypt melalui cert-manager DNS-01 Challenge.
-5. **Enforcement Keamanan (Middleware)**: Untuk perlindungan lapis tambahan, ingress n8n menerapkan middleware `tailscale-whitelist` milik Traefik. Middleware ini secara ketat hanya mengizinkan trafik yang bersumber dari blok IP Tailscale (`100.64.0.0/10`), localhost (`127.0.0.1/32`), subnet lokal (`192.168.100.0/24`), dan network internal pod (`10.42.0.0/16`).
+5. **Keamanan Jaringan (DNS & Tailscale Routing)**: Karena K3s service load balancer dideploy menggunakan `externalTrafficPolicy: Cluster`, IP asli client Tailscale ditranslasikan (NAT) menjadi IP internal cluster (IP pod load balancer). Oleh karena itu, IP whitelist middleware tidak dapat diterapkan karena akan memblokir trafik valid dengan error Forbidden. Pembatasan akses sepenuhnya dilakukan di layer network/DNS dengan mengarahkan domain `n8n.frengky.xyz` secara eksklusif ke IP Tailscale Host (`100.120.133.63`).
 
 ---
 
@@ -159,8 +159,8 @@ spec:
   type: ClusterIP
 ```
 
-### 5. Ingress dengan Enforce Tailscale (`kubernetes/production/n8n/ingress.yaml`)
-Ingress ini mengarahkan domain `n8n.frengky.xyz` ke service n8n. Terintegrasi dengan middleware whitelist dari namespace `traefik` agar membatasi akses hanya melalui Tailscale:
+### 5. Ingress (`kubernetes/production/n8n/ingress.yaml`)
+Ingress ini mengarahkan domain `n8n.frengky.xyz` ke service n8n:
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -169,7 +169,6 @@ metadata:
   namespace: n8n
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.middlewares: traefik-tailscale-whitelist@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

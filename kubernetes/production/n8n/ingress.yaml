@@ -5,7 +5,6 @@ metadata:
   namespace: n8n
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.middlewares: traefik-tailscale-whitelist@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
