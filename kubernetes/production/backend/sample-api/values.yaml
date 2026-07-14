@@ -21,6 +21,9 @@ generic-app:
         port: 8080
   deploymentStrategy:
     type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1       # Membuat 1 pod baru terlebih dahulu sebelum menghapus pod lama
+      maxUnavailable: 0
     # type: Canary
     # canary:
     #   steps:
