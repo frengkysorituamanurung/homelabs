@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-unsealer
+  namespace: vault
+  labels:
+    app: vault-unsealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault-unsealer
+  template:
+    metadata:
+      labels:
+        app: vault-unsealer
+    spec:
+      containers:
+        - name: unsealer
+          image: curlimages/curl:8.2.1
+          command:
+            - /bin/sh
+            - -c
+            - |
+              VAULT_ADDR="http://vault:8200"
+              echo "Starting Vault Auto-Unsealer daemon..."
+              while true; do
+                # Check status
+                SEAL_STATUS=$(curl -s "${VAULT_ADDR}/v1/sys/seal-status")
+                if [ -z "$SEAL_STATUS" ]; then
+                  echo "Unable to reach Vault at ${VAULT_ADDR}. Retrying in 10 seconds..."
+                  sleep 10
+                  continue
+                fi
+                
+                # Check if it is sealed
+                SEALED=$(echo "$SEAL_STATUS" | grep -o '"sealed":true' || true)
+                if [ ! -z "$SEALED" ]; then
+                  echo "Vault is sealed! Attempting to unseal..."
+                  
+                  if [ ! -z "$KEY_1" ]; then
+                    curl -s -X PUT -d "{\"key\": \"$KEY_1\"}" "${VAULT_ADDR}/v1/sys/unseal" > /dev/null
+                  fi
+                  if [ ! -z "$KEY_2" ]; then
+                    curl -s -X PUT -d "{\"key\": \"$KEY_2\"}" "${VAULT_ADDR}/v1/sys/unseal" > /dev/null
+                  fi
+                  if [ ! -z "$KEY_3" ]; then
+                    curl -s -X PUT -d "{\"key\": \"$KEY_3\"}" "${VAULT_ADDR}/v1/sys/unseal" > /dev/null
+                  fi
+                  
+                  echo "Unseal requests sent."
+                else
+                  # Vault is unsealed, do nothing
+                  :
+                fi
+                sleep 15
+              done
+          env:
+            - name: KEY_1
+              valueFrom:
+                secretKeyRef:
+                  name: vault-unseal-keys
+                  key: key1
+            - name: KEY_2
+              valueFrom:
+                secretKeyRef:
+                  name: vault-unseal-keys
+                  key: key2
+            - name: KEY_3
+              valueFrom:
+                secretKeyRef:
+                  name: vault-unseal-keys
+                  key: key3
+          resources:
+            limits:
+              cpu: 50m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
