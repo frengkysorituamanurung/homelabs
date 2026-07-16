@@ -5,7 +5,7 @@ generic-app:
   replicaCount: 1
   image:
     repository: harbor.frengky.xyz/backend/sample-api
-    tag: "d9e740f"
+    tag: "72c560b"
     pullPolicy: Always
   service:
     enabled: true
