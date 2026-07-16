@@ -1,0 +1,32 @@
+generic-app:
+  baseNamespace: backend
+  baseName: mcp-bridge
+  environment: production
+  image:
+    repository: harbor.frengky.xyz/backend/mcp-bridge
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    enabled: true
+    type: ClusterIP
+    ports:
+      - name: http
+        port: 8080
+  ingress:
+    enabled: true
+    stripPath: false
+    hosts:
+      - host: mcp-bridge.frengky.xyz
+        path: /
+        port: 8080
+  configData:
+    enabled: true
+    data:
+      PORT: "8080"
+      DATADOG_MCP_COMMAND: "npx"
+      DATADOG_MCP_ARGS: "-y,@datadog/mcp-server-datadog"
+      DATADOG_MCP_URL: "https://mcp.datadoghq.eu/api/unstable/mcp-server/mcp?toolsets=all"
+      SKILLS_DIR: "./skills/datadog"
+      LLM_PROVIDER: "gemini"
+      LLM_MODEL: "gemini-3.1-flash-lite"
+      DD_SITE: "datadoghq.eu"
