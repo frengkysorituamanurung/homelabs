@@ -21,10 +21,16 @@ generic-app:
         path: /
         port: 8080
   deploymentStrategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1     # Membuat 1 pod baru terlebih dahulu sebelum menghapus pod lama
-      maxUnavailable: 0
+    # type: RollingUpdate
+    # rollingUpdate:
+    #   maxSurge: 1     # Membuat 1 pod baru terlebih dahulu sebelum menghapus pod lama
+    #   maxUnavailable: 0
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {}
+        - setWeight: 50
+        - pause: { duration: 10s }
   healthCheck:
     enabled: true
     endpoint: /
