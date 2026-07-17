@@ -9,13 +9,25 @@ jobs:
   sync-argocd:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Configure DNS
+      - name: Fix DNS & Setup
         run: |
+          # Ensure internal cluster DNS resolves (CoreDNS via k3s)
           echo "nameserver 10.43.0.10" > /etc/resolv.conf
-          echo "search svc.cluster.local cluster.local" >> /etc/resolv.conf
+          echo "search gitea.svc.cluster.local svc.cluster.local cluster.local" >> /etc/resolv.conf
+          git config --global user.name "GitOps Bot"
+          git config --global user.email "gitops-bot@frengky.xyz"
+
+      - name: Checkout gitops repo & Clone deployment-tools
+        run: |
+          # Clone gitops repo directly from Gitea (no GitHub needed)
+          git clone http://gitea_admin:${{ secrets.GITOPS_TOKEN }}@gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git /workspace/gitops
+          # Clone deployment-tools
+          git clone http://gitea_admin:${{ secrets.GITOPS_TOKEN }}@gitea-http.gitea.svc.cluster.local:3000/devops/deployment-tools.git /workspace/deployment-tools
+          # Set up scripts
+          cp /workspace/deployment-tools/scripts/argocd-sync.sh /workspace/argocd-sync.sh
+          chmod +x /workspace/argocd-sync.sh
+          # Copy repo content to working directory
+          cp -r /workspace/gitops/. .
 
       - name: Run sync script
         env:
