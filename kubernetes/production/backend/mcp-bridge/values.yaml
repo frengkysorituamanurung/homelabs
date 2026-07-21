@@ -4,7 +4,7 @@ generic-app:
   environment: production
   image:
     repository: harbor.frengky.xyz/backend/mcp-bridge
-    tag: "81a354f"
+    tag: "4481bc9"
     pullPolicy: Always
   service:
     enabled: true
