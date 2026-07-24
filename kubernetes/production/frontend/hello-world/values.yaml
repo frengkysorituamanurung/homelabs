@@ -4,7 +4,7 @@ generic-app:
   environment: production
   image:
     repository: harbor.frengky.xyz/frontend/hello-world
-    tag: "1dc4e31"
+    tag: "18e48df"
     pullPolicy: Always
   service:
     enabled: true
