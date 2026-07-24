@@ -25,6 +25,7 @@ statefulset:
       container:
         require_docker: true
         docker_timeout: 300s
+        force_pull: true
         # Map runs-on labels to real Docker images (default docker.gitea.com/runner-images:ubuntu-latest does not exist)
         labels:
           - "ubuntu-latest:docker://catthehacker/ubuntu:act-latest"
