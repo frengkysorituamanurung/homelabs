@@ -5,7 +5,7 @@ global:
   domain: argocd.frengky.xyz
 
 server:
-  # Jangan aktifkan ingress di sini, kita manage manual via manifests/ingress/
+  replicas: 2
   ingress:
     enabled: false
   extraArgs:
