@@ -18,6 +18,8 @@ statefulset:
     config: |
       log:
         level: debug
+      runner:
+        capacity: 5
       cache:
         enabled: false
       container:
