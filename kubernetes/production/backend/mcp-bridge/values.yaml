@@ -30,3 +30,4 @@ generic-app:
       LLM_PROVIDER: "gemini"
       LLM_MODEL: "gemini-3.1-flash-lite"
       DD_SITE: "datadoghq.eu"
+      QDRANT_URL: "http://qdrant:6333"
