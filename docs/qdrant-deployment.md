@@ -10,7 +10,7 @@ Qdrant dideploy sebagai database single-node yang sangat efisien dan terintegras
 
 1. **Penyimpanan Lokal**: Menggunakan persistent volume berbasis class `local-path` bawaan K3s sebesar `10Gi` untuk data vektor.
 2. **Cluster Mode Dinonaktifkan**: Karena berjalan pada single-node homelab, koordinasi Raft consensus dinonaktifkan (`cluster.enabled: false`) untuk menghemat resource CPU/RAM dan menghindari deadlock.
-3. **Konektivitas internal (Tanpa Ingress)**: Qdrant dideploy pada namespace yang sama dengan `mcp-bridge` yaitu namespace `backend`. Pod `mcp-bridge` dapat langsung terhubung ke Qdrant menggunakan service DNS internal: `http://qdrant:6333`.
+3. **Konektivitas Internal & Ingress (Tailscale Only)**: Qdrant dideploy pada namespace yang sama dengan `mcp-bridge` (`backend`) dan dapat dihubungi via `http://qdrant:6333`. Untuk kebutuhan administrasi, dashboard Web UI diekspos melalui Traefik Ingress di domain `qdrant.frengky.xyz` (websecure) yang hanya bisa diakses saat terhubung ke VPN mesh **Tailscale**.
 4. **Offline-Ready & Mandiri**: Seluruh artefak Helm chart dan container image disimpan di dalam registry lokal Harbor (`harbor.frengky.xyz`) agar terhindar dari error network/limit IPv6 Docker Hub dan GitHub.
 
 ---
@@ -88,6 +88,18 @@ service:
       targetPort: 6334
       protocol: TCP
       checksEnabled: false
+
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+  hosts:
+    - host: qdrant.frengky.xyz
+      paths:
+        - path: /
+          pathType: Prefix
+          servicePort: 6333
 
 persistence:
   enabled: true

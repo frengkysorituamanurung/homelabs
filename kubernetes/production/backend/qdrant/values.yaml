@@ -20,6 +20,18 @@ service:
       protocol: TCP
       checksEnabled: false
 
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+  hosts:
+    - host: qdrant.frengky.xyz
+      paths:
+        - path: /
+          pathType: Prefix
+          servicePort: 6333
+
 persistence:
   enabled: true
   accessModes: ["ReadWriteOnce"]
