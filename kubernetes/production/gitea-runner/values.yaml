@@ -9,7 +9,7 @@ global:
   storageClass: "local-path"
 
 statefulset:
-  replicas: 1
+  replicas: 3
   persistence:
     size: 2Gi
   dind:
