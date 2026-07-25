@@ -21,7 +21,12 @@ generic-app:
       - name: http
         port: 8080
   ingress:
-    enabled: false  # Disabled — access via IngressRoute with Tailscale middleware below
+    enabled: true
+    stripPath: false
+    hosts:
+      - host: bentopdf.frengky.xyz
+        path: /
+        port: 8080
   healthCheck:
     enabled: true
     endpoint: /
