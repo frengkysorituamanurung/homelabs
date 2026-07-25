@@ -2,6 +2,7 @@ generic-app:
   baseNamespace: frontend
   baseName: bentopdf
   environment: production
+  disableSecrets: true
   image:
     repository: ghcr.io/alam00000/bentopdf-simple
     tag: "latest"
