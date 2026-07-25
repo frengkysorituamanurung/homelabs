@@ -1,0 +1,20 @@
+# IngressRoute for BentoPDF — restricted to Tailscale VPN only (100.64.0.0/10)
+# Uses the tailscale-whitelist Middleware from namespace 'traefik'
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bentopdf
+  namespace: frontend
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`bentopdf.frengky.xyz`)
+      kind: Rule
+      middlewares:
+        - name: tailscale-whitelist
+          namespace: traefik
+      services:
+        - name: bentopdf
+          port: 8080
