@@ -2,6 +2,7 @@ generic-app:
   baseNamespace: backend
   baseName: sample-api
   environment: production
+  refreshInterval: "10s"
   replicaCount: 2
   resources:
     limits:

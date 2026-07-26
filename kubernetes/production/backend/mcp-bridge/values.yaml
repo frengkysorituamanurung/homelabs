@@ -2,6 +2,7 @@ generic-app:
   baseNamespace: backend
   baseName: mcp-bridge
   environment: production
+  refreshInterval: "10s"
   image:
     repository: harbor.frengky.xyz/backend/mcp-bridge
     tag: "e5fdb5b"

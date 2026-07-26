@@ -2,6 +2,7 @@ generic-app:
   baseNamespace: frontend
   baseName: glance
   environment: production
+  refreshInterval: "10s"
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
   image:

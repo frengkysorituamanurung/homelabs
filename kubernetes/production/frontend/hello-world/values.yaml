@@ -2,6 +2,7 @@ generic-app:
   baseNamespace: frontend
   baseName: hello-world
   environment: production
+  refreshInterval: "10s"
   image:
     repository: harbor.frengky.xyz/frontend/hello-world
     tag: "18e48df"
