@@ -2,7 +2,7 @@ generic-app:
   baseNamespace: backend
   baseName: sample-api
   environment: production
-  replicaCount: 2
+  replicaCount: 2000
   resources:
     limits:
       cpu: 200m
