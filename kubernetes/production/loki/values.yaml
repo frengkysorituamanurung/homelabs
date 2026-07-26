@@ -40,5 +40,25 @@ gateway:
   enabled: false
 test:
   enabled: false
+chunksCache:
+  enabled: true
+  allocatedMemory: 256
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+resultsCache:
+  enabled: true
+  allocatedMemory: 128
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
 lokiCanary:
   enabled: false
