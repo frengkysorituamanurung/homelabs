@@ -3,6 +3,13 @@ generic-app:
   baseName: sample-api
   environment: production
   replicaCount: 2
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
   image:
     repository: harbor.frengky.xyz/backend/sample-api
     tag: "5f9d9c5"
