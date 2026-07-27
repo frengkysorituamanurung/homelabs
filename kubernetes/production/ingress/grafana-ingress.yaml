@@ -13,6 +13,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: grafana
+                name: grafana-production
                 port:
                   number: 80
