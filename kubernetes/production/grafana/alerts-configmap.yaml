@@ -548,7 +548,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: 'sum(rate({namespace=~".*"} |~ "(?i)(error|exception|fatal)" [5m])) * 60'
+                  expr: 'sum(rate({namespace=~".+"} |~ "(?i)(error|exception|fatal)" [5m])) * 60'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
