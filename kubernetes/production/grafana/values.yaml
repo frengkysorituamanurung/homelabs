@@ -58,8 +58,16 @@ sidecar:
     folderAnnotation: grafana_folder
     provider:
       foldersFromFilesStructure: true
-  alerts:
-    enabled: true
-    searchNamespace: ALL
-    label: grafana_alert
+
+extraConfigmapMounts:
+  - name: grafana-alerts-telegram
+    configMap: grafana-alerts-telegram
+    subPath: telegram-notifiers.yaml
+    mountPath: /etc/grafana/provisioning/alerting/telegram-notifiers.yaml
+    readOnly: true
+  - name: grafana-alerts-cluster-rules
+    configMap: grafana-alerts-cluster-rules
+    subPath: cluster-rules.yaml
+    mountPath: /etc/grafana/provisioning/alerting/cluster-rules.yaml
+    readOnly: true
 
