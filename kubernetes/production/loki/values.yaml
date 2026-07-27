@@ -42,23 +42,23 @@ test:
   enabled: false
 chunksCache:
   enabled: true
-  allocatedMemory: 256
+  allocatedMemory: 64
   resources:
     requests:
       cpu: 50m
-      memory: 256Mi
+      memory: 64Mi
     limits:
-      memory: 512Mi
+      memory: 128Mi
 
 resultsCache:
   enabled: true
-  allocatedMemory: 128
+  allocatedMemory: 32
   resources:
     requests:
       cpu: 50m
-      memory: 128Mi
+      memory: 32Mi
     limits:
-      memory: 256Mi
+      memory: 64Mi
 
 lokiCanary:
   enabled: false

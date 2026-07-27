@@ -38,6 +38,12 @@ spec:
               value: "https://n8n.frengky.xyz/"
             - name: N8N_ENCRYPTION_KEY
               value: "n8n-encryption-key-for-frengky-xyz"
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=256"
+            - name: EXECUTIONS_DATA_PRUNE
+              value: "true"
+            - name: EXECUTIONS_DATA_MAX_AGE
+              value: "168"
           volumeMounts:
             - name: n8n-storage
               mountPath: /home/node/.n8n

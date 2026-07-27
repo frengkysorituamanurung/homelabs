@@ -127,5 +127,17 @@ alloy:
     varlog: true
     dockercontainers: true
 
+  extraEnv:
+    - name: GOMEMLIMIT
+      value: "384Mi"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
 controller:
   type: daemonset

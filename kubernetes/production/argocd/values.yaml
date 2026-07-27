@@ -5,7 +5,7 @@ global:
   domain: argocd.frengky.xyz
 
 server:
-  replicas: 2
+  replicas: 1
   ingress:
     enabled: false
   extraArgs:
@@ -28,6 +28,9 @@ configs:
 
 # Resource limits untuk single-node cluster
 controller:
+  extraArgs:
+    - --status-processors=5
+    - --operation-processors=5
   resources:
     requests:
       cpu: 250m

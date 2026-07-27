@@ -1,4 +1,5 @@
 generic-app:
+  replicaCount: 1
   baseNamespace: backend
   baseName: mcp-bridge
   environment: production

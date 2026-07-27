@@ -1,5 +1,7 @@
 server:
   retentionPeriod: 30d
+  extraArgs:
+    memory.allowedPercent: "40"
   persistentVolume:
     size: 10Gi
     storageClass: local-path

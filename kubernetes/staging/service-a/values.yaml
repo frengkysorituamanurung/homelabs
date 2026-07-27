@@ -1,5 +1,5 @@
 generic-app:
-  replicaCount: 2
+  replicaCount: 1
   environment: "staging"
   
   image:
