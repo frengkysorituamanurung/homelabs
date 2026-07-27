@@ -53,11 +53,11 @@ data:
     groups:
       - orgId: 1
         name: Cluster-Pod-Health-Alerts
-        folder: Cluster Alert Rules
+        folder: Cluster Production Alerts
         interval: 30s
         rules:
-          - uid: v2-alert-pod-waiting
-            title: "Pod ImagePullBackOff / Container Crash Waiting"
+          - uid: rule-v3-pod-waiting
+            title: "Pod ImagePullBackOff or Container Crash Waiting"
             condition: C
             for: 30s
             no_data_state: OK
@@ -102,8 +102,8 @@ data:
                         type: gt
                   refId: C
 
-          - uid: v2-alert-pod-restarts
-            title: "Pod Container Restarts High (>3 in 15m)"
+          - uid: rule-v3-pod-restarts
+            title: "Pod Container High Restart Spike"
             condition: C
             for: 1m
             no_data_state: OK
@@ -148,8 +148,8 @@ data:
                         type: gt
                   refId: C
 
-          - uid: v2-alert-container-oomkilled
-            title: "Container OOMKilled Detected"
+          - uid: rule-v3-container-oom
+            title: "Pod Container Terminated via OOMKilled"
             condition: C
             for: 0s
             no_data_state: OK
@@ -194,8 +194,8 @@ data:
                         type: gt
                   refId: C
 
-          - uid: v2-alert-pod-unhealthy
-            title: "Pod Unhealthy State (Failed/Pending >5m)"
+          - uid: rule-v3-pod-unhealthy
+            title: "Pod Container Unhealthy Phase"
             condition: C
             for: 5m
             no_data_state: OK
@@ -242,11 +242,11 @@ data:
 
       - orgId: 1
         name: Cluster-Node-Resource-Alerts
-        folder: Cluster Alert Rules
+        folder: Cluster Production Alerts
         interval: 1m
         rules:
-          - uid: v2-alert-node-mem
-            title: "Node Memory Usage High (>85%)"
+          - uid: rule-v3-node-mem
+            title: "Node RAM Memory Usage Exceeds 85%"
             condition: C
             for: 3m
             no_data_state: OK
@@ -291,8 +291,8 @@ data:
                         type: gt
                   refId: C
 
-          - uid: v2-alert-node-cpu
-            title: "Node CPU Usage High (>85%)"
+          - uid: rule-v3-node-cpu
+            title: "Node CPU Usage Exceeds 85%"
             condition: C
             for: 5m
             no_data_state: OK
@@ -337,8 +337,8 @@ data:
                         type: gt
                   refId: C
 
-          - uid: v2-alert-node-disk
-            title: "Node Disk Free Space Low (<15%)"
+          - uid: rule-v3-node-disk
+            title: "Node Root Storage Free Below 15%"
             condition: C
             for: 5m
             no_data_state: OK
@@ -385,11 +385,11 @@ data:
 
       - orgId: 1
         name: Cluster-Services-Alerts
-        folder: Cluster Alert Rules
+        folder: Cluster Production Alerts
         interval: 1m
         rules:
-          - uid: v2-alert-tls-expiring
-            title: "TLS Certificate Expiring Soon (<14 Days)"
+          - uid: rule-v3-tls-expiring
+            title: "Domain SSL TLS Expiration Under 14 Days"
             condition: C
             for: 1m
             no_data_state: OK
@@ -434,8 +434,8 @@ data:
                         type: lt
                   refId: C
 
-          - uid: v2-alert-database-mem
-            title: "Database / Cache High Memory Footprint"
+          - uid: rule-v3-database-mem
+            title: "Database Redis High Memory Consumption"
             condition: C
             for: 5m
             no_data_state: OK
@@ -480,8 +480,8 @@ data:
                         type: gt
                   refId: C
 
-          - uid: v2-alert-ingress-5xx
-            title: "Ingress HTTP 5xx Error Rate Spike (>5%)"
+          - uid: rule-v3-ingress-5xx
+            title: "Traefik Ingress HTTP 5xx Server Errors Spike"
             condition: C
             for: 3m
             no_data_state: OK
@@ -526,8 +526,8 @@ data:
                         type: gt
                   refId: C
 
-          - uid: v2-alert-loki-errors
-            title: "High Log Error Rate in Cluster (>20/min)"
+          - uid: rule-v3-loki-errors
+            title: "Loki Log Error Ingestion Spike"
             condition: C
             for: 5m
             no_data_state: OK
