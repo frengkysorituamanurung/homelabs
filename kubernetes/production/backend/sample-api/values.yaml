@@ -3,7 +3,7 @@ generic-app:
   baseName: sample-api
   environment: production
   refreshInterval: "10s"
-  replicaCount: 2
+  replicaCount: 1
   resources:
     limits:
       cpu: 200m
@@ -13,7 +13,7 @@ generic-app:
       memory: 64Mi
   image:
     repository: harbor.frengky.xyz/backend/sample-api
-    tag: "5f9d9c5"
+    tag: "5f9d9c5xxxxx"
     pullPolicy: Always
   service:
     enabled: true
