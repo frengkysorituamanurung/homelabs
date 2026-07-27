@@ -20,30 +20,54 @@
   "panels": [
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "id": 100,
-      "title": "⚡ Cluster High-Level Health & Performance Overview",
+      "title": "Cluster High-Level Health & Performance Overview",
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 70 },
-              { "color": "red", "value": 85 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
             ]
           },
           "unit": "percent"
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
       "id": 1,
       "options": {
         "colorMode": "value",
@@ -51,7 +75,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -60,7 +86,10 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "100 - (avg(rate(node_cpu_seconds_total{job=\"prometheus.scrape.node_exporter\", mode=\"idle\"}[5m])) * 100)",
           "legendFormat": "CPU Usage",
@@ -68,28 +97,47 @@
           "refId": "A"
         }
       ],
-      "title": "🖥️ Node CPU Usage",
+      "title": "Node CPU Usage",
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 75 },
-              { "color": "red", "value": 90 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
             ]
           },
           "unit": "percent"
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
       "id": 2,
       "options": {
         "colorMode": "value",
@@ -97,7 +145,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -106,7 +156,10 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100",
           "legendFormat": "Memory Usage",
@@ -114,24 +167,39 @@
           "refId": "A"
         }
       ],
-      "title": "🧠 Node Memory Usage",
+      "title": "Node Memory Usage",
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "purple", "value": null }]
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
           },
           "unit": "bytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
       "id": 3,
       "options": {
         "colorMode": "value",
@@ -139,7 +207,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -148,7 +218,10 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
           "legendFormat": "Used RAM",
@@ -156,24 +229,39 @@
           "refId": "A"
         }
       ],
-      "title": "💾 Used RAM Bytes",
+      "title": "Used RAM Bytes",
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
       "id": 4,
       "options": {
         "colorMode": "value",
@@ -181,7 +269,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -190,7 +280,10 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(kube_pod_status_phase{phase=\"Running\"})",
           "legendFormat": "Active Pods",
@@ -198,18 +291,26 @@
           "refId": "A"
         }
       ],
-      "title": "📦 Total Active Pods",
+      "title": "Total Active Pods",
       "type": "stat"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
       "id": 101,
-      "title": "📊 Resource Utilization Breakdown",
+      "title": "Resource Utilization Breakdown",
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -217,22 +318,39 @@
             "fillOpacity": 20,
             "gradientMode": "opacity",
             "lineInterpolation": "smooth",
-            "stacking": { "group": "A", "mode": "normal" }
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            }
           },
           "unit": "bytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
       "id": 5,
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
           "legendFormat": "Used Memory",
@@ -240,7 +358,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "node_memory_Buffers_bytes + node_memory_Cached_bytes",
           "legendFormat": "Buffer & Cache",
@@ -248,7 +369,10 @@
           "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "node_memory_MemFree_bytes",
           "legendFormat": "Free Memory",
@@ -256,11 +380,14 @@
           "refId": "C"
         }
       ],
-      "title": "🧠 Node Memory Allocation History",
+      "title": "Node Memory Allocation History",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -272,16 +399,29 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
       "id": 6,
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom" },
-        "tooltip": { "mode": "multi" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(node_cpu_seconds_total{job=\"prometheus.scrape.node_exporter\"}[5m])) by (mode)",
           "legendFormat": "{{mode}}",
@@ -289,21 +429,31 @@
           "refId": "A"
         }
       ],
-      "title": "🖥️ CPU Breakdown by Mode (User, System, IOwait, Idle)",
+      "title": "CPU Breakdown by Mode (User, System, IOwait, Idle)",
       "type": "timeseries"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
       "id": 102,
-      "title": "🔥 Top Pod Consumers (Memory & CPU)",
+      "title": "Top Pod Consumers (Memory & CPU)",
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "orientation": "horizontal"
           },
@@ -311,16 +461,29 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 16 },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
       "id": 7,
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "single" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "topk(10, sum(container_memory_working_set_bytes{container!=\"\"}) by (pod, namespace))",
           "legendFormat": "{{namespace}} / {{pod}}",
@@ -328,14 +491,19 @@
           "refId": "A"
         }
       ],
-      "title": "🔥 Top 10 Pods by Memory Consumption",
+      "title": "Top 10 Pods by Memory Consumption",
       "type": "barchart"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "orientation": "horizontal"
           },
@@ -343,16 +511,29 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 16 },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
       "id": 8,
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "single" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "topk(10, sum(rate(container_cpu_usage_seconds_total{container!=\"\"}[5m])) by (pod, namespace))",
           "legendFormat": "{{namespace}} / {{pod}}",
@@ -360,18 +541,26 @@
           "refId": "A"
         }
       ],
-      "title": "⚡ Top 10 Pods by CPU Usage",
+      "title": "Top 10 Pods by CPU Usage",
       "type": "barchart"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      },
       "id": 103,
-      "title": "🌐 Network & Disk I/O",
+      "title": "Network & Disk I/O",
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -383,16 +572,29 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 26 },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
       "id": 9,
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom" },
-        "tooltip": { "mode": "multi" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(node_network_receive_bytes_total{device!=\"lo\"}[5m]))",
           "legendFormat": "Inbound Traffic (Receive)",
@@ -400,7 +602,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(node_network_transmit_bytes_total{device!=\"lo\"}[5m]))",
           "legendFormat": "Outbound Traffic (Transmit)",
@@ -408,11 +613,14 @@
           "refId": "B"
         }
       ],
-      "title": "🌐 Network Bandwidth (Traffic In/Out)",
+      "title": "Network Bandwidth (Traffic In/Out)",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -424,16 +632,29 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 26 },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
       "id": 10,
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom" },
-        "tooltip": { "mode": "multi" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(node_disk_read_bytes_total[5m]))",
           "legendFormat": "Disk Read Bps",
@@ -441,7 +662,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(node_disk_written_bytes_total[5m]))",
           "legendFormat": "Disk Write Bps",
@@ -449,20 +673,34 @@
           "refId": "B"
         }
       ],
-      "title": "💽 Disk Throughput (Read / Write)",
+      "title": "Disk Throughput (Read / Write)",
       "type": "timeseries"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["cluster", "node", "overview", "victoriametrics"],
-  "time": { "from": "now-1h", "to": "now" },
+  "tags": [
+    "cluster",
+    "node",
+    "overview",
+    "victoriametrics"
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
   "timepicker": {
-    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ]
   },
   "timezone": "browser",
-  "title": "🖥️ Cluster & Node Performance Command Center",
+  "title": "Cluster & Node Performance Command Center",
   "uid": "cluster-node-overview",
   "version": 1
 }

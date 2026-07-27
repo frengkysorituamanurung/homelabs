@@ -20,37 +20,66 @@
   "panels": [
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "id": 100,
-      "title": "⚙️ DevOps Core Tools Status & Footprint",
+      "title": "DevOps Core Tools Status & Footprint",
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "purple", "value": null }]
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
           },
           "unit": "bytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
       "id": 1,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"argocd\", container!=\"\"})",
           "legendFormat": "ArgoCD RAM",
@@ -58,35 +87,59 @@
           "refId": "A"
         }
       ],
-      "title": "🐙 ArgoCD Total Memory",
+      "title": "ArgoCD Total Memory",
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           },
           "unit": "bytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
       "id": 2,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"gitea\", container!=\"\"})",
           "legendFormat": "Gitea RAM",
@@ -94,35 +147,59 @@
           "refId": "A"
         }
       ],
-      "title": "☕ Gitea & Runners RAM",
+      "title": "Gitea & Runners RAM",
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "orange", "value": null }]
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
           },
           "unit": "bytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
       "id": 3,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"harbor\", container!=\"\"})",
           "legendFormat": "Harbor RAM",
@@ -130,35 +207,59 @@
           "refId": "A"
         }
       ],
-      "title": "🛳️ Harbor Registry RAM",
+      "title": "Harbor Registry RAM",
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           },
           "unit": "bytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
       "id": 4,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"n8n\", container!=\"\"})",
           "legendFormat": "n8n RAM",
@@ -166,18 +267,26 @@
           "refId": "A"
         }
       ],
-      "title": "⚡ n8n Automation RAM",
+      "title": "n8n Automation RAM",
       "type": "stat"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
       "id": 101,
-      "title": "📊 DevOps Services Performance History",
+      "title": "DevOps Services Performance History",
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -189,16 +298,29 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
       "id": 5,
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom" },
-        "tooltip": { "mode": "multi" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=~\"argocd|gitea|vault|harbor|n8n\", container!=\"\"}) by (namespace)",
           "legendFormat": "{{namespace}}",
@@ -206,11 +328,14 @@
           "refId": "A"
         }
       ],
-      "title": "🧠 Memory Usage History by DevOps Namespace",
+      "title": "Memory Usage History by DevOps Namespace",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -222,16 +347,29 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
       "id": 6,
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom" },
-        "tooltip": { "mode": "multi" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"argocd|gitea|vault|harbor|n8n\", container!=\"\"}[5m])) by (namespace)",
           "legendFormat": "{{namespace}}",
@@ -239,36 +377,61 @@
           "refId": "A"
         }
       ],
-      "title": "⚡ CPU Usage History by DevOps Namespace",
+      "title": "CPU Usage History by DevOps Namespace",
       "type": "timeseries"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
       "id": 102,
-      "title": "📋 Detail Component Resource Usage",
+      "title": "Detail Component Resource Usage",
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "orientation": "horizontal" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "orientation": "horizontal"
+          },
           "unit": "bytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 15 },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
       "id": 7,
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "single" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
       },
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=~\"argocd|gitea|vault|harbor|n8n\", container!=\"\"}) by (pod, namespace)",
           "legendFormat": "{{namespace}} / {{pod}}",
@@ -276,20 +439,37 @@
           "refId": "A"
         }
       ],
-      "title": "📊 Detailed Pod Memory Breakdown in DevOps Stack",
+      "title": "Detailed Pod Memory Breakdown in DevOps Stack",
       "type": "barchart"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["devops", "infrastructure", "argocd", "gitea", "harbor", "vault", "n8n"],
-  "time": { "from": "now-1h", "to": "now" },
+  "tags": [
+    "devops",
+    "infrastructure",
+    "argocd",
+    "gitea",
+    "harbor",
+    "vault",
+    "n8n"
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
   "timepicker": {
-    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ]
   },
   "timezone": "browser",
-  "title": "⚙️ DevOps Platform Services Overview",
+  "title": "DevOps Platform Services Overview",
   "uid": "devops-services-overview",
   "version": 1
 }
