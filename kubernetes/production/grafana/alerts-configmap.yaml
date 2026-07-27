@@ -56,7 +56,7 @@ data:
         folder: Cluster Alert Rules
         interval: 30s
         rules:
-          - uid: alert-pod-waiting-reason
+          - uid: v2-alert-pod-waiting
             title: "Pod ImagePullBackOff / Container Crash Waiting"
             condition: C
             for: 30s
@@ -102,7 +102,7 @@ data:
                         type: gt
                   refId: C
 
-          - uid: alert-pod-restarts-high
+          - uid: v2-alert-pod-restarts
             title: "Pod Container Restarts High (>3 in 15m)"
             condition: C
             for: 1m
@@ -148,7 +148,7 @@ data:
                         type: gt
                   refId: C
 
-          - uid: alert-container-oomkilled
+          - uid: v2-alert-container-oomkilled
             title: "Container OOMKilled Detected"
             condition: C
             for: 0s
@@ -194,7 +194,7 @@ data:
                         type: gt
                   refId: C
 
-          - uid: alert-pod-unhealthy
+          - uid: v2-alert-pod-unhealthy
             title: "Pod Unhealthy State (Failed/Pending >5m)"
             condition: C
             for: 5m
@@ -245,7 +245,7 @@ data:
         folder: Cluster Alert Rules
         interval: 1m
         rules:
-          - uid: alert-node-mem-high
+          - uid: v2-alert-node-mem
             title: "Node Memory Usage High (>85%)"
             condition: C
             for: 3m
@@ -291,7 +291,7 @@ data:
                         type: gt
                   refId: C
 
-          - uid: alert-node-cpu-high
+          - uid: v2-alert-node-cpu
             title: "Node CPU Usage High (>85%)"
             condition: C
             for: 5m
@@ -337,7 +337,7 @@ data:
                         type: gt
                   refId: C
 
-          - uid: alert-node-disk-low
+          - uid: v2-alert-node-disk
             title: "Node Disk Free Space Low (<15%)"
             condition: C
             for: 5m
@@ -388,7 +388,7 @@ data:
         folder: Cluster Alert Rules
         interval: 1m
         rules:
-          - uid: alert-tls-expiring
+          - uid: v2-alert-tls-expiring
             title: "TLS Certificate Expiring Soon (<14 Days)"
             condition: C
             for: 1m
@@ -434,7 +434,7 @@ data:
                         type: lt
                   refId: C
 
-          - uid: alert-database-high-memory
+          - uid: v2-alert-database-mem
             title: "Database / Cache High Memory Footprint"
             condition: C
             for: 5m
@@ -480,7 +480,7 @@ data:
                         type: gt
                   refId: C
 
-          - uid: alert-ingress-5xx-spike
+          - uid: v2-alert-ingress-5xx
             title: "Ingress HTTP 5xx Error Rate Spike (>5%)"
             condition: C
             for: 3m
@@ -526,7 +526,7 @@ data:
                         type: gt
                   refId: C
 
-          - uid: alert-loki-high-errors
+          - uid: v2-alert-loki-errors
             title: "High Log Error Rate in Cluster (>20/min)"
             condition: C
             for: 5m
