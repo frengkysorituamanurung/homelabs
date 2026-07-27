@@ -19,7 +19,7 @@ data:
               parse_mode: "HTML"
               message: |
                 {{ range .Alerts }}
-                🚨 <b>[{{ .Status | toUpper }}] {{ .Labels.alertname }}</b>
+                {{ if eq .Status "firing" }}🚨{{ else }}✅{{ end }} <b>[{{ .Status | toUpper }}] {{ .Labels.alertname }}</b>
 
                 <b>Severity:</b> {{ .Labels.severity }}
                 <b>Cluster:</b> {{ if .Labels.cluster }}{{ .Labels.cluster }}{{ else }}homelabs{{ end }}
