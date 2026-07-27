@@ -13,10 +13,12 @@ data:
         receivers:
           - uid: telegram-receiver
             type: telegram
+            disableResolveMessage: false
             settings:
               bottoken: "8950679283:AAFGTtMYZAln4U5ZJogwpVH68OriqrCmaX8"
               chatid: "6170551940"
               parse_mode: "HTML"
+              send_resolved: true
               message: |
                 {{ range .Alerts }}
                 {{ if eq .Status "firing" }}🚨{{ else }}✅{{ end }} <b>[{{ .Status | toUpper }}] {{ .Labels.alertname }}</b>
