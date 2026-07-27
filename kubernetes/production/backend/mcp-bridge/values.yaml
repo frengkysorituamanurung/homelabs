@@ -6,7 +6,7 @@ generic-app:
   refreshInterval: "10s"
   image:
     repository: harbor.frengky.xyz/backend/mcp-bridge
-    tag: "e5fdb5b"
+    tag: "1.0.0"
     pullPolicy: Always
   service:
     enabled: true
