@@ -2306,3 +2306,415 @@ data:
       "uid": "devops-services-overview",
       "version": 1
     }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-internet-network
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  internet-network-connectivity.json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": "-- Grafana --",
+            "enable": true,
+            "hide": true,
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "id": 100,
+          "title": "Internet Speed & Real-time Bandwidth Overview",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 50 },
+                  { "color": "red", "value": 100 }
+                ]
+              },
+              "unit": "Mbits"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
+          "id": 1,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+          },
+          "pluginVersion": "10.0.0",
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "(sum(rate(node_network_receive_bytes_total{device=\"eth1\"}[1m])) * 8) / 1000000",
+              "legendFormat": "Download Speed",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Current Download Speed (Mbps)",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 30 },
+                  { "color": "red", "value": 80 }
+                ]
+              },
+              "unit": "Mbits"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
+          "id": 2,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+          },
+          "pluginVersion": "10.0.0",
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "(sum(rate(node_network_transmit_bytes_total{device=\"eth1\"}[1m])) * 8) / 1000000",
+              "legendFormat": "Upload Speed",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Current Upload Speed (Mbps)",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [{ "color": "purple", "value": null }]
+              },
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
+          "id": 3,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+          },
+          "pluginVersion": "10.0.0",
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "sum(node_network_receive_bytes_total{device=\"eth1\"})",
+              "legendFormat": "Total Downloaded",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Total Downloaded Data",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [{ "color": "blue", "value": null }]
+              },
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
+          "id": 4,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+          },
+          "pluginVersion": "10.0.0",
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "sum(node_network_transmit_bytes_total{device=\"eth1\"})",
+              "legendFormat": "Total Uploaded",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Total Uploaded Data",
+          "type": "stat"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+          "id": 101,
+          "title": "Internet Bandwidth Speed & Throughput Timeline",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 15,
+                "lineInterpolation": "smooth"
+              },
+              "unit": "Mbits"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
+          "id": 5,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom" },
+            "tooltip": { "mode": "multi" }
+          },
+          "pluginVersion": "10.0.0",
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "(sum(rate(node_network_receive_bytes_total{device=\"eth1\"}[1m])) * 8) / 1000000",
+              "legendFormat": "Download Speed (Mbps)",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "(sum(rate(node_network_transmit_bytes_total{device=\"eth1\"}[1m])) * 8) / 1000000",
+              "legendFormat": "Upload Speed (Mbps)",
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Internet Speed Timeline (Download vs Upload Mbps)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 15,
+                "lineInterpolation": "smooth"
+              },
+              "unit": "pps"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
+          "id": 6,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom" },
+            "tooltip": { "mode": "multi" }
+          },
+          "pluginVersion": "10.0.0",
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "sum(rate(node_network_receive_packets_total{device=\"eth1\"}[1m]))",
+              "legendFormat": "Received Packets (Rx)",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "sum(rate(node_network_transmit_packets_total{device=\"eth1\"}[1m]))",
+              "legendFormat": "Transmitted Packets (Tx)",
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Network Packet Traffic (Packets/sec)",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+          "id": 102,
+          "title": "Network Quality & Container Traffic Breakdown",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 1 }
+                ]
+              },
+              "unit": "pps"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+          "id": 7,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom" },
+            "tooltip": { "mode": "multi" }
+          },
+          "pluginVersion": "10.0.0",
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "sum(rate(node_network_receive_drop_total{device=\"eth1\"}[1m]))",
+              "legendFormat": "Rx Drops",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "sum(rate(node_network_transmit_drop_total{device=\"eth1\"}[1m]))",
+              "legendFormat": "Tx Drops",
+              "range": true,
+              "refId": "B"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "sum(rate(node_network_receive_errs_total{device=\"eth1\"}[1m]))",
+              "legendFormat": "Rx Errors",
+              "range": true,
+              "refId": "C"
+            }
+          ],
+          "title": "Network Packet Drops & Errors",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "orientation": "horizontal" },
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
+          "id": 8,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom" },
+            "tooltip": { "mode": "single" }
+          },
+          "pluginVersion": "10.0.0",
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "topk(10, sum(rate(container_network_receive_bytes_total{container!=\"\"}[1m])) by (pod, namespace))",
+              "legendFormat": "{{namespace}} / {{pod}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Top Pods by Inbound Network Traffic",
+          "type": "barchart"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "orientation": "horizontal" },
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+          "id": 9,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom" },
+            "tooltip": { "mode": "single" }
+          },
+          "pluginVersion": "10.0.0",
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+              "editorMode": "code",
+              "expr": "topk(10, sum(rate(container_network_transmit_bytes_total{container!=\"\"}[1m])) by (pod, namespace))",
+              "legendFormat": "{{namespace}} / {{pod}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Top Pods by Outbound Network Traffic",
+          "type": "barchart"
+        }
+      ],
+      "refresh": "5s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["internet", "network", "bandwidth", "speed"],
+      "time": { "from": "now-1h", "to": "now" },
+      "timepicker": {
+        "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
+      },
+      "timezone": "browser",
+      "title": "Internet Speed & Network Connectivity",
+      "uid": "internet-network-connectivity",
+      "version": 1
+    }

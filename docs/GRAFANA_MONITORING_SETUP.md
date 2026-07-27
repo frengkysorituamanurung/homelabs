@@ -25,6 +25,7 @@ Seluruh file JSON dashboard disimpan di dalam repository GitOps pada direktori:
 | [`k8s-workloads-health.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/k8s-workloads-health.json) | **Kubernetes Workloads & Pod Health** | `VictoriaMetrics` | Pod Running/Pending/Failed count, Container Restarts (24h tracker), Pod Memory/CPU vs Request vs Limits, PVC Disk Storage % Gauge. |
 | [`loki-logs-explorer.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/loki-logs-explorer.json) | **Centralized Log Explorer & Error Tracker** | `Loki` | Log Ingestion Rate (lines/sec), Error Log Rate (errors/min), Warning Log Rate, Top Error-generating Pods, Real-time Live Log Console. |
 | [`devops-services-overview.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/devops-services-overview.json) | **DevOps Platform Services Overview** | `VictoriaMetrics` | Monitoring footprint & performansi tool DevOps: **ArgoCD**, **Gitea & Runners**, **Harbor Registry**, **Vault**, dan **n8n**. |
+| [`internet-network-connectivity.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/internet-network-connectivity.json) | **Internet Speed & Network Connectivity** | `VictoriaMetrics` | Kecepatan Internet Download & Upload (Mbps), Total Data Downloaded/Uploaded (GB), Network Packet Rate (pps), Drops & Errors, Top Pod Network Traffic. |
 
 ---
 
