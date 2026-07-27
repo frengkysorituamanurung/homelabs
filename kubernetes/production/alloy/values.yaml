@@ -129,7 +129,7 @@ alloy:
 
   extraEnv:
     - name: GOMEMLIMIT
-      value: "384Mi"
+      value: "384MiB"
 
   resources:
     requests:
