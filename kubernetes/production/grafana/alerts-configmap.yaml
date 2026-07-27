@@ -1,0 +1,452 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-alerts-telegram
+  namespace: monitoring
+  labels:
+    grafana_alert: "1"
+data:
+  telegram-notifiers.yaml: |
+    apiVersion: 1
+    contactPoints:
+      - name: Telegram-Alerts
+        receivers:
+          - uid: telegram-receiver
+            type: telegram
+            settings:
+              bottoken: "8950679283:AAFGTtMYZAln4U5ZJogwpVH68OriqrCmaX8"
+              chatid: "6170551940"
+              parse_mode: "HTML"
+              message: |
+                <b>[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}</b>
+
+                <b>Severity:</b> {{ .CommonLabels.severity }}
+                <b>Cluster:</b> {{ .CommonLabels.cluster }}
+                <b>Namespace:</b> {{ .CommonLabels.namespace }}
+                <b>Pod:</b> {{ .CommonLabels.pod }}
+
+                <b>Summary:</b> {{ .CommonAnnotations.summary }}
+                <b>Description:</b> {{ .CommonAnnotations.description }}
+    policies:
+      - receiver: Telegram-Alerts
+        group_by: ['alertname', 'cluster', 'namespace', 'pod']
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 2h
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-alerts-cluster-rules
+  namespace: monitoring
+  labels:
+    grafana_alert: "1"
+data:
+  cluster-rules.yaml: |
+    apiVersion: 1
+    groups:
+      - orgId: 1
+        name: Cluster-Node-Alerts
+        folder: Cluster Alert Rules
+        interval: 1m
+        rules:
+          - uid: alert-node-mem-high
+            title: "Node Memory Usage High (>85%)"
+            condition: C
+            for: 3m
+            labels:
+              severity: warning
+              cluster: homelabs
+            annotations:
+              summary: "Node Memory Usage is > 85%"
+              description: "Cluster node memory usage exceeds 85% for 3+ minutes."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: "((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100"
+                  refId: A
+              - refId: C
+                datasourceUid: "-100"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [85]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: ["A"]
+                      reducer:
+                        type: last
+                  refId: C
+                  type: classic_query
+
+          - uid: alert-node-cpu-high
+            title: "Node CPU Usage High (>85%)"
+            condition: C
+            for: 5m
+            labels:
+              severity: warning
+              cluster: homelabs
+            annotations:
+              summary: "Node CPU Usage is > 85%"
+              description: "Cluster node CPU usage exceeds 85% for 5+ minutes."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: "100 - (avg(rate(node_cpu_seconds_total{job=\"prometheus.scrape.node_exporter\", mode=\"idle\"}[5m])) * 100)"
+                  refId: A
+              - refId: C
+                datasourceUid: "-100"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [85]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: ["A"]
+                      reducer:
+                        type: last
+                  refId: C
+                  type: classic_query
+
+          - uid: alert-node-disk-low
+            title: "Node Disk Free Space Low (<15%)"
+            condition: C
+            for: 5m
+            labels:
+              severity: critical
+              cluster: homelabs
+            annotations:
+              summary: "Node Disk Free Space Low (<15%)"
+              description: "Root filesystem free disk space is below 15%."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: "((node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"}) * 100)"
+                  refId: A
+              - refId: C
+                datasourceUid: "-100"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [15]
+                        type: lt
+                      operator:
+                        type: and
+                      query:
+                        params: ["A"]
+                      reducer:
+                        type: last
+                  refId: C
+                  type: classic_query
+
+      - orgId: 1
+        name: Cluster-Pod-Alerts
+        folder: Cluster Alert Rules
+        interval: 1m
+        rules:
+          - uid: alert-pod-restarts-high
+            title: "Pod Container Restarts High (>3 in 15m)"
+            condition: C
+            for: 1m
+            labels:
+              severity: critical
+              cluster: homelabs
+            annotations:
+              summary: "Pod Container Restarts High"
+              description: "Container restarted > 3 times in 15 minutes."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 900
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: "sum(increase(kube_pod_container_status_restarts_total[15m])) by (pod, namespace)"
+                  refId: A
+              - refId: C
+                datasourceUid: "-100"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [3]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: ["A"]
+                      reducer:
+                        type: last
+                  refId: C
+                  type: classic_query
+
+          - uid: alert-container-oomkilled
+            title: "Container OOMKilled Detected"
+            condition: C
+            for: 0s
+            labels:
+              severity: critical
+              cluster: homelabs
+            annotations:
+              summary: "Container Terminated (OOMKilled)"
+              description: "Container terminated by OS kernel due to Out Of Memory."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: "sum(kube_pod_container_status_terminated_reason{reason=\"OOMKilled\"}) by (pod, namespace)"
+                  refId: A
+              - refId: C
+                datasourceUid: "-100"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: ["A"]
+                      reducer:
+                        type: last
+                  refId: C
+                  type: classic_query
+
+          - uid: alert-pod-unhealthy
+            title: "Pod Unhealthy State (Failed/Pending >5m)"
+            condition: C
+            for: 5m
+            labels:
+              severity: warning
+              cluster: homelabs
+            annotations:
+              summary: "Pod in Unhealthy State"
+              description: "Pod is in Failed or Pending state for > 5 minutes."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: "sum(kube_pod_status_phase{phase=~\"Failed|Pending\"}) by (pod, namespace)"
+                  refId: A
+              - refId: C
+                datasourceUid: "-100"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: ["A"]
+                      reducer:
+                        type: last
+                  refId: C
+                  type: classic_query
+
+      - orgId: 1
+        name: Cluster-Services-Alerts
+        folder: Cluster Alert Rules
+        interval: 1m
+        rules:
+          - uid: alert-tls-expiring
+            title: "TLS Certificate Expiring Soon (<14 Days)"
+            condition: C
+            for: 1m
+            labels:
+              severity: warning
+              cluster: homelabs
+            annotations:
+              summary: "TLS Certificate Expiring Soon"
+              description: "Domain TLS certificate expires in < 14 days."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: "((traefik_tls_certs_not_after - time()) / 86400)"
+                  refId: A
+              - refId: C
+                datasourceUid: "-100"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [14]
+                        type: lt
+                      operator:
+                        type: and
+                      query:
+                        params: ["A"]
+                      reducer:
+                        type: last
+                  refId: C
+                  type: classic_query
+
+          - uid: alert-database-high-memory
+            title: "Database / Cache High Memory Footprint"
+            condition: C
+            for: 5m
+            labels:
+              severity: warning
+              cluster: homelabs
+            annotations:
+              summary: "Database/Cache High RAM Usage"
+              description: "Database or Redis container RAM usage > 800MB."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: "sum(container_memory_working_set_bytes{pod=~\".*(postgresql|database|redis).*\", container!=\"\"}) by (pod, namespace)"
+                  refId: A
+              - refId: C
+                datasourceUid: "-100"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [800000000]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: ["A"]
+                      reducer:
+                        type: last
+                  refId: C
+                  type: classic_query
+
+          - uid: alert-ingress-5xx-spike
+            title: "Ingress HTTP 5xx Error Rate Spike (>5%)"
+            condition: C
+            for: 3m
+            labels:
+              severity: critical
+              cluster: homelabs
+            annotations:
+              summary: "Ingress HTTP 5xx Server Errors Spike"
+              description: "More than 5% of HTTP requests returned 5xx errors."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: "(sum(rate(traefik_entrypoint_requests_total{code=~\"5..\"}[5m])) / sum(rate(traefik_entrypoint_requests_total[5m]))) * 100"
+                  refId: A
+              - refId: C
+                datasourceUid: "-100"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [5]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: ["A"]
+                      reducer:
+                        type: last
+                  refId: C
+                  type: classic_query
+
+          - uid: alert-loki-high-errors
+            title: "High Log Error Rate in Cluster (>20/min)"
+            condition: C
+            for: 5m
+            labels:
+              severity: warning
+              cluster: homelabs
+            annotations:
+              summary: "High Error Log Rate"
+              description: "Cluster recorded > 20 error log entries per minute."
+            data:
+              - refId: A
+                datasourceUid: Loki
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: "sum(rate({namespace=~\".*\"} |~ \"(?i)(error|exception|fatal)\" [5m])) * 60"
+                  refId: A
+              - refId: C
+                datasourceUid: "-100"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [20]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: ["A"]
+                      reducer:
+                        type: last
+                  refId: C
+                  type: classic_query
