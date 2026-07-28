@@ -25,11 +25,13 @@ datasources:
     apiVersion: 1
     datasources:
       - name: VictoriaMetrics
+        uid: VictoriaMetrics
         type: prometheus
         access: proxy
         url: http://vmsingle-victoria-metrics-single-server.monitoring.svc.cluster.local:8428
         isDefault: true
       - name: Loki
+        uid: Loki
         type: loki
         access: proxy
         url: http://loki.monitoring.svc.cluster.local:3100
