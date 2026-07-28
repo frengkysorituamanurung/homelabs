@@ -1423,7 +1423,7 @@ data:
                 "uid": "Loki"
               },
               "editorMode": "code",
-              "expr": "sum(rate({namespace=~\"$namespace\"}[5m]))",
+              "expr": "sum(rate({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"}[5m]))",
               "legendFormat": "Log Rate",
               "queryType": "range",
               "refId": "A"
@@ -1487,7 +1487,7 @@ data:
                 "uid": "Loki"
               },
               "editorMode": "code",
-              "expr": "sum(rate({namespace=~\"$namespace\"} |~ \"(?i)(error|exception|fail|fatal)\" [5m])) * 60",
+              "expr": "sum(rate({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"} |~ \"(?i)(error|exception|fail|fatal)\" [5m])) * 60",
               "legendFormat": "Errors / min",
               "queryType": "range",
               "refId": "A"
@@ -1551,7 +1551,7 @@ data:
                 "uid": "Loki"
               },
               "editorMode": "code",
-              "expr": "sum(rate({namespace=~\"$namespace\"} |~ \"(?i)(warn|warning)\" [5m])) * 60",
+              "expr": "sum(rate({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"} |~ \"(?i)(warn|warning)\" [5m])) * 60",
               "legendFormat": "Warnings / min",
               "queryType": "range",
               "refId": "A"
@@ -1569,7 +1569,7 @@ data:
             "y": 5
           },
           "id": 101,
-          "title": "Log Timeline & Distribution by Namespace",
+          "title": "Log Timeline & Distribution by Namespace & Deployment",
           "type": "row"
         },
         {
@@ -1612,13 +1612,13 @@ data:
                 "uid": "Loki"
               },
               "editorMode": "code",
-              "expr": "sum(rate({namespace=~\"$namespace\"}[5m])) by (namespace)",
-              "legendFormat": "{{namespace}}",
+              "expr": "sum(rate({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"}[5m])) by (namespace, pod)",
+              "legendFormat": "{{namespace}} / {{pod}}",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Log Volume by Namespace Over Time",
+          "title": "Log Volume by Pod Over Time",
           "type": "timeseries"
         },
         {
@@ -1662,7 +1662,7 @@ data:
                 "uid": "Loki"
               },
               "editorMode": "code",
-              "expr": "topk(10, sum(count_over_time({namespace=~\"$namespace\"} |~ \"(?i)(error|exception|fail|fatal)\" [1h])) by (pod))",
+              "expr": "topk(10, sum(count_over_time({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"} |~ \"(?i)(error|exception|fail|fatal)\" [1h])) by (pod))",
               "legendFormat": "{{pod}}",
               "queryType": "range",
               "refId": "A"
@@ -1680,7 +1680,7 @@ data:
             "y": 14
           },
           "id": 102,
-          "title": "Live Interactive Pod Log Console",
+          "title": "Live Interactive Application & Deployment Log Console",
           "type": "row"
         },
         {
@@ -1713,12 +1713,12 @@ data:
                 "uid": "Loki"
               },
               "editorMode": "code",
-              "expr": "{namespace=~\"$namespace\", pod=~\"$pod\"} |= \"$search\"",
+              "expr": "{namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"} |= \"$search\"",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Real-Time Pod Log Stream",
+          "title": "Real-Time Deployment & Pod Log Stream",
           "type": "logs"
         }
       ],
@@ -1729,6 +1729,7 @@ data:
         "loki",
         "logs",
         "explorer",
+        "deployments",
         "errors"
       ],
       "templating": {
@@ -1746,6 +1747,7 @@ data:
             "definition": "label_values(namespace)",
             "hide": 0,
             "includeAll": true,
+            "label": "Namespace",
             "multi": true,
             "name": "namespace",
             "options": [],
@@ -1766,19 +1768,46 @@ data:
               "value": "$__all"
             },
             "datasource": {
+              "type": "prometheus",
+              "uid": "VictoriaMetrics"
+            },
+            "definition": "label_values(kube_deployment_spec_replicas{namespace=~\"$namespace\"}, deployment)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Deployment",
+            "multi": true,
+            "name": "deployment",
+            "options": [],
+            "query": {
+              "query": "label_values(kube_deployment_spec_replicas{namespace=~\"$namespace\"}, deployment)",
+              "refId": "StandardVariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "current": {
+              "selected": true,
+              "text": "All",
+              "value": "$__all"
+            },
+            "datasource": {
               "type": "loki",
               "uid": "Loki"
             },
-            "definition": "label_values({namespace=~\"$namespace\"}, pod)",
+            "definition": "label_values({namespace=~\"$namespace\", pod=~\"($deployment).*\"}, pod)",
             "hide": 0,
             "includeAll": true,
+            "label": "Pod",
             "multi": true,
             "name": "pod",
             "options": [],
             "query": {
               "label": "pod",
               "refId": "LokiVariableQuery",
-              "stream": "{namespace=~\"$namespace\"}",
+              "stream": "{namespace=~\"$namespace\", pod=~\"($deployment).*\"}",
               "type": 1
             },
             "refresh": 1,
@@ -1792,6 +1821,7 @@ data:
               "value": ""
             },
             "hide": 0,
+            "label": "Search Text",
             "name": "search",
             "options": [
               {
@@ -1822,17 +1852,8 @@ data:
       "timezone": "browser",
       "title": "Centralized Log Explorer & Error Tracker",
       "uid": "loki-logs-explorer",
-      "version": 1
+      "version": 2
     }
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-dashboard-devops-services
-  namespace: monitoring
-  labels:
-    grafana_dashboard: "1"
-data:
   devops-services-overview.json: |
     {
       "annotations": {
