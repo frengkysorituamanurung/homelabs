@@ -260,8 +260,9 @@
               }
             ]
           },
-          "unit": "d",
-          "decimals": 1
+          "unit": "short",
+          "decimals": 1,
+          "suffix": " Days"
         },
         "overrides": []
       },
