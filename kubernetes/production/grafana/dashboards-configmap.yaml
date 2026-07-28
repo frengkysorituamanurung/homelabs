@@ -1219,6 +1219,7 @@ data:
           },
           "id": 7,
           "options": {
+            "displayMode": "gradient",
             "orientation": "horizontal",
             "reduceOptions": {
               "calcs": [
@@ -1227,8 +1228,7 @@ data:
               "fields": "",
               "values": false
             },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
+            "showUnfilled": true,
             "valueMode": "color"
           },
           "pluginVersion": "10.0.0",
@@ -1246,7 +1246,7 @@ data:
             }
           ],
           "title": "PVC Disk Usage Percentage",
-          "type": "gauge"
+          "type": "bargauge"
         }
       ],
       "refresh": "10s",
