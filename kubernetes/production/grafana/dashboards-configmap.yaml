@@ -4393,7 +4393,8 @@ data:
                   }
                 ]
               },
-              "unit": "s"
+              "unit": "d",
+              "decimals": 1
             },
             "overrides": []
           },
@@ -4424,7 +4425,7 @@ data:
                 "uid": "VictoriaMetrics"
               },
               "editorMode": "code",
-              "expr": "time() - node_boot_time_seconds{instance=~\"$instance\"}",
+              "expr": "(time() - node_boot_time_seconds{instance=~\"$instance\"}) / 86400",
               "legendFormat": "Uptime",
               "range": true,
               "refId": "A"
