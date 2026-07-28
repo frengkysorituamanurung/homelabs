@@ -4432,7 +4432,7 @@ data:
               "refId": "A"
             }
           ],
-          "title": "Host System Uptime",
+          "title": "Host System Uptime (day)",
           "type": "stat"
         },
         {
