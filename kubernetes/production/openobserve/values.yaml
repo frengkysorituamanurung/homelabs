@@ -1,0 +1,161 @@
+# ============================================================
+# OpenObserve Helm Values - Single Node / Local Mode
+# Docs: https://openobserve.ai/docs/
+# ============================================================
+
+image:
+  oss:
+    repository: o2cr.ai/openobserve/openobserve
+    tag: "v0.91.1"
+  pullPolicy: IfNotPresent
+
+# ----------------------------
+# Authentication Credentials
+# ----------------------------
+auth:
+  ZO_ROOT_USER_EMAIL: "admin@frengky.xyz"
+  ZO_ROOT_USER_PASSWORD: "OpenObserve@123"
+  ZO_ROOT_USER_TOKEN: ""
+  ZO_S3_ACCESS_KEY: ""
+  ZO_S3_SECRET_KEY: ""
+
+# ----------------------------
+# Core Configuration
+# ----------------------------
+config:
+  ZO_APP_NAME: "openobserve"
+  ZO_CLUSTER_NAME: "o2"
+  ZO_NODE_ROLE: "all"
+  ZO_LOCAL_MODE: "true"
+  ZO_LOCAL_MODE_STORAGE: "disk"
+  ZO_HTTP_PORT: "5080"
+  ZO_GRPC_PORT: "5081"
+  ZO_DATA_DIR: "/data"
+  ZO_UI_ENABLED: "true"
+  ZO_WEB_URL: "https://openobserve.frengky.xyz"
+  ZO_BASE_URI: ""
+  ZO_HEALTH_CHECK_ENABLED: "true"
+  ZO_CLUSTER_COORDINATOR: "nats"
+  ZO_QUEUE_STORE: "nats"
+  # Telemetry / usage reporting
+  ZO_TELEMETRY: "false"
+  ZO_USAGE_REPORTING_MODE: "local"
+  ZO_USAGE_REPORTING_URL: "http://localhost:5080/api/_meta/usage/_json"
+
+# ----------------------------
+# Replica Counts (single-node: all in one pod)
+# ----------------------------
+replicaCount:
+  ingester: 1
+  querier: 1
+  router: 1
+  alertmanager: 1
+  alertquerier: 0
+  compactor: 1
+  reportserver: 0
+  o2ai: 0
+
+# ----------------------------
+# Persistence
+# ----------------------------
+ingester:
+  extraEnv: []
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: "local-path"
+    accessModes:
+      - ReadWriteOnce
+
+alertmanager:
+  extraEnv: []
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: "local-path"
+    accessModes:
+      - ReadWriteOnce
+
+querier:
+  extraEnv: []
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: "local-path"
+    accessModes:
+      - ReadWriteOnce
+
+compactor:
+  extraEnv: []
+  persistence:
+    enabled: false
+
+# ----------------------------
+# Service
+# ----------------------------
+service:
+  type: ClusterIP
+  http_port: 5080
+  grpc_port: 5081
+
+# ----------------------------
+# Ingress (using built-in chart ingress for Traefik)
+# ----------------------------
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+  hosts:
+    - host: openobserve.frengky.xyz
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+certIssuer:
+  enabled: false
+
+# ----------------------------
+# NATS (needed for cluster coordinator even in local mode)
+# ----------------------------
+nats:
+  enabled: true
+  config:
+    cluster:
+      enabled: false
+    jetstream:
+      enabled: true
+      fileStore:
+        enabled: true
+        pvc:
+          enabled: true
+          size: 5Gi
+          storageClassName: "local-path"
+  promExporter:
+    enabled: false
+    podMonitor:
+      enabled: false
+
+# ----------------------------
+# Disable external dependencies
+# ----------------------------
+minio:
+  enabled: false
+
+postgres:
+  enabled: false
+
+enterprise:
+  enabled: false
+
+# Disable o2ai (enterprise only)
+probes:
+  o2ai:
+    enabled: false
+
+# ----------------------------
+# Resources (tune for single node)
+# ----------------------------
+resources: {}
