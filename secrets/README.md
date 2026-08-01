@@ -97,6 +97,19 @@ kubectl exec -n vault -it vault-0 -- vault kv put secret/harbor \
   adminPassword=<PASSWORD_KUAT>
 ```
 
+#### OpenObserve
+```bash
+kubectl exec -n vault -it vault-0 -- sh -c "
+  VAULT_ADDR=http://127.0.0.1:8200
+  VAULT_TOKEN=<ROOT_TOKEN>
+  export VAULT_ADDR VAULT_TOKEN
+  vault kv put secret/openobserve \
+    rootEmail='admin@frengky.xyz' \
+    rootPassword='<PASSWORD_KUAT>' \
+    webUrl='https://openobserve.frengky.xyz'
+"
+```
+
 #### Cloudflared
 ```bash
 # Tunnel token dari Cloudflare dashboard
