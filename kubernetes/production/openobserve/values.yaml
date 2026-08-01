@@ -37,6 +37,9 @@ config:
   ZO_HEALTH_CHECK_ENABLED: "true"
   ZO_CLUSTER_COORDINATOR: "nats"
   ZO_QUEUE_STORE: "nats"
+  # Meta store: use sqlite for local/single-node mode (no postgres needed)
+  ZO_META_STORE: "sqlite"
+  ZO_META_POSTGRES_DSN: ""
   # Telemetry / usage reporting
   ZO_TELEMETRY: "false"
   ZO_USAGE_REPORTING_MODE: "local"
