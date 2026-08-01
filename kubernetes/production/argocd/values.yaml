@@ -4,13 +4,6 @@
 global:
   domain: argocd.frengky.xyz
 
-server:
-  replicas: 1
-  ingress:
-    enabled: false
-  extraArgs:
-    - --insecure
-
 configs:
   params:
     # Karena TLS diterminate di Cloudflare/Traefik level
@@ -28,6 +21,12 @@ configs:
 
 # Resource limits untuk single-node cluster
 controller:
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
   extraArgs:
     - --status-processors=5
     - --operation-processors=5
@@ -39,7 +38,26 @@ controller:
       cpu: 1000m
       memory: 2048Mi
 
+server:
+  replicas: 1
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8083"
+  ingress:
+    enabled: false
+  extraArgs:
+    - --insecure
+
 repoServer:
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8084"
   resources:
     requests:
       cpu: 100m
@@ -49,6 +67,12 @@ repoServer:
       memory: 1024Mi
 
 applicationSet:
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "7000"
   resources:
     requests:
       cpu: 100m
@@ -59,3 +83,4 @@ applicationSet:
 
 notifications:
   enabled: false
+

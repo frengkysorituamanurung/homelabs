@@ -16,12 +16,22 @@ alloy:
 
       prometheus.scrape "kubernetes_pods" {
         targets    = discovery.relabel.pods.output
-        forward_to = [prometheus.remote_write.vm.receiver]
+        forward_to = [prometheus.remote_write.vm.receiver, prometheus.remote_write.openobserve.receiver]
       }
 
       prometheus.remote_write "vm" {
         endpoint {
           url = "http://vmsingle-victoria-metrics-single-server.monitoring.svc.cluster.local:8428/api/v1/write"
+        }
+      }
+
+      prometheus.remote_write "openobserve" {
+        endpoint {
+          url = "http://openobserve-router.openobserve.svc.cluster.local:5080/api/default/prometheus/api/v1/write"
+          basic_auth {
+            username = "admin@frengky.xyz"
+            password = "OpenObserve@123"
+          }
         }
       }
 
@@ -61,7 +71,7 @@ alloy:
 
       prometheus.scrape "kube_state_metrics" {
         targets    = discovery.relabel.kube_state_metrics.output
-        forward_to = [prometheus.remote_write.vm.receiver]
+        forward_to = [prometheus.remote_write.vm.receiver, prometheus.remote_write.openobserve.receiver]
       }
 
       discovery.kubernetes "nodes" {
@@ -77,7 +87,7 @@ alloy:
           insecure_skip_verify = true
         }
 
-        forward_to = [prometheus.remote_write.vm.receiver]
+        forward_to = [prometheus.remote_write.vm.receiver, prometheus.remote_write.openobserve.receiver]
       }
 
       prometheus.scrape "cadvisor" {
@@ -90,7 +100,7 @@ alloy:
           insecure_skip_verify = true
         }
 
-        forward_to = [prometheus.remote_write.vm.receiver]
+        forward_to = [prometheus.remote_write.vm.receiver, prometheus.remote_write.openobserve.receiver]
       }
 
       discovery.kubernetes "node_exporter" {
@@ -109,7 +119,7 @@ alloy:
 
       prometheus.scrape "node_exporter" {
         targets    = discovery.relabel.node_exporter.output
-        forward_to = [prometheus.remote_write.vm.receiver]
+        forward_to = [prometheus.remote_write.vm.receiver, prometheus.remote_write.openobserve.receiver]
       }
 
       loki.source.kubernetes "pods_logs" {
