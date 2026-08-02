@@ -121,8 +121,8 @@ kubectl get pods -n cnpg-system
 # Cek CRDs yang terdaftar
 kubectl get crd | grep postgresql
 
-# Cek detail operator
-kubectl describe deployment cnpg-controller-manager -n cnpg-system
+# Cek detail operator (nama deployment = Helm release name)
+kubectl describe deployment cloudnative-pg -n cnpg-system
 ```
 
 Output yang diharapkan:
