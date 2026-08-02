@@ -1,0 +1,63 @@
+# CloudNativePG Operator - Production Values
+# Chart Version: 0.29.0 | App Version: 1.30.0
+# Docs: https://cloudnative-pg.io/documentation/1.30/
+
+# -- Number of operator replicas. For HA use 2 or 3.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/cloudnative-pg/cloudnative-pg
+  pullPolicy: IfNotPresent
+  # Defaults to chart appVersion (v1.30.0)
+  tag: ""
+
+# -- CRDs will be created/updated by the chart on install/upgrade.
+crds:
+  create: true
+
+# -- Operator watches all namespaces (cluster-wide mode).
+config:
+  create: true
+  name: cnpg-controller-manager-config
+  secret: false
+  clusterWide: true
+
+# -- Resource limits for the operator controller.
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# -- Pod scheduling tolerations & affinity (single-node homelab).
+tolerations: []
+affinity: {}
+nodeSelector: {}
+
+# -- Prometheus monitoring via PodMonitor CRD.
+monitoring:
+  podMonitorEnabled: false
+  grafanaDashboard:
+    create: false
+
+# -- Webhook server settings.
+webhook:
+  port: 9443
+  mutating:
+    create: true
+    failurePolicy: Fail
+  validating:
+    create: true
+    failurePolicy: Fail
+  livenessProbe:
+    initialDelaySeconds: 3
+  readinessProbe:
+    initialDelaySeconds: 3
+  startupProbe:
+    failureThreshold: 6
+    periodSeconds: 5
+
+# -- Priority class for the operator pod.
+priorityClassName: ""
