@@ -1,9 +1,18 @@
 # Gitea configuration values
+# Chart: gitea-charts/gitea v12.6.0
+
 global:
   storageClass: "local-path"
 
+# -- 2 replicas untuk HA Gitea (stateless web layer)
+replicaCount: 2
+
+# -- RollingUpdate agar tidak downtime saat update
 strategy:
-  type: "Recreate"
+  type: "RollingUpdate"
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
 
 gitea:
   admin:
@@ -25,6 +34,67 @@ gitea:
       ALLOW_LOCALNETWORKS: true
     actions:
       ENABLED: true
+    # -- Database connection pool: cegah maintenance mode akibat DB slow query
+    database:
+      MAX_OPEN_CONNS: 20
+      MAX_IDLE_CONNS: 5
+      CONN_MAX_LIFETIME: 3600
+      LOG_SQL: false
+    # -- Cache di memory (tiap replica punya cache sendiri)
+    cache:
+      ADAPTER: memory
+      INTERVAL: 50
+    # -- Session di memory (OK untuk 2 replicas karena sticky session via ingress)
+    session:
+      PROVIDER: memory
+    # -- Queue
+    queue:
+      TYPE: level
+    # -- Timeout lebih longgar untuk mencegah false positive maintenance mode
+    server:
+      DOMAIN: gitea.frengky.xyz
+      ROOT_URL: https://gitea.frengky.xyz/
+      SSH_DOMAIN: gitea.frengky.xyz
+      SSH_PORT: 2222
+      SSH_LISTEN_PORT: 22
+      READ_TIMEOUT: 60
+      WRITE_TIMEOUT: 60
+      IDLE_TIMEOUT: 120
+
+  # -- Liveness probe: restart pod jika tidak bisa terima koneksi TCP
+  # Ini akan otomatis restart Gitea jika stuck di maintenance mode
+  livenessProbe:
+    enabled: true
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+    periodSeconds: 15
+    successThreshold: 1
+    failureThreshold: 5
+
+  # -- Readiness probe: keluarkan pod dari load balancer jika tidak siap
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /api/healthz
+      port: http
+    initialDelaySeconds: 10
+    timeoutSeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+
+  # -- Startup probe: beri waktu cukup saat cold start
+  startupProbe:
+    enabled: true
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 15
+    timeoutSeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 20
 
 service:
   http:
@@ -44,34 +114,74 @@ ingress:
         - path: /
           pathType: Prefix
 
+# -- Shared persistent volume untuk gitea repositories (RWX dibutuhkan untuk 2 replicas)
+# Dengan local-path (RWO), gunakan 1 PVC shared via accessModes ReadWriteOnce
+# Catatan: local-path tidak support RWX, semua replicas akan schedule ke node yang sama
 persistence:
   enabled: true
   storageClass: "local-path"
   size: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  claimName: gitea-shared-storage
 
-postgresql-ha:
+# -- Disable single PostgreSQL, gunakan PostgreSQL HA
+postgresql:
   enabled: false
 
-postgresql:
+# -- PostgreSQL HA dengan 2 node (primary + standby via repmgr)
+postgresql-ha:
   enabled: true
+
   global:
     postgresql:
-      auth:
-        database: gitea
-        username: gitea
-        password: gitea-secure-db-password-123
-  primary:
-    persistence:
-      enabled: true
-      storageClass: "local-path"
-      size: 5Gi
+      database: gitea
+      username: gitea
+      password: "gitea-secure-db-password-123"
+
+  postgresql:
+    image:
+      repository: bitnami/postgresql-repmgr
+    repmgrPassword: "RepmgrSecure@456"
+    postgresPassword: "PostgresRoot@123"
+    password: "gitea-secure-db-password-123"
+
+    # -- 2 PostgreSQL instances: 1 primary + 1 standby
+    replicaCount: 2
+
     resources:
       requests:
         cpu: 250m
         memory: 256Mi
       limits:
-        cpu: 2000m
-        memory: 1024Mi
+        cpu: "1"
+        memory: 512Mi
+
+    persistence:
+      enabled: true
+      storageClass: "local-path"
+      size: 5Gi
+
+  pgpool:
+    image:
+      repository: bitnami/pgpool
+    adminPassword: "PgpoolAdmin@789"
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+    # -- Pool settings untuk koneksi stabil
+    numInitChildren: 32
+    maxPool: 4
+
+  metrics:
+    image:
+      repository: bitnami/postgres-exporter
 
 valkey-cluster:
   enabled: false
@@ -84,5 +194,5 @@ resources:
     cpu: 200m
     memory: 256Mi
   limits:
-    cpu: 2000m
-    memory: 1024Mi
+    cpu: "1"
+    memory: 1Gi
