@@ -1,18 +1,21 @@
 # Gitea configuration values
 # Chart: gitea-charts/gitea v12.6.0
+#
+# CATATAN ARSITEKTUR:
+# - Gitea: 1 replica (local-path hanya support RWO, tidak bisa RWX untuk multi-replica)
+#   HA Gitea dicapai via: probes agresif (auto-restart) + PostgreSQL HA
+# - PostgreSQL: 2 node HA via postgresql-ha (primary + standby dengan repmgr)
 
 global:
   storageClass: "local-path"
 
-# -- 2 replicas untuk HA Gitea (stateless web layer)
-replicaCount: 2
+# -- 1 replica (local-path adalah RWO, tidak support multi-replica Gitea)
+# HA dijamin oleh: liveness probe agresif + PostgreSQL HA + fast restart
+replicaCount: 1
 
-# -- RollingUpdate agar tidak downtime saat update
+# -- RollingUpdate dengan maxSurge=0 karena hanya 1 replica dan RWO PVC
 strategy:
-  type: "RollingUpdate"
-  rollingUpdate:
-    maxSurge: 1
-    maxUnavailable: 0
+  type: "Recreate"
 
 gitea:
   admin:
@@ -30,39 +33,28 @@ gitea:
       SSH_DOMAIN: gitea.frengky.xyz
       SSH_PORT: 2222
       SSH_LISTEN_PORT: 22
+      # -- Timeout longgar agar tidak triggering maintenance mode saat DB sedikit lambat
+      READ_TIMEOUT: 60
+      WRITE_TIMEOUT: 60
+      IDLE_TIMEOUT: 120
     migrations:
       ALLOW_LOCALNETWORKS: true
     actions:
       ENABLED: true
-    # -- Database connection pool: cegah maintenance mode akibat DB slow query
+    # -- DB Connection pool: cegah query timeout yang trigger maintenance mode
     database:
       MAX_OPEN_CONNS: 20
       MAX_IDLE_CONNS: 5
       CONN_MAX_LIFETIME: 3600
       LOG_SQL: false
-    # -- Cache di memory (tiap replica punya cache sendiri)
     cache:
       ADAPTER: memory
       INTERVAL: 50
-    # -- Session di memory (OK untuk 2 replicas karena sticky session via ingress)
     session:
       PROVIDER: memory
-    # -- Queue
-    queue:
-      TYPE: level
-    # -- Timeout lebih longgar untuk mencegah false positive maintenance mode
-    server:
-      DOMAIN: gitea.frengky.xyz
-      ROOT_URL: https://gitea.frengky.xyz/
-      SSH_DOMAIN: gitea.frengky.xyz
-      SSH_PORT: 2222
-      SSH_LISTEN_PORT: 22
-      READ_TIMEOUT: 60
-      WRITE_TIMEOUT: 60
-      IDLE_TIMEOUT: 120
 
-  # -- Liveness probe: restart pod jika tidak bisa terima koneksi TCP
-  # Ini akan otomatis restart Gitea jika stuck di maintenance mode
+  # -- Liveness probe via TCP: restart pod otomatis jika stuck/maintenance mode
+  # failureThreshold=5 x periodSeconds=15 = max 75 detik maintenance mode sebelum restart
   livenessProbe:
     enabled: true
     tcpSocket:
@@ -73,7 +65,7 @@ gitea:
     successThreshold: 1
     failureThreshold: 5
 
-  # -- Readiness probe: keluarkan pod dari load balancer jika tidak siap
+  # -- Readiness probe via HTTP /api/healthz: keluarkan dari LB jika tidak sehat
   readinessProbe:
     enabled: true
     httpGet:
@@ -85,7 +77,7 @@ gitea:
     successThreshold: 1
     failureThreshold: 3
 
-  # -- Startup probe: beri waktu cukup saat cold start
+  # -- Startup probe: beri waktu extra saat cold start (max 3 menit)
   startupProbe:
     enabled: true
     tcpSocket:
@@ -94,7 +86,7 @@ gitea:
     timeoutSeconds: 5
     periodSeconds: 10
     successThreshold: 1
-    failureThreshold: 20
+    failureThreshold: 18
 
 service:
   http:
@@ -114,22 +106,19 @@ ingress:
         - path: /
           pathType: Prefix
 
-# -- Shared persistent volume untuk gitea repositories (RWX dibutuhkan untuk 2 replicas)
-# Dengan local-path (RWO), gunakan 1 PVC shared via accessModes ReadWriteOnce
-# Catatan: local-path tidak support RWX, semua replicas akan schedule ke node yang sama
 persistence:
   enabled: true
   storageClass: "local-path"
   size: 5Gi
   accessModes:
     - ReadWriteOnce
-  claimName: gitea-shared-storage
 
-# -- Disable single PostgreSQL, gunakan PostgreSQL HA
+# -- Disable single-node PostgreSQL
 postgresql:
   enabled: false
 
-# -- PostgreSQL HA dengan 2 node (primary + standby via repmgr)
+# -- PostgreSQL HA: 2 node (primary + standby) via repmgr
+# Jika primary crash, standby otomatis dipromote menjadi primary
 postgresql-ha:
   enabled: true
 
@@ -146,7 +135,7 @@ postgresql-ha:
     postgresPassword: "PostgresRoot@123"
     password: "gitea-secure-db-password-123"
 
-    # -- 2 PostgreSQL instances: 1 primary + 1 standby
+    # -- 2 instance: 1 primary + 1 standby
     replicaCount: 2
 
     resources:
@@ -167,6 +156,11 @@ postgresql-ha:
       repository: bitnami/pgpool
     adminPassword: "PgpoolAdmin@789"
 
+    # -- pgpool sebagai connection proxy: request selalu dikirim ke node aktif
+    # Ini yang membuat Gitea tidak perlu tahu apakah primary atau standby yang aktif
+    numInitChildren: 32
+    maxPool: 4
+
     resources:
       requests:
         cpu: 100m
@@ -174,10 +168,6 @@ postgresql-ha:
       limits:
         cpu: 500m
         memory: 256Mi
-
-    # -- Pool settings untuk koneksi stabil
-    numInitChildren: 32
-    maxPool: 4
 
   metrics:
     image:
