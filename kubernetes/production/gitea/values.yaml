@@ -1,19 +1,19 @@
 # Gitea configuration values
 # Chart: gitea-charts/gitea v12.6.0
 #
-# CATATAN ARSITEKTUR:
-# - Gitea: 1 replica (local-path hanya support RWO, tidak bisa RWX untuk multi-replica)
-#   HA Gitea dicapai via: probes agresif (auto-restart) + PostgreSQL HA
-# - PostgreSQL: 2 node HA via postgresql-ha (primary + standby dengan repmgr)
+# ARSITEKTUR HOMELAB (single-node k3s, local-path RWO):
+# - Gitea: 1 replica dengan probes agresif untuk auto-restart cepat
+# - PostgreSQL: 1 instance dengan resource cukup + liveness probe
+# - Maintenance mode prevention: DB connection pool + timeout settings
+# - Fast recovery: liveness probe restart Gitea jika maintenance mode >75s
 
 global:
   storageClass: "local-path"
 
 # -- 1 replica (local-path adalah RWO, tidak support multi-replica Gitea)
-# HA dijamin oleh: liveness probe agresif + PostgreSQL HA + fast restart
 replicaCount: 1
 
-# -- RollingUpdate dengan maxSurge=0 karena hanya 1 replica dan RWO PVC
+# -- Recreate karena PVC adalah RWO
 strategy:
   type: "Recreate"
 
@@ -33,7 +33,7 @@ gitea:
       SSH_DOMAIN: gitea.frengky.xyz
       SSH_PORT: 2222
       SSH_LISTEN_PORT: 22
-      # -- Timeout longgar agar tidak triggering maintenance mode saat DB sedikit lambat
+      # -- Timeout longgar: cegah maintenance mode akibat DB sedikit lambat
       READ_TIMEOUT: 60
       WRITE_TIMEOUT: 60
       IDLE_TIMEOUT: 120
@@ -42,6 +42,9 @@ gitea:
     actions:
       ENABLED: true
     # -- DB Connection pool: cegah query timeout yang trigger maintenance mode
+    # MAX_OPEN_CONNS: maksimum koneksi ke DB (default: 0 = unlimited, rawan exhaust)
+    # MAX_IDLE_CONNS: koneksi idle yang dipertahankan di pool
+    # CONN_MAX_LIFETIME: max umur koneksi dalam detik (recycle agar tidak stale)
     database:
       MAX_OPEN_CONNS: 20
       MAX_IDLE_CONNS: 5
@@ -53,8 +56,8 @@ gitea:
     session:
       PROVIDER: memory
 
-  # -- Liveness probe via TCP: restart pod otomatis jika stuck/maintenance mode
-  # failureThreshold=5 x periodSeconds=15 = max 75 detik maintenance mode sebelum restart
+  # -- Liveness probe via TCP: auto-restart jika Gitea stuck (termasuk maintenance mode)
+  # failureThreshold=5 x periodSeconds=15 = restart setelah max 75 detik maintenance mode
   livenessProbe:
     enabled: true
     tcpSocket:
@@ -65,7 +68,7 @@ gitea:
     successThreshold: 1
     failureThreshold: 5
 
-  # -- Readiness probe via HTTP /api/healthz: keluarkan dari LB jika tidak sehat
+  # -- Readiness probe via HTTP API: keluarkan dari LB jika tidak siap melayani traffic
   readinessProbe:
     enabled: true
     httpGet:
@@ -77,7 +80,7 @@ gitea:
     successThreshold: 1
     failureThreshold: 3
 
-  # -- Startup probe: beri waktu extra saat cold start (max 3 menit)
+  # -- Startup probe: beri waktu extra saat cold start (max ~3 menit)
   startupProbe:
     enabled: true
     tcpSocket:
@@ -110,34 +113,24 @@ persistence:
   enabled: true
   storageClass: "local-path"
   size: 5Gi
-  accessModes:
-    - ReadWriteOnce
 
-# -- Disable single-node PostgreSQL
-postgresql:
+# -- PostgreSQL single instance (bitnami/postgresql sudah ada di cluster)
+postgresql-ha:
   enabled: false
 
-# -- PostgreSQL HA: 2 node (primary + standby) via repmgr
-# Jika primary crash, standby otomatis dipromote menjadi primary
-postgresql-ha:
+postgresql:
   enabled: true
-
   global:
     postgresql:
-      database: gitea
-      username: gitea
-      password: "gitea-secure-db-password-123"
-
-  postgresql:
-    image:
-      repository: bitnami/postgresql-repmgr
-    repmgrPassword: "RepmgrSecure@456"
-    postgresPassword: "PostgresRoot@123"
-    password: "gitea-secure-db-password-123"
-
-    # -- 2 instance: 1 primary + 1 standby
-    replicaCount: 2
-
+      auth:
+        database: gitea
+        username: gitea
+        password: gitea-secure-db-password-123
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "local-path"
+      size: 5Gi
     resources:
       requests:
         cpu: 250m
@@ -145,33 +138,24 @@ postgresql-ha:
       limits:
         cpu: "1"
         memory: 512Mi
-
-    persistence:
+    # -- Liveness probe PostgreSQL: restart jika DB tidak mau terima koneksi
+    livenessProbe:
       enabled: true
-      storageClass: "local-path"
-      size: 5Gi
-
-  pgpool:
-    image:
-      repository: bitnami/pgpool
-    adminPassword: "PgpoolAdmin@789"
-
-    # -- pgpool sebagai connection proxy: request selalu dikirim ke node aktif
-    # Ini yang membuat Gitea tidak perlu tahu apakah primary atau standby yang aktif
-    numInitChildren: 32
-    maxPool: 4
-
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 500m
-        memory: 256Mi
-
-  metrics:
-    image:
-      repository: bitnami/postgres-exporter
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 6
+    # -- Startup probe: beri waktu 5 menit untuk cold start PostgreSQL
+    startupProbe:
+      enabled: true
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 30
+    # -- PostgreSQL parameters untuk performa dan stabilitas
+    extraEnvVars:
+      - name: POSTGRESQL_MAX_CONNECTIONS
+        value: "100"
 
 valkey-cluster:
   enabled: false
