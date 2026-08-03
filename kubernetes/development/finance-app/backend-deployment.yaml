@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: registry.frengky.xyz/devops/finance-backend:latest
+          image: harbor.frengky.xyz/devops/finance-backend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
