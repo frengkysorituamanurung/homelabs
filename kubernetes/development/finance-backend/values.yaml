@@ -1,0 +1,34 @@
+generic-app:
+  baseNamespace: development
+  baseName: finance-backend
+  environment: development
+  refreshInterval: "10s"
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  image:
+    repository: harbor.frengky.xyz/devops/finance-backend
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    enabled: true
+    type: ClusterIP
+    ports:
+      - name: http
+        port: 8080
+  ingress:
+    enabled: true
+    stripPath: false
+    hosts:
+      - host: finance-dev.frengky.xyz
+        path: /api
+        port: 8080
+  healthCheck:
+    enabled: true
+    endpoint: /api/health
+    port: 8080
