@@ -21,33 +21,12 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: finance-backend-secret
           env:
             - name: PORT
               value: "8080"
-            - name: JWT_SECRET
-              value: "super-secret-jwt-key-change-this"
-            - name: DB_HOST
-              value: "sandbox-finance-rw.database.svc.cluster.local"
-            - name: DB_PORT
-              value: "5432"
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: sandbox-finance-credentials
-                  key: username
-                  optional: true
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: sandbox-finance-credentials
-                  key: password
-                  optional: true
-            - name: DB_NAME
-              value: "sandbox_finance"
-            - name: DB_SSLMODE
-              value: "disable"
-            - name: ALLOW_ORIGINS
-              value: "*"
           resources:
             requests:
               cpu: 50m
