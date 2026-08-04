@@ -13,7 +13,7 @@ generic-app:
       memory: 32Mi
   image:
     repository: harbor.frengky.xyz/devops/finance-frontend
-    tag: "v1.0.7"
+    tag: "v1.1.0"
     pullPolicy: Always
   service:
     enabled: true
