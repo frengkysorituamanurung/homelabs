@@ -1,0 +1,30 @@
+generic-app:
+  baseNamespace: frontend
+  baseName: finance-landing
+  environment: production
+  refreshInterval: "10s"
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 20m
+      memory: 32Mi
+  image:
+    repository: harbor.frengky.xyz/frontend/finance-landing
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    enabled: true
+    type: ClusterIP
+    ports:
+      - name: http
+        port: 80
+  ingress:
+    enabled: true
+    stripPath: false
+    hosts:
+      - host: cash.frengky.xyz
+        path: /
+        port: 80
