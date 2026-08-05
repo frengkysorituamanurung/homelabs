@@ -13,7 +13,7 @@ generic-app:
       memory: 32Mi
   image:
     repository: harbor.frengky.xyz/frontend/finance-landing
-    tag: "latest"
+    tag: "main"
     pullPolicy: Always
   service:
     enabled: true
