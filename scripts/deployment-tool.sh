@@ -16,7 +16,7 @@ NC='\033[0m'
 # Validasi argumen
 if [ "$#" -lt 5 ]; then
     echo -e "${RED}Usage: $0 <APP_NAME> <IMAGE_REPO> <IMAGE_TAG> <GITOPS_REPO_URL> <VALUES_FILE_PATH>${NC}"
-    echo "Example: $0 my-frontend harbor.frengky.xyz/k8s/clusters/production/applications/apps/my-frontend v1.0.0 https://user:token@gitea.frengky.xyz/devops/gitops.git k8s/clusters/production/applications/apps/my-frontend/values.yaml"
+    echo "Example: $0 my-frontend harbor.frengky.xyz/k8s/clusters/production/applications/apps/my-frontend v1.0.0 https://user:token@github.com/frengkysorituamanurung/homelabs.git k8s/clusters/production/applications/apps/my-frontend/values.yaml"
     exit 1
 fi
 
@@ -68,7 +68,7 @@ fi
 
 # 4. Notifikasi ArgoCD Sync (Opsional - Webhook lebih disarankan)
 echo -e "\n${YELLOW}[4/4] Memastikan ArgoCD Sync Cepat...${NC}"
-echo "ArgoCD akan otomatis tersinkronisasi berkat Webhook yang dikonfigurasi di Gitea."
+echo "ArgoCD akan otomatis tersinkronisasi berkat Webhook yang dikonfigurasi di GitHub."
 echo "Proses sinkronisasi akan berjalan dalam hitungan detik!"
 
 # Cleanup

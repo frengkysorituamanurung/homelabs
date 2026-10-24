@@ -16,10 +16,8 @@ if [ -f "/workspace/argocd-sync.sh" ]; then
 elif [ -f "$SCRIPT_DIR/argocd-sync.sh" ]; then
     ARGOCD_SYNC_CMD="$SCRIPT_DIR/argocd-sync.sh"
 else
-    echo "argocd-sync.sh tidak ditemukan lokal, mengunduh dari Gitea..."
-    GITOPS_TOKEN=$(echo "$SECRETS_JSON" | grep -o '"gitops_token":"[^"]*' | grep -o '[^"]*$' || true)
-    wget -qO /tmp/argocd-sync.sh "http://gitea_admin:${GITOPS_TOKEN}@gitea-http.gitea.svc.cluster.local:3000/devops/deployment-tools/raw/branch/main/scripts/argocd-sync.sh" 2>/dev/null || true
-    ARGOCD_SYNC_CMD="/tmp/argocd-sync.sh"
+    echo "argocd-sync.sh tidak ditemukan lokal dan Gitea sudah tidak digunakan. Lewati sync."
+    exit 0
 fi
 chmod +x "$ARGOCD_SYNC_CMD" 2>/dev/null || true
 

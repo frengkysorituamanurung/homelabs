@@ -15,9 +15,8 @@ configs:
     accounts.admin: apiKey
     # URL untuk SSO callback (jika diaktifkan di masa depan)
     url: "https://argocd.frengky.xyz"
-    # Repositories yang dipercaya (tambahkan setelah Gitea ready)
+    # Repositories yang dipercaya
     # repositories: |
-    #   - url: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
 
 # Resource limits untuk single-node cluster
 controller:
