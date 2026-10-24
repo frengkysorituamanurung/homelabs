@@ -16,6 +16,7 @@ resources:
   - pilot-loki.yaml
   - pilot-harbor.yaml
   - pilot-vault.yaml
+  - pilot-garage-ui.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:

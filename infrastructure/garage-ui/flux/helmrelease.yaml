@@ -1,0 +1,109 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: garage-ui
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: ./helm/charts/garage-ui
+      version: "0.14.0"
+      sourceRef:
+        kind: GitRepository
+        name: homelabs
+        namespace: flux-system
+  releaseName: garage-ui
+  targetNamespace: garage
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    replicaCount: 1
+
+    image:
+      repository: noooste/garage-ui
+      tag: "v0.14.0"
+      pullPolicy: Always
+
+    config:
+      server:
+        host: "::"
+        port: 8080
+        environment: "production"
+        domain: "garage.frengky.xyz"
+        protocol: "https"
+        root_url: "https://garage.frengky.xyz"
+
+      garage:
+        endpoint: "http://garage:3900"
+        region: "garage"
+        admin_endpoint: "http://garage-admin:3903"
+        existingSecret:
+          name: "garage-admin-token"
+          key: "admin-token"
+
+      logging:
+        level: "info"
+        format: "json"
+
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 1000
+
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+
+    service:
+      type: ClusterIP
+      port: 80
+
+    ingress:
+      enabled: true
+      className: "traefik"
+      annotations:
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      hosts:
+        - host: "garage.frengky.xyz"
+          paths:
+            - path: /
+              pathType: Prefix
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+    livenessProbe:
+      enabled: true
+      httpGet:
+        path: /health
+        port: http
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+    readinessProbe:
+      enabled: true
+      httpGet:
+        path: /health
+        port: http
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+    serviceMonitor:
+      enabled: false
