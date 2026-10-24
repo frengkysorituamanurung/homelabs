@@ -39,6 +39,8 @@ Use it as a reference when pinning image versions in Helm values or manifests.
 | n8n | `docker.io/n8nio/n8n:latest` |
 | qdrant | `qdrant/qdrant:v1.20.0` |
 | service-a | `harbor.frengky.xyz/frontend/hello-world:latest` |
+| Garage | `dxflrs/amd64_garage:v2.4.1` |
+| Garage UI | `noooste/garage-ui:v0.14.0` |
 | cloudflared | `cloudflare/cloudflared:latest` |
 | vault-unsealer | `curlimages/curl:8.2.1` |
 

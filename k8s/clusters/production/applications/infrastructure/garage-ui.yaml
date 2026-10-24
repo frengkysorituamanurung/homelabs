@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: garage-ui
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: default
+  sources:
+    - repoURL: oci://ghcr.io/noooste/charts
+      chart: garage-ui
+      targetRevision: 0.14.0
+      helm:
+        valueFiles:
+          - $values/infrastructure/garage-ui/values.yaml
+    - repoURL: https://github.com/frengkysorituamanurung/homelabs.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: garage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

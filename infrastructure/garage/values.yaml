@@ -1,0 +1,80 @@
+# Garage S3-compatible object storage (single-node)
+garage:
+  dbEngine: "lmdb"
+  blockSize: "1048576"
+  replicationFactor: "1"
+  singleNode: true
+  consistencyMode: "consistent"
+  compressionLevel: "1"
+  rpcBindAddr: "[::]:3901"
+  s3:
+    api:
+      bindAddr: "[::]:3900"
+      region: "garage"
+      rootDomain: ".s3.garage.frengky.xyz"
+    web:
+      bindAddr: "[::]:3902"
+      rootDomain: ".web.garage.frengky.xyz"
+      index: "index.html"
+  admin:
+    apiBindAddr: "[::]:3903"
+
+persistence:
+  enabled: true
+  meta:
+    storageClass: "local-path"
+    size: 1Gi
+  data:
+    storageClass: "local-path"
+    size: 20Gi
+
+deployment:
+  kind: StatefulSet
+  replicaCount: 1
+  podManagementPolicy: OrderedReady
+
+image:
+  repository: dxflrs/amd64_garage
+  tag: "v2.4.1"
+  pullPolicy: Always
+
+environment:
+  - name: GARAGE_ADMIN_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: garage-admin-token
+        key: admin-token
+
+service:
+  type: ClusterIP
+  admin:
+    enabled: true
+
+ingress:
+  s3:
+    api:
+      enabled: true
+      className: "traefik"
+      annotations:
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      hosts:
+        - host: "garage.frengky.xyz"
+          paths:
+            - path: /
+              pathType: Prefix
+    web:
+      enabled: false
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+monitoring:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
