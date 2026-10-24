@@ -19,6 +19,7 @@ resources:
   - pilot-garage-ui.yaml
   - pilot-garage.yaml
   - pilot-grafana-production.yaml
+  - pilot-n8n.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
