@@ -15,6 +15,7 @@ resources:
   - pilot-vmsingle.yaml
   - pilot-loki.yaml
   - pilot-harbor.yaml
+  - pilot-vault.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
