@@ -1,0 +1,67 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: glance
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: ./k8s/clusters/production/applications/apps/production/frontend/glance
+      version: "1.0.0"
+      sourceRef:
+        kind: GitRepository
+        name: homelabs
+        namespace: flux-system
+  releaseName: glance
+  targetNamespace: frontend
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    generic-app:
+      baseNamespace: frontend
+      baseName: glance
+      environment: production
+      refreshInterval: "10s"
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      image:
+        repository: glanceapp/glance
+        tag: "v0.8.5"
+        pullPolicy: Always
+      resources:
+        requests:
+          memory: 32Mi
+          cpu: 6m
+        limits:
+          memory: 200Mi
+          cpu: 100m
+      service:
+        enabled: true
+        type: ClusterIP
+        ports:
+          - name: http
+            port: 8080
+      ingress:
+        enabled: true
+        stripPath: false
+        hosts:
+          - host: glance.frengky.xyz
+            path: /
+            port: 8080
+      deploymentStrategy:
+        type: Recreate
+      healthCheck:
+        enabled: true
+        endpoint: /
+        port: 8080
+      mount:
+        enabled: true
+        mounts:
+          - name: glance-config
+            target: /app/config/glance.yml
