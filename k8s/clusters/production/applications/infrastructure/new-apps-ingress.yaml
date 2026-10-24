@@ -18,8 +18,5 @@ spec:
     # namespace intentionally omitted - manifest contains multiple namespaces
     namespace: argocd
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true

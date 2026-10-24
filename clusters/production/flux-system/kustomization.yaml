@@ -10,6 +10,7 @@ resources:
   - pilot-alloy.yaml
   - pilot-external-secrets.yaml
   - pilot-cert-manager.yaml
+  - batch-plain-manifests.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
