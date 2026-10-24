@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: harbor-registry-tls.harbor.svc.cluster.local
     chart: helm-repos/reloader
-    targetRevision: "2.2.18"
+    targetRevision: "2.2.14"
     helm:
       parameters:
         - name: reloader.deployment.image.name
