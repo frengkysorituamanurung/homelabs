@@ -1,0 +1,14 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/production/flux-system
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: homelabs
+  timeout: 5m
