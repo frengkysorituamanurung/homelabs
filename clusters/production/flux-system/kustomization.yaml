@@ -8,6 +8,7 @@ resources:
   - pilot-kube-state-metrics.yaml
   - pilot-node-exporter.yaml
   - pilot-alloy.yaml
+  - pilot-external-secrets.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
