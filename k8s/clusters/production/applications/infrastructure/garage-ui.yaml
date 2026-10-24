@@ -8,8 +8,7 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: oci://ghcr.io/noooste/charts
-      chart: garage-ui
+    - repoURL: oci://ghcr.io/noooste/charts/garage-ui
       targetRevision: 0.14.0
       helm:
         valueFiles:
