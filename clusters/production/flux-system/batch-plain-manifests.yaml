@@ -11,6 +11,7 @@ spec:
   path: ./infrastructure/argo-rollouts
   prune: false
   wait: false
+  targetNamespace: argo-rollouts
   sourceRef:
     kind: GitRepository
     name: homelabs
