@@ -11,7 +11,7 @@ spec:
       targetRevision: "8.10.4"
       helm:
         valueFiles:
-          - $values/apps/production/grafana/values.yaml
+          - $values/infrastructure/grafana/values.yaml
     - repoURL: 'https://github.com/frengkysorituamanurung/homelabs.git'
       targetRevision: main
       ref: values

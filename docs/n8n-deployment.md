@@ -36,7 +36,7 @@ gitops-repo/
     └── n8n-deployment.md           # Dokumen ini
 ```
 
-### 1. Aplikasi ArgoCD (`k8s/clusters/production/apps/production/n8n.yaml`)
+### 1. Aplikasi ArgoCD (`k8s/clusters/production/applications/production/n8n.yaml`)
 ArgoCD mengelola daur hidup deployment ini secara otomatis dari path `apps/production/n8n`:
 ```yaml
 apiVersion: argoproj.io/v1alpha1

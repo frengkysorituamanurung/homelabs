@@ -29,7 +29,7 @@ Untuk mengatasi masalah ini, manifest deployment controller `cert-manager` dipat
 Seluruh komponen dideklarasikan di dalam repositori GitOps:
 
 ### 1. ArgoCD Application Manifest
-Dideklarasikan di `k8s/clusters/production/apps/infrastructure/cert-manager.yaml`. Manifest ini mendaftarkan aplikasi cert-manager ke ArgoCD.
+Dideklarasikan di `k8s/clusters/production/applications/infrastructure/cert-manager.yaml`. Manifest ini mendaftarkan aplikasi cert-manager ke ArgoCD.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1

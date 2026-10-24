@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/frengkysorituamanurung/homelabs.git
-    path: apps/production/vault-unsealer
+    path: infrastructure/vault-unsealer
     targetRevision: main
   destination:
     server: https://kubernetes.default.svc

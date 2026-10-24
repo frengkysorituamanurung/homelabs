@@ -25,7 +25,7 @@ Cek versi aplikasi dan pod yang sedang berjalan di kluster:
 kubectl get pods -n harbor -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[*].image}{"\n"}{end}'
 
 # Cek manifest ArgoCD saat ini
-cat k8s/clusters/production/apps/infrastructure/harbor.yaml
+cat k8s/clusters/production/applications/infrastructure/harbor.yaml
 ```
 
 ---
@@ -99,7 +99,7 @@ Untuk memastikan kluster tidak bergantung pada koneksi internet publik saat *run
 ### Langkah 4: Perbarui Konfigurasi Manifest di GitOps Repository
 
 1. **Perbarui Version Target pada ArgoCD Application Spec**:
-   Edit file `k8s/clusters/production/apps/infrastructure/harbor.yaml`:
+   Edit file `k8s/clusters/production/applications/infrastructure/harbor.yaml`:
    ```yaml
    apiVersion: argoproj.io/v1alpha1
    kind: Application
@@ -135,7 +135,7 @@ Commit perubahan manifest yang sudah diperbarui ke repository GitOps agar ArgoCD
 ```bash
 cd /root/server/gitops-repo
 
-git add k8s/clusters/production/apps/infrastructure/harbor.yaml
+git add k8s/clusters/production/applications/infrastructure/harbor.yaml
 git add infrastructure/harbor/values.yaml
 git commit -m "chore(harbor): upgrade harbor helm chart to 1.16.2 (app v2.15.2)"
 git push origin main

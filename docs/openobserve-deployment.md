@@ -87,7 +87,7 @@ gitops-repo/
 
 ## 📄 Detail Manifest
 
-### 1. ArgoCD Application (`k8s/clusters/production/apps/infrastructure/openobserve.yaml`)
+### 1. ArgoCD Application (`k8s/clusters/production/applications/infrastructure/openobserve.yaml`)
 
 ArgoCD mengelola deployment ini menggunakan Helm chart dari Harbor OCI registry:
 
@@ -365,7 +365,7 @@ Untuk mengupgrade versi OpenObserve:
 
 2. **Update targetRevision di ArgoCD Application:**
    ```yaml
-   # k8s/clusters/production/apps/infrastructure/openobserve.yaml
+   # k8s/clusters/production/applications/infrastructure/openobserve.yaml
    targetRevision: "<VERSI_BARU>"
    ```
 
@@ -377,7 +377,7 @@ Untuk mengupgrade versi OpenObserve:
 
 | File | Fungsi |
 |------|--------|
-| `k8s/clusters/production/apps/infrastructure/openobserve.yaml` | ArgoCD Application manifest |
+| `k8s/clusters/production/applications/infrastructure/openobserve.yaml` | ArgoCD Application manifest |
 | `infrastructure/openobserve/values.yaml` | Helm chart values |
 | `secrets/templates/openobserve-secret.yaml` | ExternalSecret (Vault → K8s Secret) |
 | `docs/openobserve-deployment.md` | Dokumen ini |

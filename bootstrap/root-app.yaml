@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/frengkysorituamanurung/homelabs.git
     targetRevision: main
-    path: k8s/clusters/production/apps
+    path: k8s/clusters/production/applications
     directory:
       recurse: true
       exclude: "root-app.yaml"
