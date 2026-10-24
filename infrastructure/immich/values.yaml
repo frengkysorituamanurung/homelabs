@@ -1,0 +1,88 @@
+# Immich - self-hosted photo & video management
+
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          tag: v3.2.0
+          pullPolicy: Always
+        env:
+          DB_HOSTNAME: immich-rw
+          DB_USERNAME: immich
+          DB_DATABASE_NAME: immich
+          DB_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: immich-db-credentials
+                key: password
+          REDIS_HOSTNAME: '{{ printf "%s-valkey" .Release.Name }}'
+          IMMICH_MACHINE_LEARNING_URL: '{{ printf "http://%s-machine-learning:3003" .Release.Name }}'
+
+immich:
+  metrics:
+    enabled: false
+  persistence:
+    library:
+      existingClaim: immich-library
+  configuration: {}
+  configurationKind: ConfigMap
+
+valkey:
+  enabled: true
+  controllers:
+    main:
+      containers:
+        main:
+          image:
+            repository: docker.io/valkey/valkey
+            tag: 9.1.2-alpine
+            pullPolicy: Always
+  persistence:
+    data:
+      enabled: true
+      type: emptyDir
+
+server:
+  enabled: true
+  controllers:
+    main:
+      containers:
+        main:
+          image:
+            repository: ghcr.io/immich-app/immich-server
+            pullPolicy: Always
+  ingress:
+    main:
+      enabled: true
+      className: traefik
+      annotations:
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      hosts:
+        - host: immich.frengky.xyz
+          paths:
+            - path: /
+              service:
+                identifier: main
+      tls: []
+
+machine-learning:
+  enabled: true
+  controllers:
+    main:
+      containers:
+        main:
+          image:
+            repository: ghcr.io/immich-app/immich-machine-learning
+            pullPolicy: Always
+          env:
+            TRANSFORMERS_CACHE: /cache
+            HF_XET_CACHE: /cache/huggingface-xet
+            MPLCONFIGDIR: /cache/matplotlib-config
+  persistence:
+    cache:
+      enabled: true
+      type: emptyDir
+
+# Optional resource hints
+# controllers.resources etc. are component-specific; keep defaults for now

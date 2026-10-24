@@ -41,6 +41,10 @@ Use it as a reference when pinning image versions in Helm values or manifests.
 | service-a | `harbor.frengky.xyz/frontend/hello-world:latest` |
 | Garage | `dxflrs/amd64_garage:v2.4.1` |
 | Garage UI | `noooste/garage-ui:v0.14.0` |
+| Immich Server | `ghcr.io/immich-app/immich-server:v3.2.0` |
+| Immich ML | `ghcr.io/immich-app/immich-machine-learning:v3.2.0` |
+| Immich Postgres | `ghcr.io/tensorchord/cloudnative-vectorchord:18.4` |
+| Valkey | `docker.io/valkey/valkey:9.1.2-alpine` |
 | cloudflared | `cloudflare/cloudflared:latest` |
 | vault-unsealer | `curlimages/curl:8.2.1` |
 

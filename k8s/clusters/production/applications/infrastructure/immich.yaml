@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: immich
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/frengkysorituamanurung/homelabs.git
+      targetRevision: main
+      path: helm/charts/immich
+      helm:
+        valueFiles:
+          - $values/infrastructure/immich/values.yaml
+    - repoURL: https://github.com/frengkysorituamanurung/homelabs.git
+      targetRevision: main
+      ref: values
+    - repoURL: https://github.com/frengkysorituamanurung/homelabs.git
+      targetRevision: main
+      path: infrastructure/immich/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: immich
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
