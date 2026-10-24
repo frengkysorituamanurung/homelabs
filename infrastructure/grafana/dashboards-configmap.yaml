@@ -1998,13 +1998,13 @@ data:
                 "uid": "VictoriaMetrics"
               },
               "editorMode": "code",
-              "expr": "sum(container_memory_working_set_bytes{namespace=\"gitea\", container!=\"\"})",
-              "legendFormat": "Gitea RAM",
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"github\", container!=\"\"})",
+              "legendFormat": "GitHub RAM",
               "range": true,
               "refId": "A"
             }
           ],
-          "title": "Gitea & Runners RAM",
+          "title": "GitHub & Runners RAM",
           "type": "stat"
         },
         {
@@ -2179,7 +2179,7 @@ data:
                 "uid": "VictoriaMetrics"
               },
               "editorMode": "code",
-              "expr": "sum(container_memory_working_set_bytes{namespace=~\"argocd|gitea|vault|harbor|n8n\", container!=\"\"}) by (namespace)",
+              "expr": "sum(container_memory_working_set_bytes{namespace=~\"argocd|github|vault|harbor|n8n\", container!=\"\"}) by (namespace)",
               "legendFormat": "{{namespace}}",
               "range": true,
               "refId": "A"
@@ -2228,7 +2228,7 @@ data:
                 "uid": "VictoriaMetrics"
               },
               "editorMode": "code",
-              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"argocd|gitea|vault|harbor|n8n\", container!=\"\"}[5m])) by (namespace)",
+              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"argocd|github|vault|harbor|n8n\", container!=\"\"}[5m])) by (namespace)",
               "legendFormat": "{{namespace}}",
               "range": true,
               "refId": "A"
@@ -2290,7 +2290,7 @@ data:
                 "uid": "VictoriaMetrics"
               },
               "editorMode": "code",
-              "expr": "sum(container_memory_working_set_bytes{namespace=~\"argocd|gitea|vault|harbor|n8n\", container!=\"\"}) by (pod, namespace)",
+              "expr": "sum(container_memory_working_set_bytes{namespace=~\"argocd|github|vault|harbor|n8n\", container!=\"\"}) by (pod, namespace)",
               "legendFormat": "{{namespace}} / {{pod}}",
               "range": true,
               "refId": "A"
@@ -2307,7 +2307,7 @@ data:
         "devops",
         "infrastructure",
         "argocd",
-        "gitea",
+        "github",
         "harbor",
         "vault",
         "n8n"
@@ -2806,12 +2806,12 @@ data:
           "targets": [
             {
               "editorMode": "code",
-              "expr": "sum(container_memory_working_set_bytes{namespace=\"gitea\", pod=~\"gitea-postgresql.*\"})",
-              "legendFormat": "Gitea Postgres RAM",
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"github\", pod=~\"github-postgresql.*\"})",
+              "legendFormat": "GitHub Postgres RAM",
               "refId": "A"
             }
           ],
-          "title": "Gitea PostgreSQL Memory",
+          "title": "GitHub PostgreSQL Memory",
           "type": "stat"
         },
         {

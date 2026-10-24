@@ -5,8 +5,8 @@ Repository ini adalah **single source of truth** untuk seluruh workload yang ber
 ## Arsitektur
 
 ```
-Gitea (gitea.frengky.xyz)
-  └── Repository ini (gitops.git)
+GitHub (github.com/frengkysorituamanurung/homelabs)
+  └── Repository ini
         └── ArgoCD watches → deploys ke k3s cluster
 ```
 
@@ -22,17 +22,14 @@ Gitea (gitea.frengky.xyz)
 ├── k8s/clusters/production/applications/apps/                          # ArgoCD Application manifests
 │   ├── root-app.yaml              # App of Apps — entry point utama
 │   ├── monitoring/                # Grafana, Loki, Alloy, VictoriaMetrics, dll
-│   ├── gitea/                     # Gitea + Gitea Runner
 │   ├── cloudflare/                # Cloudflared tunnel daemon
 │   ├── infra/                     # ArgoCD, Harbor, Vault, ESO
 │   └── ingress/                   # Ingress rules per aplikasi
 ├── charts/                        # Helm values files
 │   ├── monitoring/                # values per monitoring app
-│   ├── gitea/                     # gitea values
 │   └── infra/                     # argocd, harbor, vault values
 ├── manifests/                     # Plain Kubernetes YAML (non-Helm)
 │   ├── cloudflare/
-│   ├── gitea-runner/
 │   └── ingress/
 └── secrets/                       # ESO templates & Vault docs
     ├── README.md
@@ -60,13 +57,13 @@ Ini memastikan values disimpan di Git, tapi chart selalu dari registry resmi.
 
 ### Plain Manifest Apps
 
-Untuk aplikasi non-Helm (Cloudflared, Gitea Runner, Ingress), ArgoCD langsung mem-point ke folder `manifests/` dengan tipe `Directory`.
+Untuk aplikasi non-Helm (Cloudflared, Ingress), ArgoCD langsung mem-point ke folder `manifests/` dengan tipe `Directory`.
 
 ## Onboarding Aplikasi Baru
 
 1. Buat `values.yaml` di `charts/<kategori>/<nama-app>/values.yaml`
 2. Buat ArgoCD Application di `k8s/clusters/production/applications/apps/<kategori>/<nama-app>.yaml`
-3. Push ke Gitea → ArgoCD otomatis deploy
+3. Push ke GitHub → ArgoCD otomatis deploy
 
 ## Secret Management
 
@@ -91,8 +88,6 @@ Untuk pengelolaan sertifikat SSL/TLS otomatis via Tailscale, lihat [`docs/gitops
 | VictoriaMetrics | monitoring | Helm | vm/victoria-metrics-single ~0.x |
 | kube-state-metrics | monitoring | Helm | prometheus-community ~5.x |
 | node-exporter | monitoring | Helm | prometheus-community ~4.x |
-| Gitea | gitea | Helm | gitea-charts/gitea ~10.x |
-| Gitea Runner | gitea-runner | Manifest | - |
 | Cloudflared | cloudflare | Manifest | - |
 | **ArgoCD** | argocd | Helm | argo/argo-cd ~7.x |
 | **Harbor** | harbor | Helm | harbor/harbor ~1.16.x |

@@ -85,12 +85,6 @@ kubectl exec -n vault -it vault-0 -- vault kv put secret/grafana \
   adminPassword=<PASSWORD_KUAT>
 ```
 
-#### Gitea
-```bash
-kubectl exec -n vault -it vault-0 -- vault kv put secret/gitea \
-  adminPassword=<PASSWORD_KUAT>
-```
-
 #### Harbor
 ```bash
 kubectl exec -n vault -it vault-0 -- vault kv put secret/harbor \
@@ -116,14 +110,6 @@ kubectl exec -n vault -it vault-0 -- sh -c "
 kubectl create secret generic cloudflared-token \
   -n cloudflare \
   --from-literal=token=<CLOUDFLARE_TUNNEL_TOKEN>
-```
-
-#### Gitea Runner
-```bash
-# Registration token dari Gitea Admin > Actions > Runners
-kubectl create secret generic runner-token \
-  -n gitea-runner \
-  --from-literal=token=<GITEA_RUNNER_TOKEN>
 ```
 
 ## Menggunakan ExternalSecret

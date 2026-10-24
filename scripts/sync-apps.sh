@@ -16,7 +16,7 @@ if [ -f "/workspace/argocd-sync.sh" ]; then
 elif [ -f "$SCRIPT_DIR/argocd-sync.sh" ]; then
     ARGOCD_SYNC_CMD="$SCRIPT_DIR/argocd-sync.sh"
 else
-    echo "argocd-sync.sh tidak ditemukan lokal dan Gitea sudah tidak digunakan. Lewati sync."
+    echo "argocd-sync.sh tidak ditemukan lokal. Lewati sync."
     exit 0
 fi
 chmod +x "$ARGOCD_SYNC_CMD" 2>/dev/null || true

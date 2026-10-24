@@ -52,12 +52,12 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"gitea\", pod=~\"gitea-postgresql.*\"})",
-          "legendFormat": "Gitea Postgres RAM",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"github\", pod=~\"github-postgresql.*\"})",
+          "legendFormat": "GitHub Postgres RAM",
           "refId": "A"
         }
       ],
-      "title": "Gitea PostgreSQL Memory",
+      "title": "GitHub PostgreSQL Memory",
       "type": "stat"
     },
     {
