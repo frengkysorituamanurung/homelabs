@@ -13,7 +13,7 @@ spec:
     path: k8s/clusters/production/applications
     directory:
       recurse: true
-      exclude: "root-app.yaml"
+      include: "argocd.yaml"
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

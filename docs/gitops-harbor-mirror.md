@@ -47,7 +47,7 @@ stringData:
 ```
 
 ### 3. Pembaruan Manifest GitOps (ArgoCD Application)
-Seluruh file manifest ArgoCD (seperti `apps/monitoring/grafana.yaml`) telah di-_update_ sehingga blok `source` mengarah ke Harbor lokal dengan prefix `helm-repos/` untuk *chart name*-nya:
+Seluruh file manifest ArgoCD (seperti `k8s/clusters/production/applications/apps/monitoring/grafana.yaml`) telah di-_update_ sehingga blok `source` mengarah ke Harbor lokal dengan prefix `helm-repos/` untuk *chart name*-nya:
 ```yaml
 spec:
   source:

@@ -51,7 +51,7 @@ spec:
       targetRevision: "1.18.2"
       helm:
         valueFiles:
-          - $values/apps/production/backend/qdrant/values.yaml
+          - $values/k8s/clusters/production/applications/apps/production/backend/qdrant/values.yaml
     - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
       targetRevision: main
       ref: values
@@ -66,7 +66,7 @@ spec:
       - CreateNamespace=true
 ```
 
-### 2. Helm Values (`apps/production/backend/qdrant/values.yaml`)
+### 2. Helm Values (`k8s/clusters/production/applications/apps/production/backend/qdrant/values.yaml`)
 ```yaml
 replicaCount: 1
 

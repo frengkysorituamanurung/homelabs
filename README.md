@@ -19,7 +19,7 @@ Gitea (gitea.frengky.xyz)
 
 ```
 .
-├── apps/                          # ArgoCD Application manifests
+├── k8s/clusters/production/applications/apps/                          # ArgoCD Application manifests
 │   ├── root-app.yaml              # App of Apps — entry point utama
 │   ├── monitoring/                # Grafana, Loki, Alloy, VictoriaMetrics, dll
 │   ├── gitea/                     # Gitea + Gitea Runner
@@ -43,11 +43,11 @@ Gitea (gitea.frengky.xyz)
 
 ### App of Apps Pattern
 
-`apps/root-app.yaml` adalah ArgoCD Application yang di-deploy **pertama kali secara manual**. Setelah itu, ia akan secara otomatis men-discover dan men-deploy semua Application lain di folder `apps/**/*.yaml`.
+`k8s/clusters/production/applications/apps/root-app.yaml` adalah ArgoCD Application yang di-deploy **pertama kali secara manual**. Setelah itu, ia akan secara otomatis men-discover dan men-deploy semua Application lain di folder `k8s/clusters/production/applications/apps/**/*.yaml`.
 
 ```bash
 # Deploy root-app pertama kali (bootstrap)
-kubectl apply -f apps/root-app.yaml
+kubectl apply -f k8s/clusters/production/applications/apps/root-app.yaml
 ```
 
 ### Helm Chart Apps (sources pattern)
@@ -65,7 +65,7 @@ Untuk aplikasi non-Helm (Cloudflared, Gitea Runner, Ingress), ArgoCD langsung me
 ## Onboarding Aplikasi Baru
 
 1. Buat `values.yaml` di `charts/<kategori>/<nama-app>/values.yaml`
-2. Buat ArgoCD Application di `apps/<kategori>/<nama-app>.yaml`
+2. Buat ArgoCD Application di `k8s/clusters/production/applications/apps/<kategori>/<nama-app>.yaml`
 3. Push ke Gitea → ArgoCD otomatis deploy
 
 ## Secret Management

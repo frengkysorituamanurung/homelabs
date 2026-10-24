@@ -14427,7 +14427,7 @@ spec:
     app.kubernetes.io/name: webhook
   type: ClusterIP
 ---
-apiVersion: apps/v1
+apiVersion: k8s/clusters/production/applications/apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -14481,7 +14481,7 @@ spec:
           type: RuntimeDefault
       serviceAccountName: cert-manager-cainjector
 ---
-apiVersion: apps/v1
+apiVersion: k8s/clusters/production/applications/apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -14561,7 +14561,7 @@ spec:
           type: RuntimeDefault
       serviceAccountName: cert-manager
 ---
-apiVersion: apps/v1
+apiVersion: k8s/clusters/production/applications/apps/v1
 kind: Deployment
 metadata:
   labels:

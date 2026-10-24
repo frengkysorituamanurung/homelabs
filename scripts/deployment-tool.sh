@@ -16,7 +16,7 @@ NC='\033[0m'
 # Validasi argumen
 if [ "$#" -lt 5 ]; then
     echo -e "${RED}Usage: $0 <APP_NAME> <IMAGE_REPO> <IMAGE_TAG> <GITOPS_REPO_URL> <VALUES_FILE_PATH>${NC}"
-    echo "Example: $0 my-frontend harbor.frengky.xyz/apps/my-frontend v1.0.0 https://user:token@gitea.frengky.xyz/devops/gitops.git apps/my-frontend/values.yaml"
+    echo "Example: $0 my-frontend harbor.frengky.xyz/k8s/clusters/production/applications/apps/my-frontend v1.0.0 https://user:token@gitea.frengky.xyz/devops/gitops.git k8s/clusters/production/applications/apps/my-frontend/values.yaml"
     exit 1
 fi
 

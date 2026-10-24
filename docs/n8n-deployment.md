@@ -37,7 +37,7 @@ gitops-repo/
 ```
 
 ### 1. Aplikasi ArgoCD (`k8s/clusters/production/applications/production/n8n.yaml`)
-ArgoCD mengelola daur hidup deployment ini secara otomatis dari path `apps/production/n8n`:
+ArgoCD mengelola daur hidup deployment ini secara otomatis dari path `k8s/clusters/production/applications/apps/production/n8n`:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -50,7 +50,7 @@ spec:
   project: default
   source:
     repoURL: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
-    path: apps/production/n8n
+    path: k8s/clusters/production/applications/apps/production/n8n
     targetRevision: main
   destination:
     server: https://kubernetes.default.svc
@@ -63,7 +63,7 @@ spec:
       - CreateNamespace=true
 ```
 
-### 2. Penyimpanan Persisten (`apps/production/n8n/pvc.yaml`)
+### 2. Penyimpanan Persisten (`k8s/clusters/production/applications/apps/production/n8n/pvc.yaml`)
 n8n menyimpan data alur kerja (workflow), credentials, dan eksekusi pada database SQLite lokal. Persistent Volume Claim (PVC) dialokasikan menggunakan storage class bawaan K3s (`local-path`):
 ```yaml
 apiVersion: v1
@@ -80,10 +80,10 @@ spec:
       storage: 10Gi
 ```
 
-### 3. Deployment n8n (`apps/production/n8n/deployment.yaml`)
+### 3. Deployment n8n (`k8s/clusters/production/applications/apps/production/n8n/deployment.yaml`)
 Deployment n8n menggunakan image resmi `n8nio/n8n:latest`. Keamanan pod diperketat dengan `securityContext` agar berjalan sebagai user `1000` (node) agar sesuai dengan hak akses folder mount `/home/node/.n8n`.
 ```yaml
-apiVersion: apps/v1
+apiVersion: k8s/clusters/production/applications/apps/v1
 kind: Deployment
 metadata:
   name: n8n
@@ -139,7 +139,7 @@ spec:
             claimName: n8n-pvc
 ```
 
-### 4. Service (`apps/production/n8n/service.yaml`)
+### 4. Service (`k8s/clusters/production/applications/apps/production/n8n/service.yaml`)
 Service internal cluster tipe `ClusterIP` mengekspos port 5678 n8n ke ingress controller:
 ```yaml
 apiVersion: v1
@@ -159,7 +159,7 @@ spec:
   type: ClusterIP
 ```
 
-### 5. Ingress (`apps/production/n8n/ingress.yaml`)
+### 5. Ingress (`k8s/clusters/production/applications/apps/production/n8n/ingress.yaml`)
 Ingress ini mengarahkan domain `n8n.frengky.xyz` ke service n8n:
 ```yaml
 apiVersion: networking.k8s.io/v1

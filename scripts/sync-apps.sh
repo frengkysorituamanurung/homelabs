@@ -40,25 +40,34 @@ declare -A TO_SYNC_APPS
 declare -A PATH_TO_APP_NAME
 declare -A VALUE_FILE_TO_APP_NAME
 
-# Pre-build mapping dari seluruh file Application YAML di k8s/clusters/production/applications/
-for app_file in $(find "${REPO_ROOT}/k8s/clusters/production/applications" -type f -name "*.yaml"); do
-    APP_NAME=$(grep -E "^\s*name:" "$app_file" | head -n 1 | awk '{print $2}')
-    APP_PATH=$(grep -E "^\s*path:" "$app_file" | head -n 1 | awk '{print $2}')
-    
-    if [ -n "$APP_NAME" ]; then
-        REL_APP_FILE="${app_file#${REPO_ROOT}/}"
-        PATH_TO_APP_NAME["$REL_APP_FILE"]="$APP_NAME"
-
-        if [ -n "$APP_PATH" ]; then
-            PATH_TO_APP_NAME["$APP_PATH"]="$APP_NAME"
-        fi
-        
-        VALUE_FILES=$(grep -E "^\s*-\s*\$values/" "$app_file" | awk -F'$values/' '{print $2}' || true)
-        for vf in $VALUE_FILES; do
-            VALUE_FILE_TO_APP_NAME["$vf"]="$APP_NAME"
-        done
-    fi
-done
+# Pre-build mapping dari consolidated Application YAML (multi-doc) di k8s/clusters/production/applications/argocd.yaml
+CONSOLIDATED_FILE="${REPO_ROOT}/k8s/clusters/production/applications/argocd.yaml"
+while IFS=$'\t' read -r kind app val; do
+    [ -z "$app" ] && continue
+    case "$kind" in
+        PATH)
+            PATH_TO_APP_NAME["$val"]="$app"
+            ;;
+        VALUE)
+            VALUE_FILE_TO_APP_NAME["$val"]="$app"
+            ;;
+    esac
+done < <(python3 - "$CONSOLIDATED_FILE" <<'PY'
+import re, sys
+text = open(sys.argv[1]).read()
+for doc in text.split("---"):
+    if not doc.strip():
+        continue
+    m = re.search(r"^\s*name:\s*(\S+)", doc, re.M)
+    if not m:
+        continue
+    app = m.group(1)
+    for pm in re.finditer(r"^\s*path:\s*(\S+)", doc, re.M):
+        print("PATH\t" + app + "\t" + pm.group(1))
+    for vm in re.finditer(r"\$values/(\S+)", doc):
+        print("VALUE\t" + app + "\t" + vm.group(1))
+PY
+)
 
 # Matching file yang berubah ke ArgoCD Application
 for file in $CHANGED_FILES; do
@@ -88,9 +97,9 @@ for file in $CHANGED_FILES; do
         done
     fi
 
-    # 3. Fallback Heuristic untuk struktur bertingkat (misal apps/production/backend/sample-api/values.yaml)
+    # 3. Fallback Heuristic untuk struktur bertingkat (misal k8s/clusters/production/applications/apps/production/backend/sample-api/values.yaml)
     if [ "$MATCHED" = false ]; then
-        if [[ $file =~ ^apps/(production|staging|development)/([^/]+)/([^/]+)/ ]] || [[ $file =~ ^infrastructure/([^/]+)/([^/]+)/ ]]; then
+        if [[ $file =~ ^k8s/clusters/production/applications/apps/(production|staging|development)/([^/]+)/([^/]+)/ ]] || [[ $file =~ ^infrastructure/([^/]+)/([^/]+)/ ]]; then
             DIR_NAME="${BASH_REMATCH[3]}"
             MATCHED_FILE=$(find "${REPO_ROOT}/k8s/clusters/production/applications" -type f -name "*${DIR_NAME}*.yaml" | head -n 1)
             if [ -n "$MATCHED_FILE" ]; then
@@ -101,7 +110,7 @@ for file in $CHANGED_FILES; do
                     echo "Match file '$file' -> App: $APP_NAME (via fallback sub-directory '$DIR_NAME')"
                 fi
             fi
-        elif [[ $file =~ ^apps/(production|staging|development)/([^/]+)/ ]] || [[ $file =~ ^infrastructure/([^/]+)/ ]]; then
+        elif [[ $file =~ ^k8s/clusters/production/applications/apps/(production|staging|development)/([^/]+)/ ]] || [[ $file =~ ^infrastructure/([^/]+)/ ]]; then
             DIR_NAME="${BASH_REMATCH[2]}"
             MATCHED_FILE=$(find "${REPO_ROOT}/k8s/clusters/production/applications" -type f -name "*${DIR_NAME}*.yaml" | head -n 1)
             if [ -n "$MATCHED_FILE" ]; then
