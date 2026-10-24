@@ -17,6 +17,7 @@ resources:
   - pilot-harbor.yaml
   - pilot-vault.yaml
   - pilot-garage-ui.yaml
+  - pilot-garage.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
