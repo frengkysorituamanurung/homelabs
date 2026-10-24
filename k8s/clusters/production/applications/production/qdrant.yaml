@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: qdrant
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: default
+  sources:
+    - repoURL: harbor-registry-tls.harbor.svc.cluster.local
+      chart: helm-repos/qdrant
+      targetRevision: "1.18.2"
+      helm:
+        valueFiles:
+          - $values/k8s/clusters/production/applications/apps/production/backend/qdrant/values.yaml
+    - repoURL: https://github.com/frengkysorituamanurung/homelabs.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: backend
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

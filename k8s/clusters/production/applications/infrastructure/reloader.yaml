@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: reloader
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: harbor-registry-tls.harbor.svc.cluster.local
+    chart: helm-repos/reloader
+    targetRevision: "2.2.14"
+    helm:
+      parameters:
+        - name: reloader.deployment.image.name
+          value: "harbor.frengky.xyz/library/reloader"
+        - name: reloader.deployment.image.tag
+          value: "v1.4.19"
+        - name: reloader.autoReloadAll
+          value: "true"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: reloader
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
