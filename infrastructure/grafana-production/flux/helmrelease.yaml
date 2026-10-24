@@ -1,0 +1,106 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: grafana-production
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: grafana
+      version: "10.5.15"
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: flux-system
+  releaseName: grafana-production
+  targetNamespace: monitoring
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    adminUser: admin
+
+    image:
+      registry: docker.io
+      repository: grafana/grafana
+      tag: "12.3.1"
+      pullPolicy: Always
+    adminPassword: changeme123
+
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClassName: local-path
+
+    initChownData:
+      enabled: true
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+        runAsGroup: 0
+        capabilities:
+          add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - FOWNER
+          drop:
+            - ALL
+
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: VictoriaMetrics
+            uid: VictoriaMetrics
+            type: prometheus
+            access: proxy
+            url: http://vmsingle-victoria-metrics-single-server.monitoring.svc.cluster.local:8428
+            isDefault: true
+          - name: Loki
+            uid: Loki
+            type: loki
+            access: proxy
+            url: http://loki.monitoring.svc.cluster.local:3100
+
+    grafana.ini:
+      analytics:
+        check_for_updates: true
+        reporting_enabled: false
+      server:
+        domain: grafana.frengky.xyz
+        root_url: "https://grafana.frengky.xyz"
+        enforce_domain: false
+
+    service:
+      type: ClusterIP
+      port: 80
+
+    ingress:
+      enabled: false
+
+    sidecar:
+      dashboards:
+        enabled: true
+        searchNamespace: ALL
+        label: grafana_dashboard
+        folderAnnotation: grafana_folder
+        provider:
+          foldersFromFilesStructure: true
+
+    extraConfigmapMounts:
+      - name: grafana-alerts-telegram
+        configMap: grafana-alerts-telegram
+        subPath: telegram-notifiers.yaml
+        mountPath: /etc/grafana/provisioning/alerting/telegram-notifiers.yaml
+        readOnly: true
+      - name: grafana-alerts-cluster-rules
+        configMap: grafana-alerts-cluster-rules
+        subPath: cluster-rules.yaml
+        mountPath: /etc/grafana/provisioning/alerting/cluster-rules.yaml
+        readOnly: true
+
