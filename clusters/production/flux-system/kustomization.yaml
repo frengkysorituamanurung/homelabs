@@ -9,6 +9,7 @@ resources:
   - pilot-node-exporter.yaml
   - pilot-alloy.yaml
   - pilot-external-secrets.yaml
+  - pilot-cert-manager.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
