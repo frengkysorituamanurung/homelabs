@@ -1,0 +1,16 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: immich
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: flux-system
+  interval: 5m
+  path: ./infrastructure/immich/flux
+  prune: false
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: homelabs
+  timeout: 10m

@@ -22,6 +22,7 @@ resources:
   - pilot-n8n.yaml
   - pilot-sandbox-finance-db.yaml
   - pilot-qdrant.yaml
+  - pilot-immich.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
