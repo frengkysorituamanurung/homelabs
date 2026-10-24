@@ -21,6 +21,7 @@ resources:
   - pilot-grafana-production.yaml
   - pilot-n8n.yaml
   - pilot-sandbox-finance-db.yaml
+  - pilot-qdrant.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
