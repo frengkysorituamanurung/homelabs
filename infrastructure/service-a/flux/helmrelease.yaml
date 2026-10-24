@@ -1,0 +1,59 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: service-a
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: ./k8s/clusters/production/applications/apps/production/service-a
+      version: "1.0.0"
+      sourceRef:
+        kind: GitRepository
+        name: homelabs
+        namespace: flux-system
+  releaseName: service-a
+  targetNamespace: production
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    generic-app:
+      replicaCount: 3
+      environment: "production"
+
+      image:
+        repository: harbor.frengky.xyz/frontend/hello-world
+        tag: "latest"
+        pullPolicy: Always
+
+      service:
+        type: ClusterIP
+        port: 80
+
+      ingress:
+        enabled: true
+        hosts:
+          - host: service-a.frengky.xyz
+            path: /
+            port: 80
+
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 250m
+          memory: 256Mi
+
+      autoscaling:
+        enabled: false
+        minReplicas: 3
+        maxReplicas: 8
+        targetCPUUtilizationPercentage: 80
+        targetMemory: 80

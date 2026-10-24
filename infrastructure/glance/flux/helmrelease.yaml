@@ -13,8 +13,6 @@ spec:
         kind: GitRepository
         name: homelabs
         namespace: flux-system
-      secretRef:
-        name: harbor-creds
   releaseName: glance
   targetNamespace: frontend
   install:

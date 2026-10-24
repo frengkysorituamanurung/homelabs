@@ -5,4 +5,4 @@ version: 1.0.0
 dependencies:
   - name: generic-app
     version: 0.1.15
-    repository: oci://harbor.frengky.xyz/helm-repos
+    repository: file://../../../../../../../../helm/charts/generic-app

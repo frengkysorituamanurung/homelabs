@@ -1,0 +1,60 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: bentopdf
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: ./k8s/clusters/production/applications/apps/production/frontend/bentopdf
+      version: "1.0.0"
+      sourceRef:
+        kind: GitRepository
+        name: homelabs
+        namespace: flux-system
+  releaseName: bentopdf
+  targetNamespace: frontend
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    generic-app:
+      baseNamespace: frontend
+      baseName: bentopdf
+      environment: production
+      disableSecrets: true
+      image:
+        repository: ghcr.io/alam00000/bentopdf-simple
+        tag: "latest"
+        pullPolicy: Always
+      resources:
+        requests:
+          memory: 64Mi
+          cpu: 10m
+        limits:
+          memory: 128Mi
+          cpu: 100m
+      service:
+        enabled: true
+        type: ClusterIP
+        ports:
+          - name: http
+            port: 8080
+      ingress:
+        enabled: true
+        stripPath: false
+        hosts:
+          - host: bentopdf.frengky.xyz
+            path: /
+            port: 8080
+      healthCheck:
+        enabled: true
+        endpoint: /
+        port: 8080
+      deploymentStrategy:
+        type: Recreate

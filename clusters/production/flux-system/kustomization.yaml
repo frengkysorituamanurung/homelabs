@@ -24,6 +24,10 @@ resources:
   - pilot-qdrant.yaml
   - pilot-immich.yaml
   - pilot-finance-landing.yaml
+  - pilot-bentopdf.yaml
+  - pilot-glance.yaml
+  - pilot-mcp-bridge.yaml
+  - pilot-service-a.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:

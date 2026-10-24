@@ -1,0 +1,49 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: mcp-bridge
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: ./k8s/clusters/production/applications/apps/production/backend/mcp-bridge
+      version: "1.0.0"
+      sourceRef:
+        kind: GitRepository
+        name: homelabs
+        namespace: flux-system
+  releaseName: mcp-bridge
+  targetNamespace: backend
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    generic-app:
+      replicaCount: 1
+      baseNamespace: backend
+      baseName: mcp-bridge
+      environment: production
+      refreshInterval: "10s"
+      image:
+        repository: harbor.frengky.xyz/backend/mcp-bridge
+        tag: "v1.2.1"
+        pullPolicy: Always
+      service:
+        enabled: true
+        type: ClusterIP
+        ports:
+          - name: http
+            port: 8080
+      ingress:
+        enabled: true
+        stripPath: false
+        hosts:
+          - host: mcp-bridge.frengky.xyz
+            path: /
+            port: 8080
+
