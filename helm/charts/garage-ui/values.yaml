@@ -1,0 +1,289 @@
+# Default values for garage-ui
+
+replicaCount: 1
+
+image:
+  repository: noooste/garage-ui
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+extraEnvs: []
+
+# Extra volumes for the pod (e.g. a custom CA certificate ConfigMap)
+extraVolumes: []
+
+# Extra volume mounts for the garage-ui container
+extraVolumeMounts: []
+
+# Extra Kubernetes manifests to deploy alongside the chart.
+# Each entry is rendered through `tpl`, so Helm templating is supported.
+# Useful for ExternalSecret, HTTPRoute, CiliumNetworkPolicy, etc.
+extraObjects: []
+  # - apiVersion: external-secrets.io/v1beta1
+  #   kind: ExternalSecret
+  #   metadata:
+  #     name: garage-ui-admin
+  #   spec:
+  #     refreshInterval: 1h
+  #     secretStoreRef:
+  #       name: vault
+  #       kind: ClusterSecretStore
+  #     target:
+  #       name: garage-ui-admin
+  #     data:
+  #       - secretKey: admin-token
+  #         remoteRef:
+  #           key: garage/admin-token
+
+config:
+  server:
+    host: "::"
+    port: 8080
+    environment: "production"
+    domain: "garage-ui.example.com"
+    protocol: "http"
+    # Full external URL (required for OIDC)
+    root_url: "https://garage-ui.example.com"
+    # Subpath to serve from when the ingress does path-based routing
+    # (e.g. "/garage-ui"). Empty serves from the root. The prefix is accepted,
+    # not required, so an ingress with rewrite-target works as well as one that
+    # forwards the full path. The OIDC redirect URI becomes
+    # {root_url}{base_path}/auth/oidc/callback. Probes keep using /health.
+    base_path: ""
+    # Request size limits (in bytes)
+    max_body_size: 314572800  # 300MB
+    max_header_size: 32768    # 32KB - raise if an auth proxy's headers cause HTTP 431
+    read_buffer_size: 32768   # 32KB - also caps total header size
+    write_buffer_size: 4096   # 4KB
+
+  garage:
+    # Garage S3 API endpoint
+    endpoint: "http://garage:3900"
+    region: "garage"
+    # Garage Admin API endpoint
+    admin_endpoint: "http://garage:3903"
+    # Admin API bearer token
+    admin_token: ""
+    # Use existing secret for admin token (recommended)
+    existingSecret:
+      name: ""
+      key: "admin-token"
+
+  auth:
+    # Ed25519 private key for JWT signing (PEM format)
+    # Generate with: openssl genpkey -algorithm ED25519
+    # If not provided and no existing secret is specified, a key will be auto-generated
+    # and persisted in a Kubernetes secret (recommended for production)
+    jwt_private_key: ""
+    # Use existing secret for JWT private key (optional)
+    # If not specified, the chart will auto-generate a secret on first install
+    jwt_private_key_secret:
+      name: ""
+      key: "jwt-key.pem"
+
+    # Expose Prometheus metrics at top-level /metrics WITHOUT authentication.
+    # Required for Prometheus to scrape when auth (admin/token/oidc) is enabled,
+    # since scrapers do not send credentials. Pairs with serviceMonitor below.
+    # WARNING: exposes operational cluster telemetry (bucket counts, request
+    # rates, storage sizes) unauthenticated, with no object data or secrets. Restrict
+    # access with a NetworkPolicy / trusted scrape network.
+    metrics_public: false
+
+    # Admin authentication (username/password)
+    admin:
+      enabled: false
+      username: "admin"
+      password: "changeme"
+      existingSecret:
+        name: ""
+        key: "admin-password"
+
+    # OIDC authentication (Keycloak, Auth0, Okta, etc.)
+    # NOTE: Requires server.root_url to be set
+    oidc:
+      enabled: false
+      provider_name: "Keycloak"
+      client_id: "garage-ui"
+      client_secret: "your-client-secret"
+      existingSecret:
+        name: ""
+        key: "client-secret"
+      scopes:
+        - openid
+        - email
+        - profile
+      # OIDC provider endpoints
+      issuer_url: "https://keycloak.example.com/realms/master"
+      # Validation settings
+      skip_issuer_check: false
+      skip_expiry_check: false
+      # User attribute mappings
+      email_attribute: "email"
+      username_attribute: "preferred_username"
+      name_attribute: "name"
+      # Role-based access control.
+      # Set admin_role (single value, backward-compatible) and/or admin_roles
+      # (list). Values from both are merged: a user is granted admin if ANY
+      # of their roles matches ANY entry across these two fields.
+      role_attribute_path: "resource_access.garage-ui.roles"
+      admin_role: "admin"
+      admin_roles: []
+      # Team-based access control (optional). OIDC claim (go-jmespath, same
+      # convention as role_attribute_path) listing the user's teams. Required
+      # only when config.access_control.teams is set; leave empty to disable.
+      # See config.access_control below and docs/access-control.md.
+      team_attribute_path: ""
+      # TLS settings
+      tls_skip_verify: false
+      # Session settings
+      session_max_age: 86400  # 24 hours
+      cookie_name: "garage_session"
+      cookie_secure: true
+      cookie_http_only: true
+      cookie_same_site: "lax"
+      # Single sign-out target, defaults to {root_url}/login. Register it with
+      # the provider as a valid post-logout redirect URI.
+      post_logout_redirect_url: ""
+
+  # CORS configuration
+  cors:
+    enabled: true
+    allowed_origins:
+      - "*"
+    allowed_methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed_headers:
+      - Origin
+      - Content-Type
+      - Accept
+      - Authorization
+    allow_credentials: false
+    max_age: 3600
+
+  logging:
+    # Options: debug, info, warn, error
+    level: "info"
+    # Options: json, text
+    format: "json"
+
+  # Optional: team-based access control (see docs/access-control.md).
+  # Absent  -> every authenticated user has full access.
+  # Present -> default-deny: OIDC users get only what their teams grant; users
+  #            matching no team get 403 everywhere. admin_role users, admin
+  #            password logins, and token logins are always full-admin.
+  # NOTE: this is UI-layer policy, NOT a security boundary. Anyone holding the
+  # Garage admin token or S3 keys bypasses it entirely.
+  #
+  # access_control:
+  #   presets:
+  #     bucket_readonly: [bucket.list, bucket.read, object.list, object.read]
+  #     bucket_owner: ["preset:bucket_readonly", bucket.create, bucket.update,
+  #                    bucket.delete, object.write, object.delete]
+  #   teams:
+  #     - name: backend
+  #       claim_values: ["garage-team-backend"]   # matched against the team_attribute_path claim
+  #       bindings:
+  #         - bucket_prefixes: ["backend-"]
+  #           permissions: ["preset:bucket_owner"]
+  #         - bucket_prefixes: ["shared-"]
+  #           permissions: ["preset:bucket_readonly"]
+  #       cluster_permissions: [cluster.status, cluster.health]
+
+# Pod annotations
+podAnnotations: {}
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: garage-ui.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: garage-ui-tls
+  #    hosts:
+  #      - garage-ui.local
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# ServiceMonitor for Prometheus Operator
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  # Scrape path. The default /metrics is served only when
+  # config.auth.metrics_public is true (required when authentication is enabled).
+  path: /metrics
+  labels: {}
+
+# NetworkPolicy
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+
+# Node labels for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}

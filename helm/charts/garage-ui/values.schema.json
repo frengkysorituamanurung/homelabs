@@ -1,0 +1,958 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Garage UI Helm Chart Values",
+  "description": "Configuration values for the Garage UI Helm chart deployment",
+  "type": "object",
+  "required": ["replicaCount", "image", "config"],
+  "properties": {
+    "replicaCount": {
+      "type": "integer",
+      "description": "Number of replica pods to run. Increase for high availability (recommended: 2-3 for production)",
+      "minimum": 1,
+      "default": 1
+    },
+    "image": {
+      "type": "object",
+      "description": "Docker image configuration",
+      "required": ["repository", "pullPolicy"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container registry and image name",
+          "default": "noooste/garage-ui"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "description": "Image pull policy",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "default": "IfNotPresent"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Image tag to use (defaults to chart appVersion if empty)",
+          "default": ""
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "description": "Credentials for accessing private container registries",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Override the default chart name in resource names",
+      "default": ""
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Override the full resource name (includes release name)",
+      "default": ""
+    },
+    "extraEnvs": {
+      "type": "array",
+      "description": "Extra environment variables for the garage-ui container",
+      "default": []
+    },
+    "extraObjects": {
+      "type": "array",
+      "description": "Extra Kubernetes manifests to deploy alongside the chart (rendered through tpl)",
+      "default": []
+    },
+    "extraVolumes": {
+      "type": "array",
+      "description": "Extra volumes for the pod (e.g. a custom CA certificate ConfigMap)",
+      "default": []
+    },
+    "extraVolumeMounts": {
+      "type": "array",
+      "description": "Extra volume mounts for the garage-ui container",
+      "default": []
+    },
+    "config": {
+      "type": "object",
+      "description": "Main application configuration",
+      "required": ["server", "garage", "auth", "cors", "logging"],
+      "properties": {
+        "server": {
+          "type": "object",
+          "description": "Server configuration",
+          "required": ["host", "port", "environment", "protocol"],
+          "properties": {
+            "host": {
+              "type": "string",
+              "description": "Network interface to bind to (use :: for IPv6 wildcard / dual-stack-preferred, or 0.0.0.0 for IPv4 wildcard)",
+              "default": "::"
+            },
+            "port": {
+              "type": "integer",
+              "description": "Port the application listens on",
+              "minimum": 1,
+              "maximum": 65535,
+              "default": 8080
+            },
+            "environment": {
+              "type": "string",
+              "description": "Deployment environment",
+              "enum": ["production", "development", "staging"],
+              "default": "production"
+            },
+            "domain": {
+              "type": "string",
+              "description": "Domain name for the application",
+              "default": "garage-ui.example.com"
+            },
+            "protocol": {
+              "type": "string",
+              "description": "Protocol for internal communication",
+              "enum": ["http", "https"],
+              "default": "http"
+            },
+            "root_url": {
+              "type": "string",
+              "description": "Full external URL for OAuth2 redirects (REQUIRED when OIDC is enabled)",
+              "pattern": "^https?://",
+              "default": "https://garage-ui.example.com"
+            },
+            "base_path": {
+              "type": "string",
+              "description": "Subpath to serve the app from behind a path-routing reverse proxy (e.g. /garage-ui). Empty serves from the root. Segments are limited to A-Za-z0-9 . _ ~ % + - and must not start with a path the server already serves (api, assets, auth, docs, health, login, metrics), matching what the backend accepts at boot.",
+              "pattern": "^[A-Za-z0-9._~%+/-]*$",
+              "not": {
+                "pattern": "(^|/)\\.\\.(/|$)|^/*([Aa][Pp][Ii]|[Aa][Ss][Ss][Ee][Tt][Ss]|[Aa][Uu][Tt][Hh]|[Dd][Oo][Cc][Ss]|[Hh][Ee][Aa][Ll][Tt][Hh]|[Ll][Oo][Gg][Ii][Nn]|[Mm][Ee][Tt][Rr][Ii][Cc][Ss])(/|$)"
+              },
+              "default": ""
+            },
+            "max_body_size": {
+              "type": "integer",
+              "description": "Maximum request body size in bytes (for file uploads)",
+              "minimum": 1,
+              "default": 314572800
+            },
+            "max_header_size": {
+              "type": "integer",
+              "description": "Maximum request header size in bytes",
+              "minimum": 1,
+              "default": 1048576
+            },
+            "read_buffer_size": {
+              "type": "integer",
+              "description": "Read buffer size for request data in bytes",
+              "minimum": 1,
+              "default": 4096
+            },
+            "write_buffer_size": {
+              "type": "integer",
+              "description": "Write buffer size for response data in bytes",
+              "minimum": 1,
+              "default": 4096
+            }
+          }
+        },
+        "garage": {
+          "type": "object",
+          "description": "Garage S3 storage configuration",
+          "required": ["endpoint", "region", "admin_endpoint"],
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "description": "Garage S3 API endpoint",
+              "pattern": "^(https?://)?[a-zA-Z0-9.-]+(:[0-9]+)?$",
+              "default": "http://garage:3900"
+            },
+            "region": {
+              "type": "string",
+              "description": "S3 region name (can be any value for Garage)",
+              "default": "garage"
+            },
+            "admin_endpoint": {
+              "type": "string",
+              "description": "Garage Admin API endpoint",
+              "pattern": "^https?://",
+              "default": "http://garage:3903"
+            },
+            "admin_token": {
+              "type": "string",
+              "description": "Admin API bearer token (ignored if existingSecret is configured)",
+              "default": ""
+            },
+            "existingSecret": {
+              "type": "object",
+              "description": "Use an existing Kubernetes secret for the admin token",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the existing secret containing the admin token",
+                  "default": ""
+                },
+                "key": {
+                  "type": "string",
+                  "description": "Key within the secret that contains the admin token value",
+                  "default": "admin-token"
+                }
+              }
+            }
+          }
+        },
+        "auth": {
+          "type": "object",
+          "description": "Authentication configuration (one or both methods can be enabled)",
+          "required": ["admin", "oidc"],
+          "properties": {
+            "jwt_private_key": {
+              "type": "string",
+              "description": "Ed25519 private key for JWT signing in PEM format (EdDSA algorithm). Generate with: openssl genpkey -algorithm ED25519. If not provided, auto-generated on each restart (not recommended for production)",
+              "default": ""
+            },
+            "jwt_private_key_secret": {
+              "type": "object",
+              "description": "Use an existing Kubernetes secret for the JWT private key (recommended)",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the existing secret containing the JWT private key",
+                  "default": ""
+                },
+                "key": {
+                  "type": "string",
+                  "description": "Key within the secret that contains the JWT private key value",
+                  "default": "jwt-key.pem"
+                }
+              }
+            },
+            "metrics_public": {
+              "type": "boolean",
+              "description": "Expose Prometheus metrics at top-level /metrics without authentication (required for scraping when auth is enabled). Restrict access with a NetworkPolicy.",
+              "default": false
+            },
+            "admin": {
+              "type": "object",
+              "description": "Admin authentication settings (username/password)",
+              "required": ["enabled"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable or disable admin authentication",
+                  "default": false
+                },
+                "username": {
+                  "type": "string",
+                  "description": "Username for admin login",
+                  "default": "admin"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "Password for admin login (ignored if existingSecret is configured)",
+                  "default": "changeme"
+                },
+                "existingSecret": {
+                  "type": "object",
+                  "description": "Use an existing Kubernetes secret for the admin password",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Name of the existing secret containing the admin password",
+                      "default": ""
+                    },
+                    "key": {
+                      "type": "string",
+                      "description": "Key within the secret that contains the admin password value",
+                      "default": "admin-password"
+                    }
+                  }
+                }
+              }
+            },
+            "oidc": {
+              "type": "object",
+              "description": "OpenID Connect (OIDC) configuration",
+              "required": ["enabled"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable or disable OIDC authentication",
+                  "default": false
+                },
+                "provider_name": {
+                  "type": "string",
+                  "description": "Display name of your OIDC provider",
+                  "default": "Keycloak"
+                },
+                "client_id": {
+                  "type": "string",
+                  "description": "OAuth2 client ID registered with your OIDC provider",
+                  "default": "garage-ui"
+                },
+                "client_secret": {
+                  "type": "string",
+                  "description": "OAuth2 client secret (ignored if existingSecret is configured)",
+                  "default": "your-client-secret"
+                },
+                "existingSecret": {
+                  "type": "object",
+                  "description": "Use an existing Kubernetes secret for the client secret",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Name of the existing secret containing the client secret",
+                      "default": ""
+                    },
+                    "key": {
+                      "type": "string",
+                      "description": "Key within the secret that contains the client secret value",
+                      "default": "client-secret"
+                    }
+                  }
+                },
+                "scopes": {
+                  "type": "array",
+                  "description": "OAuth2/OIDC scopes to request during authentication",
+                  "items": {
+                    "type": "string"
+                  },
+                  "default": ["openid", "email", "profile"]
+                },
+                "issuer_url": {
+                  "type": "string",
+                  "description": "OIDC issuer URL (base URL for OIDC discovery)",
+                  "pattern": "^https?://",
+                  "default": "https://keycloak.example.com/realms/master"
+                },
+                "skip_issuer_check": {
+                  "type": "boolean",
+                  "description": "Skip issuer validation (not recommended for production)",
+                  "default": false
+                },
+                "skip_expiry_check": {
+                  "type": "boolean",
+                  "description": "Skip token expiry validation (not recommended for production)",
+                  "default": false
+                },
+                "email_attribute": {
+                  "type": "string",
+                  "description": "Claim containing user's email address",
+                  "default": "email"
+                },
+                "username_attribute": {
+                  "type": "string",
+                  "description": "Claim containing user's username/login ID",
+                  "default": "preferred_username"
+                },
+                "name_attribute": {
+                  "type": "string",
+                  "description": "Claim containing user's display name",
+                  "default": "name"
+                },
+                "role_attribute_path": {
+                  "type": "string",
+                  "description": "Path to roles in the OIDC token claims",
+                  "default": "resource_access.garage-ui.roles"
+                },
+                "team_attribute_path": {
+                  "type": "string",
+                  "description": "go-jmespath path to the team/group claim used by config.access_control (same convention as role_attribute_path). Required only when access_control.teams is set; empty disables team resolution",
+                  "default": ""
+                },
+                "admin_role": {
+                  "type": "string",
+                  "description": "Role name that grants admin privileges",
+                  "default": "admin"
+                },
+                "admin_roles": {
+                  "type": "array",
+                  "description": "Additional admin role names. A user is granted admin if ANY of their roles matches admin_role or any entry here",
+                  "items": {
+                    "type": "string"
+                  },
+                  "default": []
+                },
+                "tls_skip_verify": {
+                  "type": "boolean",
+                  "description": "Skip TLS certificate verification (only for testing)",
+                  "default": false
+                },
+                "session_max_age": {
+                  "type": "integer",
+                  "description": "Session validity duration in seconds",
+                  "minimum": 60,
+                  "default": 86400
+                },
+                "cookie_name": {
+                  "type": "string",
+                  "description": "Name of the session cookie",
+                  "default": "garage_session"
+                },
+                "cookie_secure": {
+                  "type": "boolean",
+                  "description": "Only send cookie over HTTPS connections",
+                  "default": true
+                },
+                "cookie_http_only": {
+                  "type": "boolean",
+                  "description": "Prevent JavaScript access to the cookie",
+                  "default": true
+                },
+                "cookie_same_site": {
+                  "type": "string",
+                  "description": "SameSite cookie attribute for CSRF protection",
+                  "enum": ["lax", "strict", "none"],
+                  "default": "lax"
+                },
+                "post_logout_redirect_url": {
+                  "type": "string",
+                  "description": "Where the provider sends the browser after single sign-out (defaults to {root_url}/login)"
+                }
+              }
+            }
+          }
+        },
+        "cors": {
+          "type": "object",
+          "description": "CORS (Cross-Origin Resource Sharing) configuration",
+          "required": ["enabled"],
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable or disable CORS",
+              "default": true
+            },
+            "allowed_origins": {
+              "type": "array",
+              "description": "List of allowed origins",
+              "items": {
+                "type": "string"
+              },
+              "default": ["*"]
+            },
+            "allowed_methods": {
+              "type": "array",
+              "description": "HTTP methods allowed in CORS requests",
+              "items": {
+                "type": "string",
+                "enum": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]
+              },
+              "default": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+            },
+            "allowed_headers": {
+              "type": "array",
+              "description": "HTTP headers allowed in CORS requests",
+              "items": {
+                "type": "string"
+              },
+              "default": ["Origin", "Content-Type", "Accept", "Authorization"]
+            },
+            "allow_credentials": {
+              "type": "boolean",
+              "description": "Allow credentials in CORS requests (cannot be true when allowed_origins contains '*')",
+              "default": false
+            },
+            "max_age": {
+              "type": "integer",
+              "description": "Cache duration for CORS preflight responses in seconds",
+              "minimum": 0,
+              "default": 3600
+            }
+          }
+        },
+        "logging": {
+          "type": "object",
+          "description": "Logging configuration",
+          "required": ["level", "format"],
+          "properties": {
+            "level": {
+              "type": "string",
+              "description": "Log verbosity level",
+              "enum": ["debug", "info", "warn", "error"],
+              "default": "info"
+            },
+            "format": {
+              "type": "string",
+              "description": "Log output format",
+              "enum": ["json", "text"],
+              "default": "json"
+            }
+          }
+        },
+        "access_control": {
+          "type": "object",
+          "description": "Optional team-based access control (issue #33). When present (even empty) authorization is default-deny: OIDC users get only what their teams grant, and users matching no team are denied everywhere. When omitted, every authenticated user has full access. UI-layer policy only, NOT a security boundary: anyone holding the Garage admin token or S3 keys bypasses it. Requires auth.oidc.team_attribute_path when teams are set. See docs/access-control.md",
+          "properties": {
+            "presets": {
+              "type": "object",
+              "description": "Named, reusable permission lists referenced from bindings/cluster_permissions via the 'preset:<name>' syntax. Presets may reference other presets",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "teams": {
+              "type": "array",
+              "description": "Maps IdP claim values to bucket-prefix bindings and cluster-level permissions",
+              "items": {
+                "type": "object",
+                "required": ["name", "claim_values"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Unique team name"
+                  },
+                  "claim_values": {
+                    "type": "array",
+                    "description": "Values matched (exact string, no wildcards) against the team_attribute_path claim",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  },
+                  "bindings": {
+                    "type": "array",
+                    "description": "Prefix-scoped permission grants over buckets whose names match one of the prefixes",
+                    "items": {
+                      "type": "object",
+                      "required": ["bucket_prefixes", "permissions"],
+                      "properties": {
+                        "bucket_prefixes": {
+                          "type": "array",
+                          "description": "Bucket-name prefixes this binding applies to. Use '*' to match every bucket",
+                          "items": {
+                            "type": "string"
+                          },
+                          "minItems": 1
+                        },
+                        "permissions": {
+                          "type": "array",
+                          "description": "Prefix-scoped permissions, preset references (preset:<name>), or trailing-star globs (e.g. bucket.*, object.*)",
+                          "items": {
+                            "type": "string"
+                          },
+                          "minItems": 1
+                        }
+                      }
+                    }
+                  },
+                  "cluster_permissions": {
+                    "type": "array",
+                    "description": "Global (cluster-level) permissions granted to the team, e.g. cluster.status, cluster.health",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "podAnnotations": {
+      "type": "object",
+      "description": "Annotations to add to the pod",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {}
+    },
+    "podSecurityContext": {
+      "type": "object",
+      "description": "Pod-level security context",
+      "properties": {
+        "runAsNonRoot": {
+          "type": "boolean",
+          "description": "Run containers as non-root user",
+          "default": true
+        },
+        "runAsUser": {
+          "type": "integer",
+          "description": "User ID to run containers as",
+          "minimum": 0,
+          "default": 1000
+        },
+        "fsGroup": {
+          "type": "integer",
+          "description": "Group ID for filesystem access",
+          "minimum": 0,
+          "default": 1000
+        }
+      }
+    },
+    "securityContext": {
+      "type": "object",
+      "description": "Container-level security context",
+      "properties": {
+        "allowPrivilegeEscalation": {
+          "type": "boolean",
+          "description": "Allow privilege escalation",
+          "default": false
+        },
+        "capabilities": {
+          "type": "object",
+          "properties": {
+            "drop": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": ["ALL"]
+            }
+          }
+        },
+        "readOnlyRootFilesystem": {
+          "type": "boolean",
+          "description": "Mount root filesystem as read-only",
+          "default": false
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "description": "Kubernetes Service configuration",
+      "required": ["type", "port"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Service type",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+          "default": "ClusterIP"
+        },
+        "port": {
+          "type": "integer",
+          "description": "Port the service listens on",
+          "minimum": 1,
+          "maximum": 65535,
+          "default": 80
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "description": "Ingress configuration",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable or disable ingress",
+          "default": false
+        },
+        "className": {
+          "type": "string",
+          "description": "Ingress class name",
+          "default": "nginx"
+        },
+        "annotations": {
+          "type": "object",
+          "description": "Additional annotations for the ingress",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {}
+        },
+        "hosts": {
+          "type": "array",
+          "description": "Hostname and path configuration",
+          "items": {
+            "type": "object",
+            "required": ["host"],
+            "properties": {
+              "host": {
+                "type": "string",
+                "description": "Hostname for the ingress"
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["path", "pathType"],
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "URL path"
+                    },
+                    "pathType": {
+                      "type": "string",
+                      "description": "Path type",
+                      "enum": ["Prefix", "Exact", "ImplementationSpecific"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": [
+            {
+              "host": "garage-ui.local",
+              "paths": [
+                {
+                  "path": "/",
+                  "pathType": "Prefix"
+                }
+              ]
+            }
+          ]
+        },
+        "tls": {
+          "type": "array",
+          "description": "TLS/SSL configuration",
+          "items": {
+            "type": "object",
+            "properties": {
+              "secretName": {
+                "type": "string",
+                "description": "Name of the TLS secret"
+              },
+              "hosts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": []
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "description": "CPU and memory resource limits and requests",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "description": "Maximum resources the container can use",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "description": "Maximum CPU cores",
+              "pattern": "^[0-9]+(m|[0-9]*\\.?[0-9]+)?$",
+              "default": "500m"
+            },
+            "memory": {
+              "type": "string",
+              "description": "Maximum memory",
+              "pattern": "^[0-9]+(Ki|Mi|Gi|Ti|Pi|Ei)?$",
+              "default": "512Mi"
+            }
+          }
+        },
+        "requests": {
+          "type": "object",
+          "description": "Guaranteed resources allocated to the container",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "description": "Guaranteed CPU",
+              "pattern": "^[0-9]+(m|[0-9]*\\.?[0-9]+)?$",
+              "default": "100m"
+            },
+            "memory": {
+              "type": "string",
+              "description": "Guaranteed memory",
+              "pattern": "^[0-9]+(Ki|Mi|Gi|Ti|Pi|Ei)?$",
+              "default": "128Mi"
+            }
+          }
+        }
+      }
+    },
+    "livenessProbe": {
+      "type": "object",
+      "description": "Liveness probe configuration",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable or disable liveness probe",
+          "default": true
+        },
+        "httpGet": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "Health check endpoint path",
+              "default": "/health"
+            },
+            "port": {
+              "type": "string",
+              "description": "Port name",
+              "default": "http"
+            }
+          }
+        },
+        "initialDelaySeconds": {
+          "type": "integer",
+          "description": "Wait time before starting liveness checks",
+          "minimum": 0,
+          "default": 30
+        },
+        "periodSeconds": {
+          "type": "integer",
+          "description": "How often to perform the probe",
+          "minimum": 1,
+          "default": 10
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "description": "Maximum time to wait for probe completion",
+          "minimum": 1,
+          "default": 3
+        },
+        "failureThreshold": {
+          "type": "integer",
+          "description": "Consecutive failures before restarting",
+          "minimum": 1,
+          "default": 3
+        }
+      }
+    },
+    "readinessProbe": {
+      "type": "object",
+      "description": "Readiness probe configuration",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable or disable readiness probe",
+          "default": true
+        },
+        "httpGet": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "Readiness check endpoint path",
+              "default": "/health"
+            },
+            "port": {
+              "type": "string",
+              "description": "Port name",
+              "default": "http"
+            }
+          }
+        },
+        "initialDelaySeconds": {
+          "type": "integer",
+          "description": "Wait time before starting readiness checks",
+          "minimum": 0,
+          "default": 10
+        },
+        "periodSeconds": {
+          "type": "integer",
+          "description": "How often to perform the probe",
+          "minimum": 1,
+          "default": 5
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "description": "Maximum time to wait for probe completion",
+          "minimum": 1,
+          "default": 3
+        },
+        "failureThreshold": {
+          "type": "integer",
+          "description": "Consecutive failures before marking as not ready",
+          "minimum": 1,
+          "default": 3
+        }
+      }
+    },
+    "serviceMonitor": {
+      "type": "object",
+      "description": "ServiceMonitor for Prometheus Operator",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable or disable ServiceMonitor creation",
+          "default": false
+        },
+        "interval": {
+          "type": "string",
+          "description": "How often Prometheus should scrape metrics",
+          "pattern": "^[0-9]+(s|m|h)$",
+          "default": "30s"
+        },
+        "path": {
+          "type": "string",
+          "description": "Metrics endpoint path",
+          "default": "/metrics"
+        },
+        "labels": {
+          "type": "object",
+          "description": "Additional labels for the ServiceMonitor",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {}
+        }
+      }
+    },
+    "networkPolicy": {
+      "type": "object",
+      "description": "NetworkPolicy configuration",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable or disable NetworkPolicy creation",
+          "default": false
+        },
+        "policyTypes": {
+          "type": "array",
+          "description": "Types of policies to enforce",
+          "items": {
+            "type": "string",
+            "enum": ["Ingress", "Egress"]
+          },
+          "default": ["Ingress", "Egress"]
+        }
+      }
+    },
+    "nodeSelector": {
+      "type": "object",
+      "description": "Node selector labels",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {}
+    },
+    "tolerations": {
+      "type": "array",
+      "description": "Tolerations for pod scheduling",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "operator": {
+            "type": "string",
+            "enum": ["Exists", "Equal"]
+          },
+          "value": {
+            "type": "string"
+          },
+          "effect": {
+            "type": "string",
+            "enum": ["NoSchedule", "PreferNoSchedule", "NoExecute"]
+          }
+        }
+      },
+      "default": []
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Affinity rules for pod scheduling",
+      "default": {}
+    }
+  }
+}

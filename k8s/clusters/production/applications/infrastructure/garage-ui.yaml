@@ -8,8 +8,9 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: oci://ghcr.io/noooste/charts/garage-ui
-      targetRevision: 0.14.0
+    - repoURL: https://github.com/frengkysorituamanurung/homelabs.git
+      targetRevision: main
+      path: helm/charts/garage-ui
       helm:
         valueFiles:
           - $values/infrastructure/garage-ui/values.yaml

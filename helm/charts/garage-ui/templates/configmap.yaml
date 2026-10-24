@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "garage-ui.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "garage-ui.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+{{- $config := deepCopy .Values.config }}
+{{- $_ := unset $config.garage "admin_token" }}
+{{- $_2 := unset $config.auth.admin "password" }}
+{{- $_3 := unset $config.auth.oidc "client_secret" }}
+{{- $_4 := unset $config.auth "jwt_private_key" }}
+{{- $_5 := unset $config.auth "jwt_private_key_secret" }}
+{{- $config | toYaml | nindent 4 }}
