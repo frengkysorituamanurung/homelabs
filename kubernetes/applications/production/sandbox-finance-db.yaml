@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
+    repoURL: https://github.com/frengkysorituamanurung/homelabs.git
     path: kubernetes/production/database/sandbox-finance
     targetRevision: main
   destination:
