@@ -6,6 +6,7 @@ resources:
   - flux-system-kustomization.yaml
   - pilot-cloudflared.yaml
   - pilot-kube-state-metrics.yaml
+  - pilot-node-exporter.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
