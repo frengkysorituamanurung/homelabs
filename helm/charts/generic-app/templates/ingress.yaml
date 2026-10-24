@@ -16,6 +16,7 @@ metadata:
   name: {{ $values.baseName | default (include "generic-app.fullname" .) }}
   namespace: {{ $values.baseNamespace | default .Release.Namespace }}
   annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
     {{- if $values.ingress.stripPath }}
     traefik.ingress.kubernetes.io/router.middlewares: {{ $values.baseNamespace | default .Release.Namespace }}-{{ $values.baseName | default (include "generic-app.fullname" .) }}-strip-prefix@kubernetescrd
     nginx.ingress.kubernetes.io/rewrite-target: /$2
@@ -46,6 +47,7 @@ metadata:
   name: {{ $values.baseName | default (include "generic-app.fullname" .) }}-preview
   namespace: {{ $values.baseNamespace | default .Release.Namespace }}
   annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
     {{- if $values.ingress.stripPath }}
     traefik.ingress.kubernetes.io/router.middlewares: {{ $values.baseNamespace | default .Release.Namespace }}-{{ $values.baseName | default (include "generic-app.fullname" .) }}-strip-prefix@kubernetescrd
     nginx.ingress.kubernetes.io/rewrite-target: /$2
