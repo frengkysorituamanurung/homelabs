@@ -10,7 +10,7 @@
 | **Namespace** | `cnpg-system` |
 | **Cluster** | `homelabs` (k3s v1.36.2, single-node, Ubuntu 26.04) |
 | **Storage Class** | `local-path` (rancher.io/local-path) |
-| **Managed By** | ArgoCD (GitOps via Gitea) |
+| **Managed By** | Flux CD (GitOps via Gitea) |
 | **Helm Repo** | `https://cloudnative-pg.github.io/charts` |
 
 ---
@@ -22,7 +22,7 @@ gitops-repo/
 ├── kubernetes/
 │   ├── applications/
 │   │   └── infrastructure/
-│   │       └── cloudnative-pg.yaml        # ArgoCD Application manifest
+│   │       └── cloudnative-pg.yaml        # Flux CD Application manifest
 │   └── production/
 │       └── cloudnative-pg/
 │           └── values.yaml                # Helm values for the operator
@@ -32,22 +32,22 @@ gitops-repo/
 
 ### App-of-Apps Pattern
 
-This cluster uses the ArgoCD **App-of-Apps** pattern:
+This cluster uses the Flux CD **App-of-Apps** pattern:
 
 ```
 root-app (argocd)
-  └── k8s/clusters/production/applications/           ← ArgoCD recursively picks up all .yaml
+  └── k8s/clusters/production/applications/           ← Flux CD recursively picks up all .yaml
         └── infrastructure/
               └── cloudnative-pg.yaml    ← Installs CNPG operator via Helm
 ```
 
-The `root-app.yaml` is already configured with `directory.recurse: true`, so once `cloudnative-pg.yaml` is pushed to Gitea, ArgoCD will automatically deploy the operator.
+The `root-app.yaml` is already configured with `directory.recurse: true`, so once `cloudnative-pg.yaml` is pushed to Gitea, Flux CD will automatically deploy the operator.
 
 ---
 
 ## Installation
 
-### 1. ArgoCD Application File (`k8s/clusters/production/applications/infrastructure/cloudnative-pg.yaml`)
+### 1. Flux CD Application File (`k8s/clusters/production/applications/infrastructure/cloudnative-pg.yaml`)
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -91,7 +91,7 @@ Key configurations for the single-node homelab:
 - `config.clusterWide: true` — operator watches all namespaces
 - `ServerSideApply=true` — required so Helm can manage CRDs correctly on Kubernetes 1.22+
 
-### 3. Push to Gitea & ArgoCD Sync
+### 3. Push to Gitea & Flux CD Sync
 
 ```bash
 # In the gitops-repo directory
@@ -101,7 +101,7 @@ git commit -m "feat: add CloudNativePG operator v1.30.0"
 git push gitea main
 ```
 
-ArgoCD will automatically detect the change and sync the app within ~3 minutes, or it can be triggered manually:
+Flux CD will automatically detect the change and sync the app within ~3 minutes, or it can be triggered manually:
 
 ```bash
 argocd app sync cloudnative-pg
@@ -112,7 +112,7 @@ kubectl -n argocd patch application cloudnative-pg --type merge -p '{"operation"
 ### 4. Verify Operator Installation
 
 ```bash
-# Check ArgoCD Application status
+# Check Flux CD Application status
 kubectl get application cloudnative-pg -n argocd
 
 # Check operator pods in the cnpg-system namespace
@@ -338,7 +338,7 @@ kubectl cnpg hibernate off pg-cluster -n database
 
 ## Upgrade Operator
 
-To upgrade the operator version, simply update `targetRevision` in the ArgoCD Application file:
+To upgrade the operator version, simply update `targetRevision` in the Flux CD Application file:
 
 ```yaml
 # k8s/clusters/production/applications/infrastructure/cloudnative-pg.yaml
@@ -354,13 +354,13 @@ sources:
 
 ## Troubleshooting
 
-### Operator not syncing in ArgoCD
+### Operator not syncing in Flux CD
 
 ```bash
-# Check ArgoCD events
+# Check Flux CD events
 kubectl describe application cloudnative-pg -n argocd | tail -30
 
-# Check ArgoCD application controller logs
+# Check Flux CD application controller logs
 kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller --tail=50
 ```
 

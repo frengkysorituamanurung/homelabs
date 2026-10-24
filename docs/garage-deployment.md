@@ -13,14 +13,14 @@ This document describes the deployment of [Garage](https://garagehq.deuxfleurs.f
 
 ## GitOps Manifests
 
-- ArgoCD Application: `k8s/clusters/production/applications/infrastructure/garage.yaml`
+- Flux CD Application: `k8s/clusters/production/applications/infrastructure/garage.yaml`
 - Helm values: `infrastructure/garage/values.yaml`
 
 The application uses the official Garage Helm chart from `https://git.deuxfleurs.fr/Deuxfleurs/garage.git` (tag `v2.4.1`, chart `0.10.3`) with values from this repository.
 
 ## Post-Deploy Management
 
-After ArgoCD syncs the application:
+After Flux CD syncs the application:
 
 ```bash
 # Check status

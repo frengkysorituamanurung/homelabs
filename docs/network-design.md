@@ -65,7 +65,7 @@ Used for internal/private apps that must not be accessible from the internet.
 - `bentopdf.frengky.xyz` — BentoPDF
 - `n8n.frengky.xyz` — N8N automation
 - `grafana.frengky.xyz` — Grafana monitoring
-- `argocd.frengky.xyz` — ArgoCD dashboard
+- `argocd.frengky.xyz` — Flux CD dashboard
 - `vault.frengky.xyz` — HashiCorp Vault
 - `gitea.frengky.xyz` — Gitea Git server
 - `harbor.frengky.xyz` — Harbor registry

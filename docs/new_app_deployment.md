@@ -61,7 +61,7 @@ So that the Gitea Actions Runner can run and sync manifests back to GitOps, regi
 
 - **`GITOPS_TOKEN`**: Gitea Personal Access Token for the user `gitea_admin` with write access to the `devops/gitops` repository.
 - **`VAULT_TOKEN`**: Access token to authenticate the runner to HashiCorp Vault.
-- **`ARGOCD_TOKEN`**: ArgoCD API access token to trigger manual syncs if needed.
+- **`ARGOCD_TOKEN`**: Flux CD API access token to trigger manual syncs if needed.
 
 ---
 
@@ -202,7 +202,7 @@ generic-app:
 ```
 
 ### 3. File `k8s/clusters/production/applications/production/sample-api.yaml`
-Register it in ArgoCD via the *App of Apps* pattern:
+Register it in Flux CD via the *App of Apps* pattern:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -228,7 +228,7 @@ spec:
       - CreateNamespace=true
 ```
 
-Push all the changes above to the `devops/gitops` repository's `main` branch. ArgoCD will automatically detect them, create the `backend` namespace if it doesn't exist yet, and deploy the application with secrets integrated from Vault!
+Push all the changes above to the `devops/gitops` repository's `main` branch. Flux CD will automatically detect them, create the `backend` namespace if it doesn't exist yet, and deploy the application with secrets integrated from Vault!
 
 ---
 
@@ -263,7 +263,7 @@ kubectl exec -n vault vault-0 -- env VAULT_TOKEN=root \
 
 ### 3. GitOps Repository Configuration (`devops/gitops`)
 
-Create the Helm values and ArgoCD application configuration files for n8n in your `devops/gitops` repository.
+Create the Helm values and Flux CD application configuration files for n8n in your `devops/gitops` repository.
 
 #### A. File `k8s/clusters/production/applications/apps/production/tools/n8n/Chart.yaml`
 ```yaml
@@ -309,7 +309,7 @@ generic-app:
       memory: 512Mi
 ```
 
-#### C. File `k8s/clusters/production/applications/production/n8n.yaml` (ArgoCD Application)
+#### C. File `k8s/clusters/production/applications/production/n8n.yaml` (Flux CD Application)
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application

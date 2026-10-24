@@ -10,7 +10,7 @@
 
 ## GitOps Manifests
 
-- ArgoCD Application: `k8s/clusters/production/applications/infrastructure/immich.yaml`
+- Flux CD Application: `k8s/clusters/production/applications/infrastructure/immich.yaml`
 - Helm values: `infrastructure/immich/values.yaml`
 - Vendored chart: `helm/charts/immich` (includes bjw-s common library 5.2.1)
 - Manifests: `infrastructure/immich/manifests/`

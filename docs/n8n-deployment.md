@@ -1,6 +1,6 @@
 # n8n Installation Documentation (Private Access via Tailscale)
 
-This document describes the installation, deployment architecture, and security configuration for **n8n** on the `frengky.xyz` homelab Kubernetes cluster. n8n is deployed using the **GitOps (ArgoCD)** pattern and is configured to be accessible only securely (HTTPS) when connected to **Tailscale**.
+This document describes the installation, deployment architecture, and security configuration for **n8n** on the `frengky.xyz` homelab Kubernetes cluster. n8n is deployed using the **GitOps (Flux CD)** pattern and is configured to be accessible only securely (HTTPS) when connected to **Tailscale**.
 
 ---
 
@@ -25,7 +25,7 @@ gitops-repo/
 ├── kubernetes/
 │   ├── applications/
 │   │   └── production/
-│   │       └── n8n.yaml            # ArgoCD Application definition
+│   │       └── n8n.yaml            # Flux CD Application definition
 │   └── production/
 │       └── n8n/
 │           ├── deployment.yaml     # n8n deployment & env configuration
@@ -36,8 +36,8 @@ gitops-repo/
     └── n8n-deployment.md           # This document
 ```
 
-### 1. ArgoCD Application (`k8s/clusters/production/applications/production/n8n.yaml`)
-ArgoCD manages the lifecycle of this deployment automatically from the path `k8s/clusters/production/applications/apps/production/n8n`:
+### 1. Flux CD Application (`k8s/clusters/production/applications/production/n8n.yaml`)
+Flux CD manages the lifecycle of this deployment automatically from the path `k8s/clusters/production/applications/apps/production/n8n`:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application

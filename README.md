@@ -1,71 +1,60 @@
 # GitOps Repository — frengky.xyz Homelab
 
-This repository is the **single source of truth** for all workloads running in the k3s homelab cluster, managed by ArgoCD.
+This repository is the **single source of truth** for all workloads running in the k3s homelab cluster, managed by **Flux CD**.
 
 ## Architecture
 
 ```
 GitHub (github.com/frengkysorituamanurung/homelabs)
   └── This repository
-        └── ArgoCD watches → deploys to k3s cluster
+        └── Flux CD watches → reconciles into k3s cluster
 ```
 
 - **Cluster**: k3s single-node (homelabs)
 - **Domain**: `*.frengky.xyz` via Cloudflare Tunnel → Traefik ingress
 - **StorageClass**: `local-path`
 - **Secrets**: HashiCorp Vault + External Secrets Operator
+- **GitOps**: Flux CD (GitRepository + Kustomization + HelmRelease)
 
 ## Folder Structure
 
 ```
 .
-├── k8s/clusters/production/applications/   # ArgoCD Application manifests
-│   ├── root-app.yaml                      # App of Apps — main entry point
-│   ├── monitoring/                        # Grafana, Loki, Alloy, VictoriaMetrics, etc.
-│   ├── cloudflare/                        # Cloudflared tunnel daemon
-│   ├── infra/                             # ArgoCD, Harbor, Vault, ESO
-│   └── ingress/                           # Ingress rules per application
-├── charts/                                # Helm values files
-│   ├── monitoring/                        # values per monitoring app
-│   └── infra/                             # argocd, harbor, vault values
-├── manifests/                             # Plain Kubernetes YAML (non-Helm)
-│   ├── cloudflare/
-│   └── ingress/
-├── helm/                                  # Helm charts
-├── secrets/                               # ESO templates & Vault docs
-│   ├── README.md
-│   └── templates/                         # ExternalSecret CRD templates
-└── docs/                                  # Deployment documentation
+├── clusters/production/flux-system/   # Flux bootstrap + top-level Kustomizations
+├── k8s/clusters/production/
+│   ├── applications/                 # Legacy app manifests (migration in progress)
+│   └── flux/                         # Flux Kustomizations/HelmReleases (where used)
+├── infrastructure/                   # Component manifests, values, and Flux releases
+│   └── <component>/flux/             # HelmRepository + HelmRelease per component
+├── helm/                             # Vendored Helm charts (garage, garage-ui, generic-app, immich)
+├── secrets/                          # ESO templates & Vault docs
+├── device/                           # Device, network, k3s, security docs
+├── docs/                             # Deployment documentation
+└── scripts/                          # Helper scripts
 ```
 
 ## How It Works
 
-### App of Apps Pattern
+### Flux CD
 
-`k8s/clusters/production/applications/root-app.yaml` is the ArgoCD Application deployed **manually first**. After that, it automatically discovers and deploys every other Application in `k8s/clusters/production/applications/**/*.yaml`.
+Flux is bootstrapped into the `flux-system` namespace and reconciles this repository from `main`:
 
-```bash
-# Deploy root-app for the first time (bootstrap)
-kubectl apply -f k8s/clusters/production/applications/root-app.yaml
-```
+- `clusters/production/flux-system/gotk-components.yaml` — Flux controllers
+- `clusters/production/flux-system/gitrepository.yaml` — source: this repo
+- `clusters/production/flux-system/kustomization.yaml` — top-level Kustomization
+- `clusters/production/flux-system/flux-system-kustomization.yaml` — self-management
 
-### Helm Chart Apps (sources pattern)
+Each component is reconciled by a `Kustomization` (and, for Helm apps, a `HelmRelease` + `HelmRepository`).
 
-For Helm applications we use the **multi-source** pattern (`sources`):
-- Source 1: Chart from an upstream Helm registry (Artifact Hub, etc.)
-- Source 2: This GitOps repo (as `ref: values`) to fetch `values.yaml`
+### Helm Chart Apps
 
-This keeps values in Git while charts always come from official registries.
+Helm applications use Flux `HelmRelease` resources, with values kept in Git:
+- Chart from an upstream/Harbor OCI registry or a vendored chart in `helm/charts/*`
+- Values in `infrastructure/<component>/values.yaml` or inlined in the `HelmRelease`
 
 ### Plain Manifest Apps
 
-For non-Helm applications (Cloudflared, Ingress), ArgoCD points directly to the `manifests/` folder with type `Directory`.
-
-## Onboarding a New Application
-
-1. Create `values.yaml` in `charts/<category>/<app-name>/values.yaml`
-2. Create an ArgoCD Application in `k8s/clusters/production/applications/<category>/<app-name>.yaml`
-3. Push to GitHub → ArgoCD deploys automatically
+Non-Helm applications are applied via Flux `Kustomization` resources pointing at manifest directories.
 
 ## Secret Management
 
@@ -77,32 +66,55 @@ Secrets are **not** stored in this repository. Workflow:
 
 See [`secrets/README.md`](secrets/README.md) for the full guide.
 
-For automatic SSL/TLS certificate management via cert-manager, see [`docs/gitops-cert-manager.md`](docs/gitops-cert-manager.md).
+## Onboarding a New Application
+
+1. Create `values.yaml` in `infrastructure/<category>/<app-name>/values.yaml` (for Helm apps).
+2. Create a Flux `HelmRelease`/`Kustomization` under `infrastructure/<app>/flux/`.
+3. Register it in `clusters/production/flux-system/kustomization.yaml`.
+4. Push to GitHub → Flux reconciles automatically.
 
 ## Managed Components
 
-| Component | Namespace | Type | Chart Version |
+| Component | Namespace | Type | Owner |
 |---|---|---|---|
-| Traefik | kube-system | k3s native HelmChartConfig | - |
-| Grafana | monitoring | Helm | grafana/grafana ~8.x |
-| Loki | monitoring | Helm | grafana/loki ~6.x |
-| Alloy | monitoring | Helm | grafana/alloy ~0.x |
-| VictoriaMetrics | monitoring | Helm | vm/victoria-metrics-single ~0.x |
-| kube-state-metrics | monitoring | Helm | prometheus-community ~5.x |
-| node-exporter | monitoring | Helm | prometheus-community ~4.x |
-| Cloudflared | cloudflare | Manifest | - |
-| **ArgoCD** | argocd | Helm | argo/argo-cd ~7.x |
-| **Harbor** | harbor | Helm | harbor/harbor ~1.16.x |
-| **Vault** | vault | Helm | hashicorp/vault ~0.29.x |
-| **ESO** | external-secrets | Helm | external-secrets ~0.10.x |
-| **Cert-Manager** | cert-manager | Manifest (GitOps) | v1.15.1 |
+| Traefik | kube-system | k3s native HelmChartConfig | k3s |
+| Grafana | monitoring | Flux HelmRelease | Flux |
+| Loki | monitoring | Flux HelmRelease | Flux |
+| Alloy | monitoring | Flux HelmRelease | Flux |
+| VictoriaMetrics | monitoring | Flux HelmRelease | Flux |
+| kube-state-metrics | monitoring | Flux HelmRelease | Flux |
+| node-exporter | monitoring | Flux HelmRelease | Flux |
+| Cloudflared | cloudflare | Flux Kustomization | Flux |
+| Cert-Manager | cert-manager | Flux Kustomization | Flux |
+| Vault | vault | Flux HelmRelease | Flux |
+| ESO | external-secrets | Flux HelmRelease | Flux |
+| Harbor | harbor | Flux HelmRelease | Flux |
+| CloudNativePG | cnpg-system | Flux HelmRelease | Flux |
+| Reloader | reloader | Flux HelmRelease | Flux |
+| Immich | immich | Flux HelmRelease + Kustomization | Flux |
+| Garage | garage | Flux HelmRelease + Kustomization | Flux |
+| Garage UI | garage | Flux HelmRelease | Flux |
+| Glance | frontend | Flux HelmRelease | Flux |
+| BentoPDF | frontend | Flux HelmRelease | Flux |
+| finance-landing | frontend | Flux HelmRelease | Flux |
+| mcp-bridge | backend | Flux HelmRelease | Flux |
+| qdrant | backend | Flux HelmRelease | Flux |
+| n8n | n8n | Flux Kustomization | Flux |
+| service-a | production | Flux HelmRelease | Flux |
 
 ## Useful Commands
 
 ```bash
-# List all ArgoCD apps
-kubectl get applications -n argocd
+# List Flux Kustomizations
+flux get kustomizations -n flux-system
 
-# Force sync one app
-argocd app sync grafana
+# List Flux HelmReleases
+flux get helmreleases -A
+
+# Force reconcile
+flux reconcile source git homelabs
+flux reconcile kustomization flux-system -n flux-system
+
+# Check Flux health
+flux check
 ```

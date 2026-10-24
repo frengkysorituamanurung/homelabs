@@ -1,6 +1,6 @@
 # BentoPDF Deployment Documentation
 
-BentoPDF is an open-source, browser-based (client-side processing) PDF toolkit deployed in the k3s cluster `frengky.xyz` via GitOps (ArgoCD). Access is only available when connected to the **Tailscale VPN**.
+BentoPDF is an open-source, browser-based (client-side processing) PDF toolkit deployed in the k3s cluster `frengky.xyz` via GitOps (Flux CD). Access is only available when connected to the **Tailscale VPN**.
 
 ---
 
@@ -26,7 +26,7 @@ gitops-repo/
 ├── kubernetes/
 │   ├── applications/
 │   │   └── production/
-│   │       └── bentopdf.yaml          # ArgoCD Application
+│   │       └── bentopdf.yaml          # Flux CD Application
 │   └── production/
 │       └── frontend/
 │           └── bentopdf/
@@ -40,7 +40,7 @@ gitops-repo/
 
 ## Manifest Files
 
-### 1. ArgoCD Application
+### 1. Flux CD Application
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -143,7 +143,7 @@ Add an A record in the Cloudflare DNS dashboard:
 > **IMPORTANT:** Status must be **DNS Only (Gray Cloud)**, not Proxied (Orange).
 > If Proxied, Cloudflare will attempt to proxy to the Tailscale IP, which is unreachable from the internet.
 
-### Step 2: Verify ArgoCD
+### Step 2: Verify Flux CD
 
 ```bash
 # Check app status
@@ -202,7 +202,7 @@ The server only serves static files. No PDF data is sent to the server.
 |---------|-------|----------|
 | `CreateContainerConfigError` | Secret `bentopdf-secrets` not found | Make sure `disableSecrets: true` in values.yaml |
 | Domain unreachable | DNS not configured | Add A record in Cloudflare (DNS Only) |
-| ArgoCD `OutOfSync` | Chart dependency not found | Make sure `generic-app:0.1.12` exists in Harbor |
+| Flux CD `OutOfSync` | Chart dependency not found | Make sure `generic-app:0.1.12` exists in Harbor |
 | 404 when accessing | Ingress not created | Check `kubectl get ingress -n frontend` |
 
 ```bash

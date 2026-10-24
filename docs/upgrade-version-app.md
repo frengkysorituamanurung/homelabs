@@ -1,6 +1,6 @@
 # Application Version & Helm Chart Upgrade Guide in a GitOps Environment
 
-This document describes the standard steps to upgrade application versions and Helm Charts in a Kubernetes cluster environment managed with **ArgoCD**, **Harbor (Private Registry)**, and a **GitOps Repository**.
+This document describes the standard steps to upgrade application versions and Helm Charts in a Kubernetes cluster environment managed with **Flux CD**, **Harbor (Private Registry)**, and a **GitOps Repository**.
 
 As an example, this document contains step-by-step guidance for upgrading **Harbor** from version **v2.12.2** to version **v2.15.2** (or another latest version).
 
@@ -11,7 +11,7 @@ As an example, this document contains step-by-step guidance for upgrading **Harb
 In this cluster environment, applications are managed using the **GitOps** and **Self-Hosted Registry** approach:
 1. **Internal OCI Helm Registry**: Helm Charts are stored in the internal registry (`oci://harbor.frengky.xyz/helm-repos`).
 2. **Container Image Mirroring**: Application container images are pulled from the internet, then *pushed* to the internal Harbor (`harbor.frengky.xyz`).
-3. **ArgoCD Application Sync**: ArgoCD monitors changes in the GitOps repository (`gitops-repo`) and automatically syncs (*rollout*) to the Kubernetes cluster.
+3. **Flux CD Application Sync**: Flux CD monitors changes in the GitOps repository (`gitops-repo`) and automatically syncs (*rollout*) to the Kubernetes cluster.
 
 ---
 
@@ -24,7 +24,7 @@ Check the currently running application version and pods in the cluster:
 # Check current version pods & image
 kubectl get pods -n harbor -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[*].image}{"\n"}{end}'
 
-# Check current ArgoCD manifest
+# Check current Flux CD manifest
 cat k8s/clusters/production/applications/infrastructure/harbor.yaml
 ```
 
@@ -98,7 +98,7 @@ To ensure the cluster does not depend on public internet connectivity at *runtim
 
 ### Step 4: Update Manifest Configuration in GitOps Repository
 
-1. **Update Target Version in ArgoCD Application Spec**:
+1. **Update Target Version in Flux CD Application Spec**:
    Edit file `k8s/clusters/production/applications/infrastructure/harbor.yaml`:
    ```yaml
    apiVersion: argoproj.io/v1alpha1
@@ -130,7 +130,7 @@ To ensure the cluster does not depend on public internet connectivity at *runtim
 
 ### Step 5: Commit & Push Changes to GitOps Repository
 
-Commit the updated manifest changes to the GitOps repository so ArgoCD can detect the changes:
+Commit the updated manifest changes to the GitOps repository so Flux CD can detect the changes:
 
 ```bash
 cd /root/server/gitops-repo
@@ -143,10 +143,10 @@ git push origin main
 
 ---
 
-### Step 6: Trigger ArgoCD Sync & Verify Deployment
+### Step 6: Trigger Flux CD Sync & Verify Deployment
 
-1. **Trigger ArgoCD Sync**:
-   ArgoCD will automatically sync. To speed it up, run:
+1. **Trigger Flux CD Sync**:
+   Flux CD will automatically sync. To speed it up, run:
    ```bash
    # Trigger refresh & sync via API / CLI
    kubectl annotate application harbor -n argocd argocd.argoproj.io/refresh=normal --overwrite
@@ -174,4 +174,4 @@ git push origin main
 | :--- | :--- |
 | **Database Backup** | Perform a backup of the PostgreSQL database (`harbor-database`) before a major upgrade. |
 | **Breaking Changes** | Check the official changelog of the Helm Chart / Application release to ensure there are no incompatible `values.yaml` parameter changes. |
-| **Image Availability** | Ensure all sub-component images have been successfully *pushed* to Harbor before triggering ArgoCD sync. |
+| **Image Availability** | Ensure all sub-component images have been successfully *pushed* to Harbor before triggering Flux CD sync. |

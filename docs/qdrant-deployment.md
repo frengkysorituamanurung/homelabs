@@ -24,7 +24,7 @@ gitops-repo/
 ├── kubernetes/
 │   ├── applications/
 │   │   └── production/
-│   │       └── qdrant.yaml          # ArgoCD Application definition
+│   │       └── qdrant.yaml          # Flux CD Application definition
 │   └── production/
 │       └── backend/
 │           └── qdrant/
@@ -33,8 +33,8 @@ gitops-repo/
     └── qdrant-deployment.md         # This document (Installation Instructions)
 ```
 
-### 1. ArgoCD Application (`k8s/clusters/production/applications/production/qdrant.yaml`)
-Uses the ArgoCD **multi-source** pattern to fetch the chart from the Harbor OCI Registry and values from the gitops repository:
+### 1. Flux CD Application (`k8s/clusters/production/applications/production/qdrant.yaml`)
+Uses the Flux CD **multi-source** pattern to fetch the chart from the Harbor OCI Registry and values from the gitops repository:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application

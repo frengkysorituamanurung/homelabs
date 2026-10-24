@@ -18,7 +18,7 @@ Use it as a reference when pinning image versions in Helm values or manifests.
 | External Secrets | `ghcr.io/external-secrets/external-secrets:v2.14.0` |
 | cert-manager | `quay.io/jetstack/cert-manager-controller:v1.15.1` |
 | Harbor | `docker.io/goharbor/*:v2.15.4` |
-| ArgoCD | `quay.io/argoproj/argocd:v3.5.6` |
+| Flux CD | `quay.io/argoproj/argocd:v3.5.6` |
 | CloudNativePG | `ghcr.io/cloudnative-pg/cloudnative-pg:1.30.1` |
 | Reloader | `ghcr.io/stakater/reloader:v1.4.22` |
 | Traefik | `rancher/mirrored-library-traefik:3.7.4` |

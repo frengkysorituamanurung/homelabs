@@ -20,7 +20,7 @@
 
 - Traefik (ingress)
 - cert-manager
-- ArgoCD (app-of-apps)
+- Flux CD (GitOps)
 - Vault + Vault Unsealer
 - Harbor
 - Grafana, Loki, Alloy, VictoriaMetrics
@@ -42,10 +42,10 @@
 
 ## GitOps
 
-- ArgoCD watches `https://github.com/frengkysorituamanurung/homelabs.git`
+- Flux CD watches `https://github.com/frengkysorituamanurung/homelabs.git`
 - Branch: `main`
-- Reconciliation interval: `60s` (with 30s jitter)
-- Root app path: `k8s/clusters/production/applications` (include `*/*.yaml`)
+- Reconciliation interval: `1m` (GitRepository), `5-10m` (Kustomizations)
+- Bootstrap path: `clusters/production/flux-system`
 
 ## Certificates
 

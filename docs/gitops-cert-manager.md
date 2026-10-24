@@ -1,12 +1,12 @@
 # GitOps Cert-Manager & Wildcard Let's Encrypt SSL (Tailscale Only Access)
 
-This document explains the configuration, architecture, and workflow for implementing **cert-manager** using Let's Encrypt (DNS-01 Challenge via Cloudflare) in a **GitOps (ArgoCD)** pattern, so that the `*.frengky.xyz` subdomains can be accessed privately via Tailscale securely (HTTPS without SSL warnings).
+This document explains the configuration, architecture, and workflow for implementing **cert-manager** using Let's Encrypt (DNS-01 Challenge via Cloudflare) in a **GitOps (Flux CD)** pattern, so that the `*.frengky.xyz` subdomains can be accessed privately via Tailscale securely (HTTPS without SSL warnings).
 
 ---
 
 ## 📖 Background & Motivation
 
-Previously, applications such as GitLab, ArgoCD, Grafana, etc., were accessed publicly using Cloudflare Tunnel and protected by Cloudflare Access. To move access to be fully private (only accessible when connected to **Tailscale**):
+Previously, applications such as GitLab, Flux CD, Grafana, etc., were accessed publicly using Cloudflare Tunnel and protected by Cloudflare Access. To move access to be fully private (only accessible when connected to **Tailscale**):
 1. DNS records were moved from Cloudflare Proxy (Orange Cloud) to **DNS-Only (Gray Cloud)** and pointed to the private Tailscale host IP (`100.120.133.63`).
 2. Because traffic no longer passes through the Cloudflare Edge Proxy, SSL/TLS encryption must be terminated directly inside the cluster (on the Ingress Controller/Traefik).
 3. To avoid *"Not Secure"* warnings in the browser without having to import a certificate manually on every device, we use **cert-manager** to issue official free certificates from **Let's Encrypt** using the **DNS-01 Challenge** method.
@@ -29,8 +29,8 @@ To overcome this issue, the `cert-manager` controller deployment manifest is pat
 
 All components are declared in the GitOps repository:
 
-### 1. ArgoCD Application Manifest
-Declared in `k8s/clusters/production/applications/infrastructure/cert-manager.yaml`. This manifest registers the cert-manager application with ArgoCD.
+### 1. Flux CD Application Manifest
+Declared in `k8s/clusters/production/applications/infrastructure/cert-manager.yaml`. This manifest registers the cert-manager application with Flux CD.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1

@@ -36,7 +36,7 @@
 | VPN mesh | `Tailscale` |
 | Public reverse proxy | `Cloudflare Tunnel (cloudflared)` |
 | TLS Certificates | `cert-manager (v1.15.1) + Let's Encrypt (DNS-01 Challenge via Cloudflare API)` |
-| GitOps | `ArgoCD (App of Apps pattern)` |
+| GitOps | `Flux CD (GitRepository + Kustomization)` |
 | Storage | `local-path (local-path-provisioner)` |
 | Secret Management | `HashiCorp Vault + External Secrets Operator (ESO)` |
 
@@ -121,7 +121,7 @@ curl -sfL https://get.k3s.io | sh -s - server \
 | Namespace | Function |
 |---|---|
 | `kube-system` | Core k3s components (CoreDNS, Traefik, local-path-provisioner, metrics-server) |
-| `argocd` | GitOps controller (ArgoCD) |
+| `argocd` | GitOps controller (Flux CD) |
 | `cert-manager` | TLS certificate management (cert-manager) |
 | `external-secrets` | Secret synchronization from Vault to Kubernetes Secrets (ESO) |
 | `vault` | Main secret store (HashiCorp Vault) |
@@ -153,7 +153,7 @@ flowchart TD
 
 | Criteria | Private (Tailscale-only) | Public (Internet-facing) |
 |---|---|---|
-| Example apps | Gitea, Harbor, ArgoCD, Vault, Grafana, Glance Dashboard, Argo Rollouts | Hello World, Sample API, Service A, Service A Staging |
+| Example apps | Gitea, Harbor, Flux CD, Vault, Grafana, Glance Dashboard, Argo Rollouts | Hello World, Sample API, Service A, Service A Staging |
 | Service type | `ClusterIP` | `ClusterIP` (exposed via Ingress) |
 | Exposure | DNS Gray Cloud -> Tailscale IP `100.120.133.63` -> Traefik Ingress | Cloudflare Tunnel -> `cloudflared` deployment -> Traefik Ingress |
 | TLS | cert-manager + Let's Encrypt (DNS-01 Wildcard `*.frengky.xyz`) | Automatic via Cloudflare Edge TLS / Let's Encrypt |
@@ -216,8 +216,8 @@ All deployments are managed centrally in the local Gitea GitOps repository (`htt
 ```
 gitops-repo/
 ├── kubernetes/
-│   ├── applications/              # ArgoCD Application definitions (App of Apps Pattern)
-│   │   ├── root-app.yaml          # Main ArgoCD entry point (App-of-Apps)
+│   ├── applications/              # Flux CD Application definitions (App of Apps Pattern)
+│   │   ├── root-app.yaml          # Main Flux CD entry point (App-of-Apps)
 │   │   ├── infrastructure/        # Basic infrastructure application manifests
 │   │   │   ├── vault.yaml, argocd.yaml, cert-manager.yaml, gitea.yaml, harbor.yaml, etc.
 │   │   ├── production/            # Production application manifests
@@ -249,7 +249,7 @@ gitops-repo/
 
 | Item | Detail |
 |---|---|
-| GitOps Engine | `ArgoCD` |
+| GitOps Engine | `Flux CD` |
 | Source Repository | `http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git` |
 | Public/Backup Remote | `https://gitea.frengky.xyz/devops/gitops.git`, `https://gitlab.frengky.xyz/frengky/gitops.git` |
 | Sync Strategy | `Auto-Sync with Prune & Self-Heal` |
@@ -397,7 +397,7 @@ graph TB
         subgraph Apps_Private["Private Apps (Access via Tailscale IP)"]
             Gitea[Gitea: gitea.frengky.xyz]
             Harbor[Harbor: harbor.frengky.xyz]
-            ArgoCD[ArgoCD: argocd.frengky.xyz]
+            Flux CD[Flux CD: argocd.frengky.xyz]
             Vault[Vault: vault.frengky.xyz]
             Grafana[Grafana: grafana.frengky.xyz]
             Glance[Glance Dashboard: glance.frengky.xyz]
@@ -439,7 +439,7 @@ graph TB
 1. Deploy a Deployment + Service (`ClusterIP`) in the target namespace.
 2. Create an Ingress file with `ingressClassName: traefik` and include the domain `public-app.frengky.xyz`.
 3. Configure the DNS route in the **Cloudflare Dashboard (Tunnels)** so that `public-app.frengky.xyz` is routed internally to `http://traefik.kube-system.svc.cluster.local:80` or directly to the application Service.
-4. Verify the sync status in ArgoCD and ensure the pod status is `Running`.
+4. Verify the sync status in Flux CD and ensure the pod status is `Running`.
 5. Test access from an external network (e.g., mobile internet) to `https://public-app.frengky.xyz`.
 
 **Incident/Debug: Let's Encrypt DNS issues:**
@@ -462,7 +462,7 @@ graph TB
 
 | Application | Namespace | Category | Access URL (HTTPS) | Description / Notes |
 |---|---|---|---|---|
-| **ArgoCD** | `argocd` | Private | `https://argocd.frengky.xyz` | GitOps Engine Dashboard |
+| **Flux CD** | `argocd` | Private | `https://argocd.frengky.xyz` | GitOps Engine Dashboard |
 | **Gitea** | `gitea` | Private | `https://gitea.frengky.xyz` | Local Git repository (source-of-truth) |
 | **Harbor** | `harbor` | Private | `https://harbor.frengky.xyz` | Local image registry for base & runner images |
 | **Vault** | `vault` | Private | `https://vault.frengky.xyz` | Credential & Secret Management |

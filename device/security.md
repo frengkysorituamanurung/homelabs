@@ -20,7 +20,7 @@
 
 ## Kubernetes Security
 
-- RBAC: default Kubernetes RBAC (ArgoCD, cert-manager, etc.)
+- RBAC: default Kubernetes RBAC (Flux CD, cert-manager, etc.)
 - Secrets: managed via HashiCorp Vault + External Secrets Operator (ESO)
 - TLS: cert-manager + Let's Encrypt (DNS-01)
 - Image registry: Harbor (internal, TLS)

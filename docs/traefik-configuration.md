@@ -16,7 +16,7 @@ Namespace       : kube-system
 
 ## How Traefik Is Installed in k3s
 
-Traefik in k3s is **not installed via ArgoCD/regular Helm**; instead it is managed by k3s itself through the `HelmChartConfig` resource. The configuration file is at:
+Traefik in k3s is **not installed via Flux CD/regular Helm**; instead it is managed by k3s itself through the `HelmChartConfig` resource. The configuration file is at:
 
 ```
 helm-charts/traefik-helmchartconfig.yaml
@@ -271,7 +271,7 @@ k3s will automatically restart the Traefik pod after the change.
 
 1. Add an A record in Cloudflare DNS → `100.120.133.63` (DNS Only)
 2. Create an Ingress with `ingressClassName: traefik`
-3. Deploy via GitOps (ArgoCD)
+3. Deploy via GitOps (Flux CD)
 
 ### Adding a New App (Public via Tunnel)
 

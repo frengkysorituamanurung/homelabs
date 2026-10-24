@@ -42,14 +42,14 @@ With **Stakater Reloader**, every change to a Kubernetes `Secret` (triggered by 
 
 ## 3. Implementation Details on This Server
 
-All Reloader components are stored and managed independently through **Harbor (Private Registry)** and **ArgoCD**:
+All Reloader components are stored and managed independently through **Harbor (Private Registry)** and **Flux CD**:
 
 ### 1. Container Image & Helm Chart Registration in Harbor
 * **Container Image**: `harbor.frengky.xyz/library/reloader:v1.4.19`
 * **Helm Chart OCI**: `oci://harbor.frengky.xyz/helm-repos/reloader:2.2.14`
 
-### 2. ArgoCD Application Manifest (`k8s/clusters/production/applications/infrastructure/reloader.yaml`)
-Reloader is registered to the ArgoCD GitOps pattern with the following manifest:
+### 2. Flux CD Application Manifest (`k8s/clusters/production/applications/infrastructure/reloader.yaml`)
+Reloader is registered to the Flux CD GitOps pattern with the following manifest:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -147,6 +147,6 @@ To verify that the automation flow works perfectly:
 
 | File | Function |
 | :--- | :--- |
-| `k8s/clusters/production/applications/infrastructure/reloader.yaml` | ArgoCD Application manifest for Reloader |
+| `k8s/clusters/production/applications/infrastructure/reloader.yaml` | Flux CD Application manifest for Reloader |
 | `helm-charts/charts/generic-app/templates/deployment.yaml` | Microservice Helm Chart template supporting Reloader |
 | `docs/reloader-vault-integration.md` | Architecture documentation and setup guide |

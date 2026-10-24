@@ -1,6 +1,6 @@
 # OpenObserve Installation Documentation
 
-This document describes the installation, deployment architecture, configuration, and secret management integration for **OpenObserve** in the `frengky.xyz` homelab Kubernetes cluster. OpenObserve is deployed using a **GitOps (ArgoCD)** pattern with a Helm chart from a private Harbor registry.
+This document describes the installation, deployment architecture, configuration, and secret management integration for **OpenObserve** in the `frengky.xyz` homelab Kubernetes cluster. OpenObserve is deployed using a **GitOps (Flux CD)** pattern with a Helm chart from a private Harbor registry.
 
 ---
 
@@ -72,7 +72,7 @@ gitops-repo/
 ├── kubernetes/
 │   ├── applications/
 │   │   └── infrastructure/
-│   │       └── openobserve.yaml        # ArgoCD Application definition
+│   │       └── openobserve.yaml        # Flux CD Application definition
 │   └── production/
 │       └── openobserve/
 │           └── values.yaml             # Helm configuration values
@@ -87,9 +87,9 @@ gitops-repo/
 
 ## 📄 Manifest Details
 
-### 1. ArgoCD Application (`k8s/clusters/production/applications/infrastructure/openobserve.yaml`)
+### 1. Flux CD Application (`k8s/clusters/production/applications/infrastructure/openobserve.yaml`)
 
-ArgoCD manages this deployment using a Helm chart from the Harbor OCI registry:
+Flux CD manages this deployment using a Helm chart from the Harbor OCI registry:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -317,7 +317,7 @@ exporters:
 # Status of all OpenObserve pods
 kubectl get pods -n openobserve
 
-# Status of ArgoCD Application
+# Status of Flux CD Application
 kubectl get application openobserve -n argocd
 
 # Status of PVC storage
@@ -363,13 +363,13 @@ To upgrade the OpenObserve version:
    helm push /root/server/oo-chart/openobserve-<NEW_VERSION>.tgz oci://harbor.frengky.xyz/helm-repos
    ```
 
-2. **Update targetRevision in the ArgoCD Application:**
+2. **Update targetRevision in the Flux CD Application:**
    ```yaml
    # k8s/clusters/production/applications/infrastructure/openobserve.yaml
    targetRevision: "<NEW_VERSION>"
    ```
 
-3. **Commit & push to Gitea** — ArgoCD will sync automatically.
+3. **Commit & push to Gitea** — Flux CD will sync automatically.
 
 ---
 
@@ -377,7 +377,7 @@ To upgrade the OpenObserve version:
 
 | File | Function |
 |------|----------|
-| `k8s/clusters/production/applications/infrastructure/openobserve.yaml` | ArgoCD Application manifest |
+| `k8s/clusters/production/applications/infrastructure/openobserve.yaml` | Flux CD Application manifest |
 | `infrastructure/openobserve/values.yaml` | Helm chart values |
 | `secrets/templates/openobserve-secret.yaml` | ExternalSecret (Vault → K8s Secret) |
 | `docs/openobserve-deployment.md` | This document |
@@ -390,5 +390,5 @@ To upgrade the OpenObserve version:
 |---------|-----|
 | OpenObserve UI | https://openobserve.frengky.xyz |
 | Vault (Secret Store) | https://vault.frengky.xyz |
-| ArgoCD (GitOps) | https://argocd.frengky.xyz |
+| Flux CD (GitOps) | https://argocd.frengky.xyz |
 | Harbor (Registry) | https://harbor.frengky.xyz |

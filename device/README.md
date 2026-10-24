@@ -28,4 +28,4 @@ This folder documents the physical/virtual device, network, k3s cluster, and sec
 
 - SSH: `ssh kyykozeeks@100.120.177.76` (historical) or via Tailscale
 - k3s kubeconfig: `/etc/rancher/k3s/k3s.yaml`
-- ArgoCD UI: `https://argocd.frengky.xyz` (via Tailscale/LAN)
+- Flux CD: managed via `flux` CLI and Grafana dashboards (no web UI)
