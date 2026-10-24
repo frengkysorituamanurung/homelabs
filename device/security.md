@@ -2,7 +2,7 @@
 
 ## User Access
 
-- Primary user: `<SSH_USER>` (uid 1000)
+- Primary user: `kyykozeeks` (uid 1000)
 - Root access: via `sudo` (password required)
 - SSH: enabled (`sshd` running)
 - X11 forwarding enabled
