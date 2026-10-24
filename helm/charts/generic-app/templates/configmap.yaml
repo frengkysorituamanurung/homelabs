@@ -1,0 +1,14 @@
+{{- $values := index .Values "main-app" | default .Values -}}
+{{- if and $values.configData $values.configData.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $values.baseName | default (include "generic-app.fullname" .) }}-env
+  namespace: {{ $values.baseNamespace | default .Release.Namespace }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+data:
+  {{- range $k, $v := $values.configData.data }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+{{- end }}

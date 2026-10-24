@@ -1,0 +1,27 @@
+stages:
+  - lint-and-test
+  - publish
+
+variables:
+  HARBOR_HOST: "harbor.frengky.xyz"
+  HARBOR_PROJECT: "helm-repos"
+
+lint:
+  stage: lint-and-test
+  image: harbor.frengky.xyz/library/docker-helm:latest
+  script:
+    - helm lint charts/generic-app
+
+publish-chart:
+  stage: publish
+  image: harbor.frengky.xyz/library/docker-helm:latest
+  script:
+    - |
+      SECRETS_JSON=$(wget -qO- --header="X-Vault-Token: $VAULT_TOKEN" http://vault.vault.svc.cluster.local:8200/v1/secret/data/ci/credentials)
+      HARBOR_USER=$(echo "$SECRETS_JSON" | grep -o '"harbor_username":"[^"]*' | grep -o '[^"]*$')
+      HARBOR_PASS=$(echo "$SECRETS_JSON" | grep -o '"harbor_password":"[^"]*' | grep -o '[^"]*$')
+      echo "$HARBOR_PASS" | helm registry login $HARBOR_HOST --username "$HARBOR_USER" --password-stdin
+      helm package charts/generic-app --destination .
+      CHART_VERSION=$(grep 'version:' charts/generic-app/Chart.yaml | awk '{print $2}')
+      helm push generic-app-${CHART_VERSION}.tgz oci://${HARBOR_HOST}/${HARBOR_PROJECT}
+      echo "Successfully published generic-app version ${CHART_VERSION} to Harbor!"

@@ -1,0 +1,148 @@
+{{- $values := index .Values "main-app" | default .Values -}}
+{{- $isRollout := false -}}
+{{- if $values.deploymentStrategy -}}
+  {{- if or (eq $values.deploymentStrategy.type "BlueGreen") (eq $values.deploymentStrategy.type "Canary") -}}
+    {{- $isRollout = true -}}
+  {{- end -}}
+{{- end -}}
+apiVersion: {{ if $isRollout }}argoproj.io/v1alpha1{{ else }}apps/v1{{ end }}
+kind: {{ if $isRollout }}Rollout{{ else }}Deployment{{ end }}
+metadata:
+  name: {{ $values.baseName | default (include "generic-app.fullname" .) }}
+  namespace: {{ $values.baseNamespace | default .Release.Namespace }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+    {{- if $values.environment }}
+    environment: {{ $values.environment }}
+    {{- end }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+    {{- if $values.annotations }}
+    {{- toYaml $values.annotations | nindent 4 }}
+    {{- end }}
+spec:
+  revisionHistoryLimit: {{ $values.revisionHistoryLimit | default 3 }}
+  {{- if not (and $values.autoscaling $values.autoscaling.enabled) }}
+  replicas: {{ $values.replicaCount | default 1 }}
+  {{- end }}
+  {{- if $isRollout }}
+  strategy:
+    {{- if eq $values.deploymentStrategy.type "BlueGreen" }}
+    blueGreen:
+      activeService: {{ $values.baseName | default (include "generic-app.fullname" .) }}-active
+      previewService: {{ $values.baseName | default (include "generic-app.fullname" .) }}-preview
+      {{- if and $values.deploymentStrategy.blueGreen (hasKey $values.deploymentStrategy.blueGreen "autoPromotionEnabled") }}
+      autoPromotionEnabled: {{ $values.deploymentStrategy.blueGreen.autoPromotionEnabled }}
+      {{- else }}
+      autoPromotionEnabled: true
+      {{- end }}
+      {{- if and $values.deploymentStrategy.blueGreen $values.deploymentStrategy.blueGreen.autoPromotionSeconds }}
+      autoPromotionSeconds: {{ $values.deploymentStrategy.blueGreen.autoPromotionSeconds }}
+      {{- end }}
+    {{- else if eq $values.deploymentStrategy.type "Canary" }}
+    canary:
+      {{- if and $values.deploymentStrategy.canary $values.deploymentStrategy.canary.stableService }}
+      stableService: {{ $values.deploymentStrategy.canary.stableService }}
+      {{- end }}
+      {{- if and $values.deploymentStrategy.canary $values.deploymentStrategy.canary.canaryService }}
+      canaryService: {{ $values.deploymentStrategy.canary.canaryService }}
+      {{- end }}
+      {{- if and $values.deploymentStrategy.canary $values.deploymentStrategy.canary.steps }}
+      steps:
+        {{- toYaml $values.deploymentStrategy.canary.steps | nindent 8 }}
+      {{- else }}
+      steps:
+        - setWeight: 20
+        - pause: {}
+        - setWeight: 50
+        - pause: { duration: 10s }
+      {{- end }}
+    {{- end }}
+  {{- else if $values.deploymentStrategy }}
+  strategy:
+    type: {{ $values.deploymentStrategy.type }}
+    {{- if eq $values.deploymentStrategy.type "RollingUpdate" }}
+    rollingUpdate:
+      maxSurge: {{ if and $values.deploymentStrategy.rollingUpdate (hasKey $values.deploymentStrategy.rollingUpdate "maxSurge") }}{{ $values.deploymentStrategy.rollingUpdate.maxSurge }}{{ else }}25%{{ end }}
+      maxUnavailable: {{ if and $values.deploymentStrategy.rollingUpdate (hasKey $values.deploymentStrategy.rollingUpdate "maxUnavailable") }}{{ $values.deploymentStrategy.rollingUpdate.maxUnavailable }}{{ else }}25%{{ end }}
+    {{- end }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "generic-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "generic-app.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if $values.hostNetwork }}
+      hostNetwork: {{ $values.hostNetwork }}
+      {{- end }}
+      {{- if $values.dnsPolicy }}
+      dnsPolicy: {{ $values.dnsPolicy }}
+      {{- end }}
+      containers:
+        - name: {{ $values.baseName | default .Chart.Name }}
+          image: "{{ $values.image.repository }}:{{ $values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ $values.image.pullPolicy | default "Always" }}
+          {{- if $values.service.ports }}
+          ports:
+            {{- range $values.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .port }}
+              protocol: TCP
+            {{- end }}
+          {{- else if $values.service.port }}
+          ports:
+            - name: http
+              containerPort: {{ $values.service.port }}
+              protocol: TCP
+          {{- end }}
+          {{- if or $values.envFrom (and $values.configData $values.configData.enabled) (not $values.disableSecrets) }}
+          envFrom:
+            {{- if and $values.configData $values.configData.enabled }}
+            - configMapRef:
+                name: {{ $values.baseName | default (include "generic-app.fullname" .) }}-env
+            {{- end }}
+            {{- if not $values.disableSecrets }}
+            - secretRef:
+                name: {{ $values.baseName | default .Chart.Name }}-secrets
+            {{- end }}
+            {{- if $values.envFrom }}
+            {{- toYaml $values.envFrom | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if $values.resources }}
+          resources:
+            {{- toYaml $values.resources | nindent 12 }}
+          {{- end }}
+          {{- if and $values.healthCheck $values.healthCheck.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ $values.healthCheck.endpoint | default "/" }}
+              port: {{ $values.healthCheck.port | default 80 }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: {{ $values.healthCheck.endpoint | default "/" }}
+              port: {{ $values.healthCheck.port | default 80 }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          {{- end }}
+          {{- if and $values.mount $values.mount.enabled }}
+          volumeMounts:
+            {{- range $values.mount.mounts }}
+            - name: {{ .name | replace "." "-" }}
+              mountPath: {{ .target }}
+              subPath: {{ if eq (ext .target) "" }}{{ else }}{{ base .target }}{{ end }}
+            {{- end }}
+          {{- end }}
+      {{- if and $values.mount $values.mount.enabled }}
+      volumes:
+        {{- range $values.mount.mounts }}
+        - name: {{ .name | replace "." "-" }}
+          secret:
+            secretName: {{ .name }}
+        {{- end }}
+      {{- end }}

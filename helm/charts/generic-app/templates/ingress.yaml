@@ -1,0 +1,70 @@
+{{- $values := index .Values "main-app" | default .Values -}}
+{{- $isMultiService := false -}}
+{{- if $values.deploymentStrategy -}}
+  {{- if eq $values.deploymentStrategy.type "BlueGreen" -}}
+    {{- $isMultiService = true -}}
+  {{- else if eq $values.deploymentStrategy.type "Canary" -}}
+    {{- if and $values.deploymentStrategy.canary (or $values.deploymentStrategy.canary.stableService $values.deploymentStrategy.canary.canaryService) -}}
+      {{- $isMultiService = true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if and $values.ingress $values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $values.baseName | default (include "generic-app.fullname" .) }}
+  namespace: {{ $values.baseNamespace | default .Release.Namespace }}
+  annotations:
+    {{- if $values.ingress.stripPath }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ $values.baseNamespace | default .Release.Namespace }}-{{ $values.baseName | default (include "generic-app.fullname" .) }}-strip-prefix@kubernetescrd
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    {{- end }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ $values.ingress.className | default "traefik" }}
+  rules:
+    {{- range $values.ingress.hosts }}
+    - host: {{ .host }}
+      http:
+        paths:
+          - path: {{ .path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $values.baseName | default (include "generic-app.fullname" $) }}{{ if $isMultiService }}-active{{ end }}
+                port:
+                  number: {{ .port }}
+    {{- end }}
+{{- end }}
+{{- if and $values.ingress $values.ingress.preview (index $values.ingress.preview "enabled") }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $values.baseName | default (include "generic-app.fullname" .) }}-preview
+  namespace: {{ $values.baseNamespace | default .Release.Namespace }}
+  annotations:
+    {{- if $values.ingress.stripPath }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ $values.baseNamespace | default .Release.Namespace }}-{{ $values.baseName | default (include "generic-app.fullname" .) }}-strip-prefix@kubernetescrd
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    {{- end }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ $values.ingress.className | default "traefik" }}
+  rules:
+    {{- range $values.ingress.preview.hosts }}
+    - host: {{ .host }}
+      http:
+        paths:
+          - path: {{ .path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $values.baseName | default (include "generic-app.fullname" $) }}-preview
+                port:
+                  number: {{ .port }}
+    {{- end }}
+{{- end }}
