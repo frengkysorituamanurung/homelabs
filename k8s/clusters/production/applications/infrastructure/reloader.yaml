@@ -14,9 +14,9 @@ spec:
     helm:
       parameters:
         - name: reloader.deployment.image.name
-          value: "harbor.frengky.xyz/library/reloader"
+          value: "ghcr.io/stakater/reloader"
         - name: reloader.deployment.image.tag
-          value: "v1.4.19"
+          value: "v1.4.22"
         - name: reloader.autoReloadAll
           value: "true"
   destination:

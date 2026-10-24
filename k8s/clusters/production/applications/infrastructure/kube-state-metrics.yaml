@@ -13,6 +13,14 @@ spec:
     targetRevision: "8.6.0"
     helm:
       parameters:
+        - name: image.registry
+          value: "registry.k8s.io"
+        - name: image.repository
+          value: "kube-state-metrics/kube-state-metrics"
+        - name: image.tag
+          value: "v2.20.0"
+    helm:
+      parameters:
         - name: tolerations[0].operator
           value: "Exists"
   destination:

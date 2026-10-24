@@ -1,5 +1,10 @@
 loki:
   auth_enabled: false
+  image:
+    registry: docker.io
+    repository: grafana/loki
+    tag: "3.6.16"
+    pullPolicy: IfNotPresent
   commonConfig:
     replication_factor: 1
   storage:

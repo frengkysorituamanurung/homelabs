@@ -1,4 +1,10 @@
 adminUser: admin
+
+image:
+  registry: docker.io
+  repository: grafana/grafana
+  tag: "12.3.1"
+  pullPolicy: IfNotPresent
 adminPassword: changeme123
 
 persistence:

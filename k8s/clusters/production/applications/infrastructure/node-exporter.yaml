@@ -12,6 +12,14 @@ spec:
     chart: prometheus-node-exporter
     targetRevision: "4.60.0"
     helm:
+      parameters:
+        - name: image.registry
+          value: "quay.io"
+        - name: image.repository
+          value: "prometheus/node-exporter"
+        - name: image.tag
+          value: "v1.12.1"
+    helm:
       valuesObject:
         tolerations:
           - operator: "Exists"

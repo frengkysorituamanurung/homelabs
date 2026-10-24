@@ -4,6 +4,11 @@
 # Setelah setup selesai, migrate ke production mode dengan HA storage.
 
 server:
+  image:
+    repository: "hashicorp/vault"
+    tag: "2.0.4"
+    pullPolicy: IfNotPresent
+
   # Dev mode: untuk setup awal dan eksplorasi
   dev:
     enabled: false
