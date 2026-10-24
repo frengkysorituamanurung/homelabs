@@ -1,21 +1,21 @@
-# Panduan Reloader dengan Pattern Vault & External Secrets Operator (ESO)
+# Reloader Guide with Vault & External Secrets Operator (ESO) Pattern
 
-Dokumen ini memuat panduan lengkap mengenai arsitektur, instalasi, dan cara kerja **Stakater Reloader** yang terintegrasi dengan **External Secrets Operator (ESO)** dan **HashiCorp Vault** di kluster Kubernetes ini.
-
----
-
-## 1. Masalah yang Diselesaikan
-
-Secara default di Kubernetes:
-1. Saat data di **HashiCorp Vault** diubah, **External Secrets Operator (ESO)** akan memperbarui resource `Secret` di Kubernetes secara otomatis.
-2. Namun, **Pod/Deployment yang sedang berjalan TIDAK secara otomatis membaca perubahan secret tersebut** (terutama jika secret diinjeksi via `envFrom` / `secretRef`).
-3. Akibatnya, pengembang harus melakukan `kubectl rollout restart` secara manual setiap kali ada perubahan kredensial/secret di Vault.
-
-Dengan hadirnya **Stakater Reloader**, setiap perubahan pada Kubernetes `Secret` (yang dipicu oleh Vault & ESO) akan secara otomatis memicu **rolling restart** pada Pod/Deployment terkait tanpa *downtime*.
+This document contains a complete guide on the architecture, installation, and workings of **Stakater Reloader** integrated with **External Secrets Operator (ESO)** and **HashiCorp Vault** in this Kubernetes cluster.
 
 ---
 
-## 2. Arsitektur & Cara Kerja (End-to-End Workflow)
+## 1. Problem Solved
+
+By default in Kubernetes:
+1. When data in **HashiCorp Vault** changes, **External Secrets Operator (ESO)** will automatically update the `Secret` resource in Kubernetes.
+2. However, **Pods/Deployments already running do NOT automatically read those secret changes** (especially when secrets are injected via `envFrom` / `secretRef`).
+3. As a result, developers must run `kubectl rollout restart` manually every time there is a credential/secret change in Vault.
+
+With **Stakater Reloader**, every change to a Kubernetes `Secret` (triggered by Vault & ESO) will automatically trigger a **rolling restart** of the related Pod/Deployment without downtime.
+
+---
+
+## 2. Architecture & Working (End-to-End Workflow)
 
 ```
 ┌─────────────────┐       (1) Sync       ┌──────────────────────────┐
@@ -33,23 +33,23 @@ Dengan hadirnya **Stakater Reloader**, setiap perubahan pada Kubernetes `Secret`
                       Stakater Reloader
 ```
 
-1. **Vault (Upstream Secret Store)**: Menyimpan kredensial/secret aplikasi (misal `secret/data/ci/credentials` atau `secret/data/backend/sample-api`).
-2. **External Secrets Operator (ESO)**: Mengambil data dari Vault melalui `ClusterSecretStore` dan secara berkala mereflikakannya menjadi resource `Secret` Kubernetes (misal `sample-api-secrets`).
-3. **Stakater Reloader Controller**: Memantau event perubahan (*add/update/delete*) pada seluruh `Secret` dan `ConfigMap` di kluster Kubernetes.
-4. **Automatic Rolling Restart**: Begitu Reloader mendeteksi perubahan hash pada `Secret`, Reloader langsung memicu *rolling update* pada Deployment/Argo Rollout yang mereferensikan secret tersebut.
+1. **Vault (Upstream Secret Store)**: Stores application credentials/secrets (e.g. `secret/data/ci/credentials` or `secret/data/backend/sample-api`).
+2. **External Secrets Operator (ESO)**: Fetches data from Vault via `ClusterSecretStore` and periodically mirrors it into a Kubernetes `Secret` resource (e.g. `sample-api-secrets`).
+3. **Stakater Reloader Controller**: Monitors change events (*add/update/delete*) on all `Secret` and `ConfigMap` resources in the Kubernetes cluster.
+4. **Automatic Rolling Restart**: Once Reloader detects a hash change in the `Secret`, it immediately triggers a *rolling update* on the Deployment/Argo Rollout referencing that secret.
 
 ---
 
-## 3. Detail Implementasi di Server Ini
+## 3. Implementation Details on This Server
 
-Semua komponen Reloader disimpan dan dikelola secara mandiri melalui **Harbor (Private Registry)** dan **ArgoCD**:
+All Reloader components are stored and managed independently through **Harbor (Private Registry)** and **ArgoCD**:
 
-### 1. Registrasi Container Image & Helm Chart di Harbor
+### 1. Container Image & Helm Chart Registration in Harbor
 * **Container Image**: `harbor.frengky.xyz/library/reloader:v1.4.19`
 * **Helm Chart OCI**: `oci://harbor.frengky.xyz/helm-repos/reloader:2.2.14`
 
 ### 2. ArgoCD Application Manifest (`k8s/clusters/production/applications/infrastructure/reloader.yaml`)
-Reloader didaftarkan ke pola GitOps ArgoCD dengan manifest berikut:
+Reloader is registered to the ArgoCD GitOps pattern with the following manifest:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -86,24 +86,24 @@ spec:
 
 ---
 
-## 4. Opsi Anotasi pada Workload (Deployment / Rollout)
+## 4. Workload Annotation Options (Deployment / Rollout)
 
-Terdapat dua pendekatan untuk mengaktifkan otomatisasi reload pada aplikasi:
+There are two approaches to enable reload automation on applications:
 
-### Metode A: Global Auto-Reload (Default di Server Ini)
-Karena parameter `reloader.autoReloadAll: "true"` diaktifkan pada Reloader, seluruh Deployment/StatefulSet yang menggunakan `secretRef`, `envFrom`, atau `volumeMounts` dari Secret/ConfigMap akan secara **otomatis direload** saat secret berubah.
+### Method A: Global Auto-Reload (Default on This Server)
+Because the `reloader.autoReloadAll: "true"` parameter is enabled on Reloader, all Deployments/StatefulSets using `secretRef`, `envFrom`, or `volumeMounts` from Secret/ConfigMap will be **automatically reloaded** when the secret changes.
 
-### Metode B: Anotasi Spesifik pada Chart / Deployment
-Jika ingin menentukan secara eksplisit pada manifest Deployment/Argo Rollout:
+### Method B: Specific Annotations on Chart / Deployment
+To explicitly specify on the Deployment/Argo Rollout manifest:
 
-1. **Auto Reload Seluruh Secret Terkait**:
+1. **Auto Reload All Related Secrets**:
    ```yaml
    metadata:
      annotations:
        reloader.stakater.com/auto: "true"
    ```
 
-2. **Reload Hanya untuk Secret Spesifik**:
+2. **Reload Only for a Specific Secret**:
    ```yaml
    metadata:
      annotations:
@@ -112,41 +112,41 @@ Jika ingin menentukan secara eksplisit pada manifest Deployment/Argo Rollout:
 
 ---
 
-## 5. Cara Pengujian Integrasi (Vault → ESO → Reloader → Pod)
+## 5. Integration Test Procedure (Vault → ESO → Reloader → Pod)
 
-Untuk memverifikasi bahwa alur otomatisasi berfungsi dengan sempurna:
+To verify that the automation flow works perfectly:
 
-1. **Ubah Nilai Secret di Vault**:
+1. **Change the Secret Value in Vault**:
    ```bash
    vault kv put secret/ci/credentials APP_VERSION="2.0.0" DB_PASSWORD="newpassword123"
    ```
 
-2. **Cek Sync ExternalSecrets**:
-   External Secrets Operator akan meng-update k8s secret:
+2. **Check ExternalSecrets Sync**:
+   External Secrets Operator will update the k8s secret:
    ```bash
    kubectl get externalsecrets -A
    ```
 
-3. **Cek Log Reloader**:
-   Amati log Reloader saat mendeteksi perubahan secret:
+3. **Check Reloader Log**:
+   Watch the Reloader log when it detects the secret change:
    ```bash
    kubectl logs -n reloader -l app.kubernetes.io/name=reloader --tail=20 -f
    ```
-   *Log akan menampilkan informasi:*
+   *The log will show:*
    `Changes detected in secret: sample-api-secrets in namespace: backend, triggering reload for deployment: sample-api`
 
-4. **Verifikasi Pod Rolling Restart**:
+4. **Verify Pod Rolling Restart**:
    ```bash
    kubectl get pods -n backend -w
    ```
-   Pod lama akan di-terminate secara bertahap dan digantikan oleh Pod baru yang langsung membaca secret terbaru dari Vault.
+   Old pods will be terminated gradually and replaced by new pods that immediately read the latest secret from Vault.
 
 ---
 
-## 6. Lokasi File & Manifest Terkait
+## 6. Related Files & Manifests
 
-| File | Fungsi |
+| File | Function |
 | :--- | :--- |
-| `k8s/clusters/production/applications/infrastructure/reloader.yaml` | Manifest ArgoCD Application untuk Reloader |
-| `helm-charts/charts/generic-app/templates/deployment.yaml` | Template Helm Chart mikroservis yang mendukung Reloader |
-| `docs/reloader-vault-integration.md` | Dokumentasi arsitektur dan panduan setup ini |
+| `k8s/clusters/production/applications/infrastructure/reloader.yaml` | ArgoCD Application manifest for Reloader |
+| `helm-charts/charts/generic-app/templates/deployment.yaml` | Microservice Helm Chart template supporting Reloader |
+| `docs/reloader-vault-integration.md` | Architecture documentation and setup guide |

@@ -1,10 +1,10 @@
-# Konfigurasi Traefik — frengky.xyz Homelab
+# Traefik Configuration — frengky.xyz Homelab
 
-Dokumen ini menjelaskan konfigurasi lengkap Traefik v3.7.4 sebagai Ingress Controller di k3s cluster `frengky.xyz`, mencakup entrypoints, providers, forwarded headers, middleware, SSL/TLS, dan cara melakukan perubahan konfigurasi.
+This document describes the complete configuration of Traefik v3.7.4 as the Ingress Controller in the k3s cluster `frengky.xyz`, covering entrypoints, providers, forwarded headers, middleware, SSL/TLS, and how to make configuration changes.
 
 ---
 
-## Versi & Info
+## Version & Info
 
 ```
 Traefik Version : v3.7.4 (codename: langres)
@@ -14,24 +14,24 @@ Namespace       : kube-system
 
 ---
 
-## Cara Traefik Di-install di k3s
+## How Traefik Is Installed in k3s
 
-Traefik di k3s **tidak di-install via ArgoCD/Helm biasa**, melainkan dikelola oleh k3s itu sendiri melalui resource `HelmChartConfig`. File konfigurasi ada di:
+Traefik in k3s is **not installed via ArgoCD/regular Helm**; instead it is managed by k3s itself through the `HelmChartConfig` resource. The configuration file is at:
 
 ```
 helm-charts/traefik-helmchartconfig.yaml
 ```
 
-Untuk apply perubahan:
+To apply changes:
 ```bash
 kubectl apply -f /root/server/traefik-helmchartconfig.yaml
-# atau jika sudah ada:
+# or if it already exists:
 kubectl edit helmchartconfig traefik -n kube-system
 ```
 
 ---
 
-## Konfigurasi Aktif Saat Ini
+## Currently Active Configuration
 
 ### HelmChartConfig (`traefik-helmchartconfig.yaml`)
 
@@ -45,15 +45,15 @@ spec:
   valuesContent: |-
     additionalArguments:
       - "--api.insecure=true"
-      # Trust Cloudflare as proxy - baca real client IP dari X-Forwarded-For
+      # Trust Cloudflare as proxy - read real client IP from X-Forwarded-For
       - "--entrypoints.web.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22,127.0.0.1/32,192.168.100.0/24,10.42.0.0/16"
       - "--entrypoints.websecure.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22,127.0.0.1/32,192.168.100.0/24,10.42.0.0/16"
-      # Enable access log untuk debug
+      # Enable access log for debug
       - "--accesslog=true"
       - "--accesslog.fields.headers.defaultmode=keep"
 ```
 
-### Full Args yang Berjalan di Pod
+### Full Args Running in the Pod
 
 ```bash
 --entryPoints.metrics.address=:9100/tcp
@@ -82,40 +82,40 @@ spec:
 
 ## EntryPoints
 
-| EntryPoint | Port (Internal) | Protokol | Keterangan |
-|------------|----------------|----------|------------|
-| `web` | `:8000` | HTTP | Traffic HTTP dari semua sumber |
-| `websecure` | `:8443` | HTTPS/TLS | Traffic HTTPS, TLS enabled by default |
-| `traefik` | `:8080` | HTTP | Dashboard & API Traefik |
+| EntryPoint | Port (Internal) | Protocol | Description |
+|------------|----------------|----------|-------------|
+| `web` | `:8000` | HTTP | HTTP traffic from all sources |
+| `websecure` | `:8443` | HTTPS/TLS | HTTPS traffic, TLS enabled by default |
+| `traefik` | `:8080` | HTTP | Traefik Dashboard & API |
 | `metrics` | `:9100` | HTTP | Prometheus metrics endpoint |
 
-> **Catatan Port:** k3s NodePort mapping: `8000→80`, `8443→443` di host. Jadi dari luar, akses ke port 80/443.
+> **Port Note:** k3s NodePort mapping: `8000→80`, `8443→443` on the host. So from outside, access via ports 80/443.
 
 ---
 
 ## Providers
 
-Traefik dikonfigurasi dengan dua provider utama:
+Traefik is configured with two main providers:
 
 ### 1. Kubernetes Ingress Provider (`--providers.kubernetesingress`)
 
-Membaca resource `Ingress` standard Kubernetes:
+Reads standard Kubernetes `Ingress` resources:
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 spec:
-  ingressClassName: traefik  # wajib eksplisit di generic-app v0.1.12+
+  ingressClassName: traefik  # required explicitly in generic-app v0.1.12+
 ```
 
 ### 2. Kubernetes CRD Provider (`--providers.kubernetescrd`)
 
-Membaca resource CRD Traefik seperti `IngressRoute`, `Middleware`, `TLSStore`, dll:
+Reads Traefik CRD resources such as `IngressRoute`, `Middleware`, `TLSStore`, etc:
 ```yaml
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
-# atau
+# or
 kind: Middleware
-# atau
+# or
 kind: TLSStore
 ```
 
@@ -123,10 +123,10 @@ kind: TLSStore
 
 ## Forwarded Headers & IP Trust
 
-Konfigurasi ini penting agar Traefik bisa membaca IP asli client dari header `X-Forwarded-For` ketika traffic melewati proxy (Cloudflare atau Cloudflare Tunnel).
+This configuration is important so Traefik can read the real client IP from the `X-Forwarded-For` header when traffic passes through a proxy (Cloudflare or Cloudflare Tunnel).
 
 ```
-# Cloudflare IP ranges yang di-trust
+# Cloudflare IP ranges that are trusted
 173.245.48.0/20
 103.21.244.0/22
 103.22.200.0/22
@@ -149,13 +149,13 @@ Konfigurasi ini penting agar Traefik bisa membaca IP asli client dari header `X-
 10.42.0.0/16       # k3s pod network
 ```
 
-Fungsi: Ketika Cloudflare Tunnel meneruskan request ke Traefik, header `X-Forwarded-For` berisi IP asli client. Dengan trust list ini, Traefik tahu IP mana yang valid untuk dibaca.
+Function: When Cloudflare Tunnel forwards a request to Traefik, the `X-Forwarded-For` header contains the real client IP. With this trust list, Traefik knows which IPs are valid to read.
 
 ---
 
 ## SSL/TLS
 
-Traefik menggunakan **wildcard certificate** `*.frengky.xyz` yang dikelola oleh cert-manager.
+Traefik uses the wildcard certificate `*.frengky.xyz` managed by cert-manager.
 
 ### TLSStore (Default)
 
@@ -171,9 +171,9 @@ spec:
       name: wildcard-frengky-xyz-tls
 ```
 
-Semua `IngressRoute` dengan entrypoint `websecure` otomatis menggunakan wildcard cert ini tanpa perlu konfigurasi tambahan.
+All `IngressRoute`s with the `websecure` entrypoint automatically use this wildcard cert without additional configuration.
 
-Untuk Ingress biasa, gunakan annotation:
+For regular Ingress, use the annotation:
 ```yaml
 annotations:
   traefik.ingress.kubernetes.io/router.entrypoints: websecure
@@ -181,22 +181,22 @@ annotations:
 
 ---
 
-## Middleware yang Ada
+## Existing Middleware
 
 ### `tailscale-whitelist` (IP Allowlist)
 
-Tersedia di namespace: `traefik`, `argocd`, `harbor`, `monitoring`, `vault`
+Available in namespaces: `traefik`, `argocd`, `harbor`, `monitoring`, `vault`
 
 ```yaml
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: tailscale-whitelist
-  namespace: traefik    # ganti sesuai namespace yang butuh
+  namespace: traefik    # change according to the namespace that needs it
 spec:
   ipAllowList:
     ipStrategy:
-      depth: 1          # baca 1 hop dari X-Forwarded-For
+      depth: 1          # read 1 hop from X-Forwarded-For
     sourceRange:
       - 100.64.0.0/10   # Tailscale CGNAT range
       - 127.0.0.1/32    # Localhost
@@ -204,7 +204,7 @@ spec:
       - 10.42.0.0/16    # k3s pod network
 ```
 
-Cara pakai di IngressRoute:
+Usage in IngressRoute:
 ```yaml
 spec:
   routes:
@@ -213,19 +213,19 @@ spec:
           namespace: traefik
 ```
 
-> **Catatan:** Untuk apps dengan akses VPN-only, middleware ini **tidak wajib** jika DNS sudah diarahkan ke IP Tailscale (100.120.133.63). Middleware ini berguna sebagai layer tambahan jika diperlukan.
+> **Note:** For VPN-only apps, this middleware is **not required** if DNS is already pointed to the Tailscale IP (100.120.133.63). This middleware is useful as an additional layer when needed.
 
 ---
 
-## Dashboard Traefik
+## Traefik Dashboard
 
-Dashboard tersedia via IngressRoute (restricted to localhost/LAN):
+Dashboard available via IngressRoute (restricted to localhost/LAN):
 
 ```
-URL Internal: http://traefik.frengky.xyz/dashboard/
+Internal URL: http://traefik.frengky.xyz/dashboard/
 ```
 
-IngressRoute-nya:
+Its IngressRoute:
 ```yaml
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -243,73 +243,73 @@ spec:
           kind: TraefikService
 ```
 
-Atau akses langsung via port-forward:
+Or access directly via port-forward:
 ```bash
 kubectl port-forward -n kube-system svc/traefik 9000:9000
-# Buka: http://localhost:9000/dashboard/
+# Open: http://localhost:9000/dashboard/
 ```
 
 ---
 
-## Cara Menambah Konfigurasi Baru
+## How to Add New Configuration
 
-### Menambah Argument ke Traefik
+### Adding an Argument to Traefik
 
-Edit `HelmChartConfig`:
+Edit the `HelmChartConfig`:
 ```bash
 kubectl edit helmchartconfig traefik -n kube-system
 ```
 
-Tambahkan di `spec.valuesContent.additionalArguments`:
+Add to `spec.valuesContent.additionalArguments`:
 ```yaml
 - "--new-argument=value"
 ```
 
-k3s akan otomatis restart pod Traefik setelah perubahan.
+k3s will automatically restart the Traefik pod after the change.
 
-### Menambah App Baru (VPN-only)
+### Adding a New App (VPN-only)
 
-1. Tambahkan A record di Cloudflare DNS → `100.120.133.63` (DNS Only)
-2. Buat Ingress dengan `ingressClassName: traefik`
+1. Add an A record in Cloudflare DNS → `100.120.133.63` (DNS Only)
+2. Create an Ingress with `ingressClassName: traefik`
 3. Deploy via GitOps (ArgoCD)
 
-### Menambah App Baru (Public via Tunnel)
+### Adding a New App (Public via Tunnel)
 
-1. Konfigurasi public hostname di Cloudflare Zero Trust dashboard
+1. Configure a public hostname in the Cloudflare Zero Trust dashboard
 2. Service: `http://traefik.kube-system.svc.cluster.local:80`
-3. Buat Ingress dengan `ingressClassName: traefik` (sama, tidak ada perbedaan)
+3. Create an Ingress with `ingressClassName: traefik` (same, no difference)
 
 ---
 
 ## Monitoring & Debug
 
 ```bash
-# Cek status pod Traefik
+# Check Traefik pod status
 kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik
 
-# Lihat logs Traefik (access log + error)
+# View Traefik logs (access log + error)
 kubectl logs -n kube-system -l app.kubernetes.io/name=traefik --tail=100
 
-# Cek semua Ingress di cluster
+# Check all Ingress in the cluster
 kubectl get ingress -A
 
-# Cek konfigurasi aktif via API Traefik
+# Check active config via Traefik API
 kubectl port-forward -n kube-system svc/traefik 9000:9000 &
 curl http://localhost:9000/api/http/routers | python3 -m json.tool | head -100
 
-# Cek middleware terdaftar
+# Check registered middleware
 kubectl get middleware -A
 
-# Cek IngressRoutes
+# Check IngressRoutes
 kubectl get ingressroutes -A
 
-# Describe Traefik pod untuk lihat args lengkap
+# Describe Traefik pod to see full args
 kubectl describe pod -n kube-system -l app.kubernetes.io/name=traefik
 ```
 
 ---
 
-## Referensi Annotation Traefik untuk Ingress
+## Traefik Annotation Reference for Ingress
 
 ```yaml
 metadata:

@@ -1,23 +1,23 @@
-# Dokumentasi Instalasi OpenObserve
+# OpenObserve Installation Documentation
 
-Dokumen ini menjelaskan instalasi, arsitektur deployment, konfigurasi, dan integrasi secret management untuk **OpenObserve** di cluster Kubernetes homelab `frengky.xyz`. OpenObserve dideploy menggunakan pola **GitOps (ArgoCD)** dengan Helm chart dari Harbor private registry.
+This document describes the installation, deployment architecture, configuration, and secret management integration for **OpenObserve** in the `frengky.xyz` homelab Kubernetes cluster. OpenObserve is deployed using a **GitOps (ArgoCD)** pattern with a Helm chart from a private Harbor registry.
 
 ---
 
-## 🔎 Tentang OpenObserve
+## 🔎 About OpenObserve
 
-[OpenObserve](https://openobserve.ai) adalah platform observability open-source all-in-one yang mendukung:
-- **Logs** — ingest, search, dan visualisasi log
-- **Metrics** — monitoring berbasis Prometheus-compatible
+[OpenObserve](https://openobserve.ai) is an open-source all-in-one observability platform that supports:
+- **Logs** — ingest, search, and visualize logs
+- **Metrics** — Prometheus-compatible monitoring
 - **Traces** — distributed tracing (OpenTelemetry)
-- **Dashboards** — visualisasi real-time
-- **Alerts** — alerting terpusat
+- **Dashboards** — real-time visualization
+- **Alerts** — centralized alerting
 
-Pada deployment ini, OpenObserve berjalan dalam mode **single-node / local mode** menggunakan SQLite sebagai meta store dan NATS sebagai cluster coordinator.
+In this deployment, OpenObserve runs in **single-node / local mode** using SQLite as the meta store and NATS as the cluster coordinator.
 
 ---
 
-## 🏗️ Arsitektur Deployment
+## 🏗️ Deployment Architecture
 
 ```
 Internet
@@ -49,47 +49,47 @@ Secret Management:
                 └── Kubernetes Secret (openobserve-auth)
 ```
 
-### Komponen yang Dideploy
+### Deployed Components
 
-| Komponen | Tipe | Fungsi |
-|----------|------|--------|
+| Component | Type | Function |
+|----------|------|----------|
 | `openobserve-router` | Deployment | API gateway & UI router |
-| `openobserve-ingester` | StatefulSet | Menerima & menyimpan data |
+| `openobserve-ingester` | StatefulSet | Receives & stores data |
 | `openobserve-querier` | StatefulSet | Query engine |
-| `openobserve-alertmanager` | StatefulSet | Manajemen alert |
-| `openobserve-compactor` | Deployment | Kompaksi data historis |
+| `openobserve-alertmanager` | StatefulSet | Alert management |
+| `openobserve-compactor` | Deployment | Historical data compaction |
 | `openobserve-nats` | StatefulSet | Cluster coordinator (JetStream) |
-| `openobserve-blocked-metrics` | Deployment | Memblok akses `/metrics` publik |
+| `openobserve-blocked-metrics` | Deployment | Blocks public access to `/metrics` |
 
 ---
 
-## 📁 Struktur Manifest GitOps
+## 📁 GitOps Manifest Structure
 
-File manifest disimpan di dalam repository GitOps (`gitops-repo`) dengan struktur berikut:
+Manifest files are stored in the GitOps repository (`gitops-repo`) with the following structure:
 
 ```
 gitops-repo/
 ├── kubernetes/
 │   ├── applications/
 │   │   └── infrastructure/
-│   │       └── openobserve.yaml        # Definisi Aplikasi ArgoCD
+│   │       └── openobserve.yaml        # ArgoCD Application definition
 │   └── production/
 │       └── openobserve/
-│           └── values.yaml             # Helm values konfigurasi
+│           └── values.yaml             # Helm configuration values
 ├── secrets/
 │   └── templates/
 │       └── openobserve-secret.yaml     # ExternalSecret template (Vault → ESO)
 └── docs/
-    └── openobserve-deployment.md       # Dokumen ini
+    └── openobserve-deployment.md       # This document
 ```
 
 ---
 
-## 📄 Detail Manifest
+## 📄 Manifest Details
 
 ### 1. ArgoCD Application (`k8s/clusters/production/applications/infrastructure/openobserve.yaml`)
 
-ArgoCD mengelola deployment ini menggunakan Helm chart dari Harbor OCI registry:
+ArgoCD manages this deployment using a Helm chart from the Harbor OCI registry:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -124,16 +124,16 @@ spec:
 
 ### 2. Helm Values (`infrastructure/openobserve/values.yaml`)
 
-Konfigurasi utama deployment mencakup:
-- **Mode**: `ZO_LOCAL_MODE: "true"` — single-node tanpa clustering
-- **Meta Store**: `ZO_META_STORE: "sqlite"` — tanpa PostgreSQL
-- **Coordinator**: NATS built-in dengan JetStream (1 replica)
+The main deployment configuration includes:
+- **Mode**: `ZO_LOCAL_MODE: "true"` — single-node without clustering
+- **Meta Store**: `ZO_META_STORE: "sqlite"` — no PostgreSQL
+- **Coordinator**: built-in NATS with JetStream (1 replica)
 - **Storage**: `local-path` StorageClass (K3s built-in)
-- **Ingress**: Traefik dengan host `openobserve.frengky.xyz`
+- **Ingress**: Traefik with host `openobserve.frengky.xyz`
 
 ### 3. ExternalSecret (`secrets/templates/openobserve-secret.yaml`)
 
-ExternalSecret mengambil credentials dari Vault dan membuat Kubernetes Secret di namespace `openobserve`:
+ExternalSecret fetches credentials from Vault and creates a Kubernetes Secret in the `openobserve` namespace:
 
 ```yaml
 apiVersion: external-secrets.io/v1
@@ -164,9 +164,9 @@ spec:
 
 ## 🔐 Secret Management
 
-Credentials OpenObserve dikelola menggunakan HashiCorp Vault + External Secrets Operator (ESO).
+OpenObserve credentials are managed using HashiCorp Vault + External Secrets Operator (ESO).
 
-### Menyimpan Credentials ke Vault
+### Storing Credentials in Vault
 
 ```bash
 kubectl exec -n vault -it vault-0 -- sh -c "
@@ -175,37 +175,37 @@ kubectl exec -n vault -it vault-0 -- sh -c "
   export VAULT_ADDR VAULT_TOKEN
   vault kv put secret/openobserve \
     rootEmail='admin@frengky.xyz' \
-    rootPassword='<PASSWORD_KUAT>' \
+    rootPassword='<STRONG_PASSWORD>' \
     webUrl='https://openobserve.frengky.xyz'
 "
 ```
 
-### Path di Vault
+### Paths in Vault
 
-| Path | Key | Keterangan |
-|------|-----|-----------|
-| `secret/data/openobserve` | `rootEmail` | Email login admin |
-| `secret/data/openobserve` | `rootPassword` | Password admin |
-| `secret/data/openobserve` | `webUrl` | URL aplikasi |
+| Path | Key | Description |
+|------|-----|-------------|
+| `secret/data/openobserve` | `rootEmail` | Admin login email |
+| `secret/data/openobserve` | `rootPassword` | Admin password |
+| `secret/data/openobserve` | `webUrl` | Application URL |
 
 ### Apply ExternalSecret
 
 ```bash
-# Apply ExternalSecret agar ESO membuat Kubernetes Secret secara otomatis
+# Apply ExternalSecret so ESO automatically creates the Kubernetes Secret
 kubectl apply -f secrets/templates/openobserve-secret.yaml
 
-# Verifikasi status sync
+# Verify sync status
 kubectl get externalsecret -n openobserve openobserve-auth
 
-# Cek secret yang dibuat ESO
+# Check the secret created by ESO
 kubectl get secret -n openobserve openobserve-auth
 ```
 
-### Mengganti Password
+### Changing the Password
 
-Untuk mengganti password root OpenObserve:
+To change the OpenObserve root password:
 
-1. **Update secret di Vault:**
+1. **Update the secret in Vault:**
    ```bash
    kubectl exec -n vault -it vault-0 -- sh -c "
      VAULT_ADDR=http://127.0.0.1:8200
@@ -213,65 +213,65 @@ Untuk mengganti password root OpenObserve:
      export VAULT_ADDR VAULT_TOKEN
      vault kv put secret/openobserve \
        rootEmail='admin@frengky.xyz' \
-       rootPassword='<PASSWORD_BARU>' \
+       rootPassword='<NEW_PASSWORD>' \
        webUrl='https://openobserve.frengky.xyz'
    "
    ```
 
-2. **ESO akan otomatis sync** (interval: 1 jam) dan memperbarui Kubernetes Secret.
+2. **ESO will automatically sync** (interval: 1 hour) and update the Kubernetes Secret.
 
-3. **Reloader akan otomatis restart pods** yang menggunakan secret tersebut.
+3. **Reloader will automatically restart pods** that use the secret.
 
 > [!NOTE]
-> Saat ini password di values.yaml dan Vault belum dihubungkan via `externalSecret`. Untuk menggunakan Vault sebagai sumber kebenaran penuh, tambahkan `externalSecret.enabled: true` pada values.yaml dan referensikan secret `openobserve-auth`.
+> Currently the password in values.yaml and Vault is not yet connected via `externalSecret`. To use Vault as the full source of truth, add `externalSecret.enabled: true` to values.yaml and reference the `openobserve-auth` secret.
 
 ---
 
-## 🔧 Konfigurasi OpenObserve
+## 🔧 OpenObserve Configuration
 
 ### Deployment Mode
 
-OpenObserve berjalan dalam **Local Mode** (`ZO_LOCAL_MODE: "true"`), cocok untuk single-node homelabs:
-- Semua komponen berjalan dalam namespace yang sama
-- Tidak membutuhkan S3-compatible object storage
-- Data disimpan di local disk via PVC
+OpenObserve runs in **Local Mode** (`ZO_LOCAL_MODE: "true"`), suitable for single-node homelabs:
+- All components run in the same namespace
+- Does not require S3-compatible object storage
+- Data is stored on local disk via PVC
 
 ### Storage Allocation
 
-| PVC | Ukuran | Konten |
-|-----|--------|--------|
+| PVC | Size | Contents |
+|-----|------|----------|
 | `data-openobserve-ingester-0` | 20Gi | Raw data, WAL, stream files |
 | `cache-openobserve-querier-0` | 10Gi | Query cache (disk) |
 | `cache-openobserve-alertmanager-0` | 5Gi | Alert state & history |
 | `nats-js-openobserve-nats-0` | 5Gi | NATS JetStream (queue/coord) |
 
-### Port & Protokol
+### Ports & Protocols
 
-| Service | Port | Protokol | Fungsi |
-|---------|------|----------|--------|
+| Service | Port | Protocol | Function |
+|---------|------|----------|----------|
 | HTTP API / UI | 5080 | HTTP | Ingress, API, Dashboard |
 | gRPC | 5081 | gRPC | Internal component comm. |
 
 ---
 
-## 🚀 Cara Mengirim Data ke OpenObserve
+## 🚀 How to Send Data to OpenObserve
 
 ### Ingest via API (Logs)
 
 ```bash
-# Kirim log via HTTP API (Basic Auth)
+# Send log via HTTP API (Basic Auth)
 curl -u "admin@frengky.xyz:OpenObserve@123" \
   -H "Content-Type: application/json" \
   -d '[{"level":"info","job":"test","log":"Hello OpenObserve!"}]' \
   https://openobserve.frengky.xyz/api/default/default/_json
 ```
 
-### Konfigurasi Alloy / Vector / Fluent Bit
+### Alloy / Vector / Fluent Bit Configuration
 
-Untuk mengirim log dari aplikasi Kubernetes menggunakan **Grafana Alloy** (yang sudah terdeploy):
+To send logs from Kubernetes applications using **Grafana Alloy** (already deployed):
 
 ```river
-// alloy config — tambahkan output ke OpenObserve
+// alloy config — add output to OpenObserve
 loki.write "openobserve" {
   endpoint {
     url = "https://openobserve.frengky.xyz/api/default/loki/api/v1/push"
@@ -285,7 +285,7 @@ loki.write "openobserve" {
 
 ### Ingest Metrics (Prometheus-compatible)
 
-OpenObserve mendukung Prometheus Remote Write:
+OpenObserve supports Prometheus Remote Write:
 
 ```yaml
 # prometheus / vmsingle remote_write config
@@ -309,25 +309,25 @@ exporters:
 
 ---
 
-## ✅ Verifikasi Deployment
+## ✅ Deployment Verification
 
-### Cek Status Pods & Resources
+### Check Pods & Resources Status
 
 ```bash
-# Status semua pods OpenObserve
+# Status of all OpenObserve pods
 kubectl get pods -n openobserve
 
-# Status ArgoCD Application
+# Status of ArgoCD Application
 kubectl get application openobserve -n argocd
 
-# Status PVC storage
+# Status of PVC storage
 kubectl get pvc -n openobserve
 
-# Status ingress
+# Status of ingress
 kubectl get ingress -n openobserve
 ```
 
-### Cek Health API
+### Check Health API
 
 ```bash
 # Health check endpoint
@@ -338,16 +338,16 @@ curl -u "admin@frengky.xyz:OpenObserve@123" \
   https://openobserve.frengky.xyz/api/default/streams
 ```
 
-### Cek Logs Komponen
+### Check Component Logs
 
 ```bash
-# Log router (entry point)
+# Router log (entry point)
 kubectl logs -n openobserve -l app.kubernetes.io/component=router --tail=50
 
-# Log ingester
+# Ingester log
 kubectl logs -n openobserve statefulset/openobserve-ingester --tail=50
 
-# Log NATS
+# NATS log
 kubectl logs -n openobserve statefulset/openobserve-nats -c nats --tail=20
 ```
 
@@ -355,38 +355,38 @@ kubectl logs -n openobserve statefulset/openobserve-nats -c nats --tail=20
 
 ## 🔄 Upgrade Chart Version
 
-Untuk mengupgrade versi OpenObserve:
+To upgrade the OpenObserve version:
 
-1. **Pull & push chart terbaru ke Harbor:**
+1. **Pull & push the latest chart to Harbor:**
    ```bash
-   helm pull openobserve/openobserve --version <VERSI_BARU> -d /root/server/oo-chart/
-   helm push /root/server/oo-chart/openobserve-<VERSI_BARU>.tgz oci://harbor.frengky.xyz/helm-repos
+   helm pull openobserve/openobserve --version <NEW_VERSION> -d /root/server/oo-chart/
+   helm push /root/server/oo-chart/openobserve-<NEW_VERSION>.tgz oci://harbor.frengky.xyz/helm-repos
    ```
 
-2. **Update targetRevision di ArgoCD Application:**
+2. **Update targetRevision in the ArgoCD Application:**
    ```yaml
    # k8s/clusters/production/applications/infrastructure/openobserve.yaml
-   targetRevision: "<VERSI_BARU>"
+   targetRevision: "<NEW_VERSION>"
    ```
 
-3. **Commit & push ke Gitea** — ArgoCD akan sync otomatis.
+3. **Commit & push to Gitea** — ArgoCD will sync automatically.
 
 ---
 
-## 📌 Referensi & File Terkait
+## 📌 References & Related Files
 
-| File | Fungsi |
-|------|--------|
+| File | Function |
+|------|----------|
 | `k8s/clusters/production/applications/infrastructure/openobserve.yaml` | ArgoCD Application manifest |
 | `infrastructure/openobserve/values.yaml` | Helm chart values |
 | `secrets/templates/openobserve-secret.yaml` | ExternalSecret (Vault → K8s Secret) |
-| `docs/openobserve-deployment.md` | Dokumen ini |
-| `docs/reloader-vault-integration.md` | Panduan Vault + ESO + Reloader |
-| `secrets/README.md` | Panduan lengkap secret management |
+| `docs/openobserve-deployment.md` | This document |
+| `docs/reloader-vault-integration.md` | Vault + ESO + Reloader guide |
+| `secrets/README.md` | Complete secret management guide |
 
-### URL Layanan
+### Service URLs
 
-| Layanan | URL |
+| Service | URL |
 |---------|-----|
 | OpenObserve UI | https://openobserve.frengky.xyz |
 | Vault (Secret Store) | https://vault.frengky.xyz |

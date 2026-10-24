@@ -1,43 +1,43 @@
-# Dokumentasi Instalasi n8n (Akses Privat via Tailscale)
+# n8n Installation Documentation (Private Access via Tailscale)
 
-Dokumen ini menjelaskan instalasi, arsitektur deployment, dan konfigurasi keamanan untuk **n8n** di cluster Kubernetes homelab `frengky.xyz`. n8n dideploy menggunakan pola **GitOps (ArgoCD)** dan dikonfigurasi agar hanya dapat diakses secara aman (HTTPS) ketika terhubung ke **Tailscale**.
-
----
-
-## 🛠️ Ringkasan Arsitektur & Pola Akses
-
-Pola akses untuk n8n dikonfigurasi secara privat menggunakan model **Tailscale-only** untuk menjaga keamanan data dan alur kerja automasi:
-
-1. **Namespace Baru**: Dibuat namespace terdedikasi `n8n`.
-2. **Domain/DNS**: Subdomain `n8n.frengky.xyz` diarahkan secara langsung ke IP Tailscale Host (`100.120.133.63`) di Cloudflare (DNS-Only / Gray Cloud). Trafik dari luar Tailscale mesh network secara alami tidak dapat merutekan ke IP CGNAT Tailscale ini.
-3. **Traefik Ingress**: Ingress dikonfigurasi menggunakan Ingress Class `traefik` untuk routing internal.
-4. **SSL/TLS**: SSL otomatis dilayani oleh Traefik menggunakan default TLSStore wildcard certificate (`wildcard-frengky-xyz-tls`) yang diterbitkan oleh Let's Encrypt melalui cert-manager DNS-01 Challenge.
-5. **Keamanan Jaringan (DNS & Tailscale Routing)**: Karena K3s service load balancer dideploy menggunakan `externalTrafficPolicy: Cluster`, IP asli client Tailscale ditranslasikan (NAT) menjadi IP internal cluster (IP pod load balancer). Oleh karena itu, IP whitelist middleware tidak dapat diterapkan karena akan memblokir trafik valid dengan error Forbidden. Pembatasan akses sepenuhnya dilakukan di layer network/DNS dengan mengarahkan domain `n8n.frengky.xyz` secara eksklusif ke IP Tailscale Host (`100.120.133.63`).
+This document describes the installation, deployment architecture, and security configuration for **n8n** on the `frengky.xyz` homelab Kubernetes cluster. n8n is deployed using the **GitOps (ArgoCD)** pattern and is configured to be accessible only securely (HTTPS) when connected to **Tailscale**.
 
 ---
 
-## 📁 Struktur Manifest GitOps
+## 🛠️ Architecture Overview & Access Pattern
 
-File manifest disimpan di dalam repository GitOps (`gitops-repo`) dengan struktur berikut:
+Access to n8n is configured privately using the **Tailscale-only** model to keep automation data and workflows secure:
+
+1. **New Namespace**: A dedicated `n8n` namespace is created.
+2. **Domain/DNS**: The subdomain `n8n.frengky.xyz` is pointed directly at the Host Tailscale IP (`100.120.133.63`) in Cloudflare (DNS-Only / Gray Cloud). Traffic from outside the Tailscale mesh network cannot naturally route to this CGNAT Tailscale IP.
+3. **Traefik Ingress**: The Ingress is configured using Ingress Class `traefik` for internal routing.
+4. **SSL/TLS**: SSL is automatically served by Traefik using the default TLSStore wildcard certificate (`wildcard-frengky-xyz-tls`) issued by Let's Encrypt via cert-manager DNS-01 Challenge.
+5. **Network Security (DNS & Tailscale Routing)**: Because the K3s service load balancer is deployed with `externalTrafficPolicy: Cluster`, the original Tailscale client IP is translated (NAT) into the internal cluster IP (load balancer pod IP). Therefore, the IP whitelist middleware cannot be applied because it would block valid traffic with a Forbidden error. Access restriction is fully performed at the network/DNS layer by pointing the domain `n8n.frengky.xyz` exclusively at the Host Tailscale IP (`100.120.133.63`).
+
+---
+
+## 📁 GitOps Manifest Structure
+
+Manifest files are stored in the GitOps repository (`gitops-repo`) with the following structure:
 
 ```
 gitops-repo/
 ├── kubernetes/
 │   ├── applications/
 │   │   └── production/
-│   │       └── n8n.yaml            # Definisi Aplikasi ArgoCD
+│   │       └── n8n.yaml            # ArgoCD Application definition
 │   └── production/
 │       └── n8n/
-│           ├── deployment.yaml     # Konfigurasi deployment & env n8n
-│           ├── service.yaml        # Service internal cluster
-│           ├── pvc.yaml            # Penyimpanan persisten (SQLite DB)
-│           └── ingress.yaml        # Aturan routing Traefik & whitelist
+│           ├── deployment.yaml     # n8n deployment & env configuration
+│           ├── service.yaml        # Internal cluster service
+│           ├── pvc.yaml            # Persistent storage (SQLite DB)
+│           └── ingress.yaml        # Traefik routing rules & whitelist
 └── docs/
-    └── n8n-deployment.md           # Dokumen ini
+    └── n8n-deployment.md           # This document
 ```
 
-### 1. Aplikasi ArgoCD (`k8s/clusters/production/applications/production/n8n.yaml`)
-ArgoCD mengelola daur hidup deployment ini secara otomatis dari path `k8s/clusters/production/applications/apps/production/n8n`:
+### 1. ArgoCD Application (`k8s/clusters/production/applications/production/n8n.yaml`)
+ArgoCD manages the lifecycle of this deployment automatically from the path `k8s/clusters/production/applications/apps/production/n8n`:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -63,8 +63,8 @@ spec:
       - CreateNamespace=true
 ```
 
-### 2. Penyimpanan Persisten (`k8s/clusters/production/applications/apps/production/n8n/pvc.yaml`)
-n8n menyimpan data alur kerja (workflow), credentials, dan eksekusi pada database SQLite lokal. Persistent Volume Claim (PVC) dialokasikan menggunakan storage class bawaan K3s (`local-path`):
+### 2. Persistent Storage (`k8s/clusters/production/applications/apps/production/n8n/pvc.yaml`)
+n8n stores workflow data, credentials, and executions in a local SQLite database. A Persistent Volume Claim (PVC) is allocated using the built-in K3s storage class (`local-path`):
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -80,8 +80,8 @@ spec:
       storage: 10Gi
 ```
 
-### 3. Deployment n8n (`k8s/clusters/production/applications/apps/production/n8n/deployment.yaml`)
-Deployment n8n menggunakan image resmi `n8nio/n8n:latest`. Keamanan pod diperketat dengan `securityContext` agar berjalan sebagai user `1000` (node) agar sesuai dengan hak akses folder mount `/home/node/.n8n`.
+### 3. n8n Deployment (`k8s/clusters/production/applications/apps/production/n8n/deployment.yaml`)
+The n8n deployment uses the official image `n8nio/n8n:latest`. Pod security is tightened with a `securityContext` so it runs as user `1000` (node) to match permissions on the mounted folder `/home/node/.n8n`.
 ```yaml
 apiVersion: k8s/clusters/production/applications/apps/v1
 kind: Deployment
@@ -140,7 +140,7 @@ spec:
 ```
 
 ### 4. Service (`k8s/clusters/production/applications/apps/production/n8n/service.yaml`)
-Service internal cluster tipe `ClusterIP` mengekspos port 5678 n8n ke ingress controller:
+The internal cluster service of type `ClusterIP` exposes n8n's port 5678 to the ingress controller:
 ```yaml
 apiVersion: v1
 kind: Service
@@ -160,7 +160,7 @@ spec:
 ```
 
 ### 5. Ingress (`k8s/clusters/production/applications/apps/production/n8n/ingress.yaml`)
-Ingress ini mengarahkan domain `n8n.frengky.xyz` ke service n8n:
+This Ingress routes the domain `n8n.frengky.xyz` to the n8n service:
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -186,25 +186,25 @@ spec:
 
 ---
 
-## 🔍 Verifikasi Akses & Pengujian
+## 🔍 Access Verification & Testing
 
-Untuk memastikan bahwa n8n berjalan normal dan hanya dapat diakses melalui Tailscale:
+To make sure n8n is running normally and is only accessible via Tailscale:
 
-1. **Verifikasi Pod & Service**:
+1. **Verify Pod & Service**:
    ```bash
    kubectl get pods,svc,ingress -n n8n
    ```
-   Pastikan pod berstatus `Running` (1/1) dan ingress `n8n` telah terbuat dengan host `n8n.frengky.xyz`.
+   Make sure the pod status is `Running` (1/1) and the `n8n` ingress has been created with host `n8n.frengky.xyz`.
 
-2. **Uji Resolusi DNS**:
-   Pastikan resolve domain `n8n.frengky.xyz` mengarah ke IP Tailscale Host:
+2. **Test DNS Resolution**:
+   Make sure the domain `n8n.frengky.xyz` resolves to the Host Tailscale IP:
    ```bash
    nslookup n8n.frengky.xyz
-   # Output harus mengembalikan: 100.120.133.63
+   # Output should return: 100.120.133.63
    ```
 
-3. **Uji Akses HTTP (Dengan Tailscale Aktif)**:
-   Akses `https://n8n.frengky.xyz` via browser di perangkat yang terhubung ke Tailscale. Anda akan langsung melihat halaman setup n8n dengan sertifikat SSL valid (*secured*).
+3. **Test HTTP Access (With Tailscale Active)**:
+   Access `https://n8n.frengky.xyz` via a browser on a device connected to Tailscale. You will immediately see the n8n setup page with a valid SSL certificate (*secured*).
 
-4. **Uji Keamanan (Tanpa Tailscale)**:
-   Putuskan koneksi Tailscale pada perangkat penguji, lalu coba akses `https://n8n.frengky.xyz`. Browser tidak akan dapat memuat halaman karena IP `100.120.133.63` tidak dapat dijangkau dari internet publik. Selain itu, jika dicoba diakses melalui jaringan luar yang terhubung ke host, Traefik middleware `tailscale-whitelist` akan menolak request dengan respon `Forbidden` jika IP client tidak dikenali.
+4. **Security Test (Without Tailscale)**:
+   Disconnect Tailscale on the test device, then try to access `https://n8n.frengky.xyz`. The browser will not be able to load the page because the IP `100.120.133.63` cannot be reached from the public internet. Additionally, if accessed from an external network connected to the host, the Traefik middleware `tailscale-whitelist` will reject the request with a `Forbidden` response if the client IP is not recognized.

@@ -1,47 +1,47 @@
-# Panduan Upgrade Versi Aplikasi & Helm Chart di Lingkungan GitOps
+# Application Version & Helm Chart Upgrade Guide in a GitOps Environment
 
-Dokumen ini menjelaskan langkah-langkah standar untuk meng-upgrade versi aplikasi dan Helm Chart di lingkungan kluster Kubernetes yang dikelola dengan **ArgoCD**, **Harbor (Private Registry)**, dan **GitOps Repository**.
+This document describes the standard steps to upgrade application versions and Helm Charts in a Kubernetes cluster environment managed with **ArgoCD**, **Harbor (Private Registry)**, and a **GitOps Repository**.
 
-Sebagai contoh, dokumen ini memuat panduan langkah demi langkah untuk meng-upgrade **Harbor** dari versi **v2.12.2** ke versi **v2.15.2** (atau versi terbaru lainnya).
-
----
-
-## 1. Konsep Upgrade Aplikasi di Lingkungan GitOps
-
-Di lingkungan kluster ini, aplikasi dikelola menggunakan pendekatan **GitOps** dan **Self-Hosted Registry**:
-1. **OCI Helm Registry Internal**: Helm Chart disimpan di registry internal (`oci://harbor.frengky.xyz/helm-repos`).
-2. **Container Image Mirroring**: Container Image aplikasi ditarik dari internet, lalu di-*push* ke Harbor internal (`harbor.frengky.xyz`).
-3. **ArgoCD Application Sync**: ArgoCD memantau perubahan pada repository GitOps (`gitops-repo`) dan melakukan sinkronisasi otomatis (*rollout*) ke kluster Kubernetes.
+As an example, this document contains step-by-step guidance for upgrading **Harbor** from version **v2.12.2** to version **v2.15.2** (or another latest version).
 
 ---
 
-## 2. Alur Langkah-Langkah Upgrade Versi Aplikasi (Contoh: Harbor v2.15.2)
+## 1. Application Upgrade Concept in a GitOps Environment
 
-### Langkah 1: Pengecekan Versi Saat Ini
+In this cluster environment, applications are managed using the **GitOps** and **Self-Hosted Registry** approach:
+1. **Internal OCI Helm Registry**: Helm Charts are stored in the internal registry (`oci://harbor.frengky.xyz/helm-repos`).
+2. **Container Image Mirroring**: Application container images are pulled from the internet, then *pushed* to the internal Harbor (`harbor.frengky.xyz`).
+3. **ArgoCD Application Sync**: ArgoCD monitors changes in the GitOps repository (`gitops-repo`) and automatically syncs (*rollout*) to the Kubernetes cluster.
 
-Cek versi aplikasi dan pod yang sedang berjalan di kluster:
+---
+
+## 2. Application Version Upgrade Steps (Example: Harbor v2.15.2)
+
+### Step 1: Check Current Version
+
+Check the currently running application version and pods in the cluster:
 ```bash
-# Cek pod & image versi saat ini
+# Check current version pods & image
 kubectl get pods -n harbor -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[*].image}{"\n"}{end}'
 
-# Cek manifest ArgoCD saat ini
+# Check current ArgoCD manifest
 cat k8s/clusters/production/applications/infrastructure/harbor.yaml
 ```
 
 ---
 
-### Langkah 2: Mirroring Container Image Baru dari Internet ke Harbor Internal
+### Step 2: Mirror New Container Image from Internet to Internal Harbor
 
-Untuk memastikan kluster tidak bergantung pada koneksi internet publik saat *runtime*, *pull* image komponen versi terbaru ke server lokal, berikan tag, lalu *push* ke Harbor internal.
+To ensure the cluster does not depend on public internet connectivity at *runtime*, pull the latest version component images to the local server, tag them, then *push* to internal Harbor.
 
-1. **Login ke Harbor Internal**:
+1. **Login to Internal Harbor**:
    ```bash
    docker login harbor.frengky.xyz -u admin -p Harbor12345
    ```
 
-2. **Pull Image Versi Terbaru (v2.15.2) & Push ke Harbor**:
+2. **Pull Latest Version Images (v2.15.2) & Push to Harbor**:
    ```bash
-   # Komponen Utama Harbor
+   # Main Harbor components
    IMAGES=(
      "goharbor/harbor-core:v2.15.2"
      "goharbor/harbor-portal:v2.15.2"
@@ -57,7 +57,7 @@ Untuk memastikan kluster tidak bergantung pada koneksi internet publik saat *run
      echo "Pulling $img..."
      docker pull "$img"
      
-     # Tag image ke registry internal
+     # Tag image to internal registry
      LOCAL_TAG="harbor.frengky.xyz/library/${img##*/}"
      docker tag "$img" "$LOCAL_TAG"
      
@@ -68,37 +68,37 @@ Untuk memastikan kluster tidak bergantung pada koneksi internet publik saat *run
 
 ---
 
-### Langkah 3: Unduh & Publish Helm Chart Terbaru ke OCI Harbor Registry
+### Step 3: Download & Publish Latest Helm Chart to OCI Harbor Registry
 
-1. **Tambahkan Repository Helm Resmi Upstream**:
+1. **Add Upstream Official Helm Repository**:
    ```bash
    helm repo add harbor https://helm.goharbor.io
    helm repo update
    ```
 
-2. **Unduh Package Helm Chart Versi Terbaru**:
+2. **Download Latest Helm Chart Package**:
    ```bash
-   # Cari versi chart terbaru
+   # Find the latest chart version
    helm search repo harbor/harbor --versions | head -n 5
 
-   # Unduh chart (misal versi chart 1.16.2 atau versi terbaru)
+   # Pull the chart (e.g. chart version 1.16.2 or latest)
    helm pull harbor/harbor --version 1.16.2
    ```
 
-3. **Login & Push Helm Chart ke OCI Registry Harbor Internal**:
+3. **Login & Push Helm Chart to Internal OCI Registry**:
    ```bash
-   # Login ke OCI registry dengan Helm
+   # Login to OCI registry with Helm
    helm registry login harbor.frengky.xyz -u admin -p Harbor12345
 
-   # Push file helm chart (.tgz) ke project helm-repos
+   # Push helm chart file (.tgz) to helm-repos project
    helm push harbor-1.16.2.tgz oci://harbor.frengky.xyz/helm-repos
    ```
 
 ---
 
-### Langkah 4: Perbarui Konfigurasi Manifest di GitOps Repository
+### Step 4: Update Manifest Configuration in GitOps Repository
 
-1. **Perbarui Version Target pada ArgoCD Application Spec**:
+1. **Update Target Version in ArgoCD Application Spec**:
    Edit file `k8s/clusters/production/applications/infrastructure/harbor.yaml`:
    ```yaml
    apiVersion: argoproj.io/v1alpha1
@@ -110,16 +110,16 @@ Untuk memastikan kluster tidak bergantung pada koneksi internet publik saat *run
      sources:
        - repoURL: harbor-registry-tls.harbor.svc.cluster.local
          chart: helm-repos/harbor
-         targetRevision: "1.16.2"  # <-- Update ke versi chart baru
+         targetRevision: "1.16.2"  # <-- Update to new chart version
          helm:
            valueFiles:
              - $values/infrastructure/harbor/values.yaml
    ```
 
-2. **Perbarui Image Tag pada `values.yaml` (jika ada)**:
-   Edit file `infrastructure/harbor/values.yaml` untuk menyesuaikan tag versi terbaru jika diperlukan:
+2. **Update Image Tag in `values.yaml` (if any)**:
+   Edit file `infrastructure/harbor/values.yaml` to match the latest version tag if needed:
    ```yaml
-   # Contoh penyesuaian tag di values.yaml jika menggunakan tag kustom
+   # Example tag adjustment in values.yaml if using custom tags
    core:
      image:
        repository: harbor.frengky.xyz/library/harbor-core
@@ -128,9 +128,9 @@ Untuk memastikan kluster tidak bergantung pada koneksi internet publik saat *run
 
 ---
 
-### Langkah 5: Commit & Push Perubahan ke GitOps Repository
+### Step 5: Commit & Push Changes to GitOps Repository
 
-Commit perubahan manifest yang sudah diperbarui ke repository GitOps agar ArgoCD dapat mendeteksi perubahan tersebut:
+Commit the updated manifest changes to the GitOps repository so ArgoCD can detect the changes:
 
 ```bash
 cd /root/server/gitops-repo
@@ -143,35 +143,35 @@ git push origin main
 
 ---
 
-### Langkah 6: Trigger ArgoCD Sync & Verifikasi Deployment
+### Step 6: Trigger ArgoCD Sync & Verify Deployment
 
-1. **Trigger Sync ArgoCD**:
-   ArgoCD akan secara otomatis melakukan sync. Jika ingin mempercepat, jalankan perintah:
+1. **Trigger ArgoCD Sync**:
+   ArgoCD will automatically sync. To speed it up, run:
    ```bash
    # Trigger refresh & sync via API / CLI
    kubectl annotate application harbor -n argocd argocd.argoproj.io/refresh=normal --overwrite
    ```
 
-2. **Pantau Status Upgrade (Rolling Update)**:
+2. **Monitor Upgrade Status (Rolling Update)**:
    ```bash
-   # Cek status rollout deployment
+   # Check deployment rollout status
    kubectl rollout status deployment/harbor-core -n harbor
    kubectl rollout status deployment/harbor-jobservice -n harbor
    
-   # Cek status pod di namespace harbor
+   # Check pod status in harbor namespace
    kubectl get pods -n harbor
    ```
 
-3. **Verifikasi Fungsionalitas**:
-   - Uji akses Web UI Harbor: `https://harbor.frengky.xyz`
-   - Lakukan uji coba `docker login`, `docker pull`, dan `docker push` ke registry untuk memastikan service berjalan normal setelah versi diperbarui.
+3. **Functional Verification**:
+   - Test Harbor Web UI access: `https://harbor.frengky.xyz`
+   - Test `docker login`, `docker pull`, and `docker push` to the registry to ensure the service runs normally after the version update.
 
 ---
 
-## 3. Checklist Penting Sebelum Upgrade
+## 3. Important Checklist Before Upgrade
 
-| Checklist | Deskripsi |
+| Checklist | Description |
 | :--- | :--- |
-| **Backup Database** | Lakukan backup database PostgreSQL (`harbor-database`) sebelum melakukan major upgrade. |
-| **Breaking Changes** | Periksa changelog resmi rilis Helm Chart / Aplikasi untuk memastikan tidak ada perubahan parameter `values.yaml` yang tidak kompatibel. |
-| **Image Availability** | Pastikan semua sub-component image sudah berhasil di-*push* ke Harbor sebelum memicu sync ArgoCD. |
+| **Database Backup** | Perform a backup of the PostgreSQL database (`harbor-database`) before a major upgrade. |
+| **Breaking Changes** | Check the official changelog of the Helm Chart / Application release to ensure there are no incompatible `values.yaml` parameter changes. |
+| **Image Availability** | Ensure all sub-component images have been successfully *pushed* to Harbor before triggering ArgoCD sync. |

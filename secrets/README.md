@@ -1,8 +1,8 @@
-# Secret Management dengan HashiCorp Vault + External Secrets Operator (ESO)
+# Secret Management with HashiCorp Vault + External Secrets Operator (ESO)
 
-Dokumen ini menjelaskan cara menyimpan dan mengelola secrets di cluster homelabs menggunakan Vault dan ESO.
+This document explains how to store and manage secrets in the homelabs cluster using Vault and ESO.
 
-## Arsitektur
+## Architecture
 
 ```
 Developer → vault kv put ... → Vault (vault.frengky.xyz)
@@ -10,54 +10,54 @@ Developer → vault kv put ... → Vault (vault.frengky.xyz)
                           External Secrets Operator
                           (watches ExternalSecret CRDs)
                                       ↓
-                          Kubernetes Secret (dibuat otomatis)
+                          Kubernetes Secret (created automatically)
                                       ↓
-                          Aplikasi membaca Secret
+                          Application reads Secret
 ```
 
 ## Prerequisites
 
-Pastikan komponen berikut sudah running:
+Make sure the following components are running:
 1. **Vault** (namespace: `vault`) - `kubectl get pod -n vault`
 2. **ESO** (namespace: `external-secrets`) - `kubectl get pod -n external-secrets`
-3. **ClusterSecretStore** sudah dibuat - lihat `templates/vault-secret-store.yaml`
+3. **ClusterSecretStore** already created - see `templates/vault-secret-store.yaml`
 
-## Setup Awal Vault (Dev Mode)
+## Initial Vault Setup (Dev Mode)
 
-### 1. Akses Vault
+### 1. Access Vault
 ```bash
-# Port-forward ke Vault UI
+# Port-forward to Vault UI
 kubectl port-forward -n vault svc/vault 8200:8200
 
-# Login di browser: http://localhost:8200
+# Login in browser: http://localhost:8200
 # Token: root (dev mode)
 ```
 
-### 2. Aktifkan KV v2 Secret Engine
+### 2. Enable KV v2 Secret Engine
 ```bash
-# Masuk ke Vault pod
+# Enter Vault pod
 kubectl exec -n vault -it vault-0 -- /bin/sh
 
-# Enable KV v2 (sudah aktif di dev mode di path 'secret/')
+# Enable KV v2 (already active in dev mode at path 'secret/')
 vault secrets list
 ```
 
-### 3. Buat Secret Token untuk ESO
+### 3. Create Secret Token for ESO
 
-ESO perlu token Vault untuk mengambil secrets:
+ESO needs a Vault token to fetch secrets:
 
 ```bash
-# Di dalam Vault pod (dev mode, pakai root token)
+# Inside Vault pod (dev mode, use root token)
 kubectl exec -n vault -it vault-0 -- vault token create \
   -policy=default \
   -period=768h \
   -orphan \
   -format=json | jq -r '.auth.client_token'
 
-# Buat Kubernetes Secret untuk ESO
+# Create Kubernetes Secret for ESO
 kubectl create secret generic vault-token \
   -n external-secrets \
-  --from-literal=token=<TOKEN_DARI_ATAS>
+  --from-literal=token=<TOKEN_FROM_ABOVE>
 ```
 
 ### 4. Apply ClusterSecretStore
@@ -65,30 +65,30 @@ kubectl create secret generic vault-token \
 ```bash
 kubectl apply -f secrets/templates/vault-secret-store.yaml
 
-# Verifikasi
+# Verify
 kubectl get clustersecretstore vault-backend
 ```
 
-## Menyimpan Secrets ke Vault
+## Storing Secrets in Vault
 
-### Format umum:
+### General format:
 ```bash
-kubectl exec -n vault -it vault-0 -- vault kv put secret/<nama-app> <key>=<value>
+kubectl exec -n vault -it vault-0 -- vault kv put secret/<app-name> <key>=<value>
 ```
 
-### Secrets per Aplikasi:
+### Secrets per Application:
 
 #### Grafana
 ```bash
 kubectl exec -n vault -it vault-0 -- vault kv put secret/grafana \
   adminUser=admin \
-  adminPassword=<PASSWORD_KUAT>
+  adminPassword=<STRONG_PASSWORD>
 ```
 
 #### Harbor
 ```bash
 kubectl exec -n vault -it vault-0 -- vault kv put secret/harbor \
-  adminPassword=<PASSWORD_KUAT>
+  adminPassword=<STRONG_PASSWORD>
 ```
 
 #### OpenObserve
@@ -99,50 +99,50 @@ kubectl exec -n vault -it vault-0 -- sh -c "
   export VAULT_ADDR VAULT_TOKEN
   vault kv put secret/openobserve \
     rootEmail='admin@frengky.xyz' \
-    rootPassword='<PASSWORD_KUAT>' \
+    rootPassword='<STRONG_PASSWORD>' \
     webUrl='https://openobserve.frengky.xyz'
 "
 ```
 
 #### Cloudflared
 ```bash
-# Tunnel token dari Cloudflare dashboard
+# Tunnel token from Cloudflare dashboard
 kubectl create secret generic cloudflared-token \
   -n cloudflare \
   --from-literal=token=<CLOUDFLARE_TUNNEL_TOKEN>
 ```
 
-## Menggunakan ExternalSecret
+## Using ExternalSecret
 
-Setelah secret disimpan di Vault, buat ExternalSecret CR:
+After the secret is stored in Vault, create an ExternalSecret CR:
 
 ```bash
 # Apply template
 kubectl apply -f secrets/templates/grafana-secret.yaml
 
-# Cek status
+# Check status
 kubectl get externalsecret -n monitoring grafana-admin-secret
 
-# Cek secret yang dibuat ESO
+# Check secret created by ESO
 kubectl get secret -n monitoring grafana-admin-secret
 ```
 
-## Verifikasi ESO
+## Verifying ESO
 
 ```bash
-# Cek semua ExternalSecrets
+# Check all ExternalSecrets
 kubectl get externalsecret -A
 
-# Cek ClusterSecretStore status
+# Check ClusterSecretStore status
 kubectl get clustersecretstore
 
-# Lihat events ESO
+# View ESO events
 kubectl get events -n external-secrets
 ```
 
 ## Vault Policies (Production)
 
-Untuk production, buat Vault policy yang restrictive:
+For production, create a restrictive Vault policy:
 
 ```hcl
 # vault-policy-eso.hcl
@@ -166,30 +166,30 @@ path "secret/metadata/*" {
 }
 EOF
 
-# Buat token dengan policy
+# Create token with policy
 kubectl exec -n vault -it vault-0 -- vault token create \
   -policy=eso-reader \
   -period=8760h
 ```
 
-## Migrasi Vault: Dev → Production
+## Migrating Vault: Dev → Production
 
-> ⚠️ **PENTING**: Dev mode menyimpan data di memory. Data hilang jika pod restart!
+> ⚠️ **IMPORTANT**: Dev mode stores data in memory. Data is lost if the pod restarts!
 
-Ketika siap migrasi ke production:
+When ready to migrate to production:
 
-1. Export semua secrets dari dev:
+1. Export all secrets from dev:
 ```bash
 kubectl exec -n vault -it vault-0 -- vault kv list secret/
 kubectl exec -n vault -it vault-0 -- vault kv get secret/grafana
-# ... backup semua secrets
+# ... backup all secrets
 ```
 
 2. Update `charts/infra/vault/values.yaml`:
 ```yaml
 server:
   dev:
-    enabled: false  # Matikan dev mode
+    enabled: false  # Disable dev mode
   standalone:
     enabled: true
     config: |
@@ -203,4 +203,4 @@ server:
       }
 ```
 
-3. Unseal Vault dan re-import semua secrets.
+3. Unseal Vault and re-import all secrets.

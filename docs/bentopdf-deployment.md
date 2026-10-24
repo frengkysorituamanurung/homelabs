@@ -1,10 +1,10 @@
-# Dokumentasi Deployment BentoPDF
+# BentoPDF Deployment Documentation
 
-BentoPDF adalah toolkit PDF open-source berbasis browser (client-side processing) yang di-deploy di k3s cluster `frengky.xyz` via GitOps (ArgoCD). Akses hanya tersedia ketika terhubung ke **Tailscale VPN**.
+BentoPDF is an open-source, browser-based (client-side processing) PDF toolkit deployed in the k3s cluster `frengky.xyz` via GitOps (ArgoCD). Access is only available when connected to the **Tailscale VPN**.
 
 ---
 
-## Arsitektur Akses
+## Access Architecture
 
 ```
 User (Tailscale connected)
@@ -15,11 +15,11 @@ User (Tailscale connected)
                           └── Pod: ghcr.io/alam00000/bentopdf-simple
 ```
 
-Akses VPN-only dikendalikan **di level DNS** — domain `bentopdf.frengky.xyz` hanya resolve ke IP Tailscale `100.120.133.63` yang tidak bisa dijangkau dari internet publik tanpa terhubung ke Tailscale.
+VPN-only access is enforced **at the DNS level** — the domain `bentopdf.frengky.xyz` only resolves to the Tailscale IP `100.120.133.63`, which is unreachable from the public internet without being connected to Tailscale.
 
 ---
 
-## Struktur File GitOps
+## GitOps File Structure
 
 ```
 gitops-repo/
@@ -30,15 +30,15 @@ gitops-repo/
 │   └── production/
 │       └── frontend/
 │           └── bentopdf/
-│               ├── Chart.yaml         # Helm chart (pakai generic-app)
-│               └── values.yaml        # Konfigurasi app
+│               ├── Chart.yaml         # Helm chart (uses generic-app)
+│               └── values.yaml        # App configuration
 └── docs/
-    └── bentopdf-deployment.md         # Dokumen ini
+    └── bentopdf-deployment.md         # This document
 ```
 
 ---
 
-## File Manifest
+## Manifest Files
 
 ### 1. ArgoCD Application
 
@@ -80,8 +80,8 @@ dependencies:
     repository: oci://harbor.frengky.xyz/helm-repos
 ```
 
-Chart `generic-app` adalah internal Helm chart yang dipakai semua apps di cluster ini.
-Versi `0.1.12` menambahkan explicit `ingressClassName: traefik`.
+The `generic-app` chart is an internal Helm chart used by all apps in this cluster.
+Version `0.1.12` adds explicit `ingressClassName: traefik`.
 
 ### 3. Values (`values.yaml`)
 
@@ -90,7 +90,7 @@ generic-app:
   baseNamespace: frontend
   baseName: bentopdf
   environment: production
-  disableSecrets: true         # BentoPDF tidak butuh env secrets
+  disableSecrets: true         # BentoPDF needs no env secrets
   image:
     repository: ghcr.io/alam00000/bentopdf-simple
     tag: "latest"
@@ -123,90 +123,90 @@ generic-app:
     type: Recreate
 ```
 
-**Catatan penting:**
-- `disableSecrets: true` — wajib karena `generic-app` secara default selalu mount Secret `<appname>-secrets`
-- `ingress.enabled: true` — generate standard Kubernetes Ingress dengan `ingressClassName: traefik`
-- BentoPDF adalah **stateless app** (semua processing PDF di browser), tidak butuh PVC
+**Important notes:**
+- `disableSecrets: true` — required because `generic-app` by default always mounts the Secret `<appname>-secrets`
+- `ingress.enabled: true` — generates a standard Kubernetes Ingress with `ingressClassName: traefik`
+- BentoPDF is a **stateless app** (all PDF processing happens in the browser), no PVC needed
 
 ---
 
-## Langkah Deploy
+## Deployment Steps
 
-### Step 1: Konfigurasi Cloudflare DNS
+### Step 1: Cloudflare DNS Configuration
 
-Tambahkan A record di Cloudflare DNS dashboard:
+Add an A record in the Cloudflare DNS dashboard:
 
 | Type | Name | Content | Proxy Status | TTL |
 |------|------|---------|--------------|-----|
 | `A` | `bentopdf` | `100.120.133.63` | DNS Only (Gray Cloud) | Auto |
 
-> **PENTING:** Status harus **DNS Only (Gray Cloud)** bukan Proxied (Orange).
-> Jika Proxied, Cloudflare akan mencoba proxy ke IP Tailscale yang tidak reachable dari internet.
+> **IMPORTANT:** Status must be **DNS Only (Gray Cloud)**, not Proxied (Orange).
+> If Proxied, Cloudflare will attempt to proxy to the Tailscale IP, which is unreachable from the internet.
 
-### Step 2: Verifikasi ArgoCD
+### Step 2: Verify ArgoCD
 
 ```bash
-# Cek status app
+# Check app status
 kubectl get application bentopdf -n argocd
 # Expected: SYNC STATUS=Synced, HEALTH STATUS=Healthy
 
-# Force sync jika perlu
+# Force sync if needed
 kubectl annotate application bentopdf -n argocd argocd.argoproj.io/refresh=hard --overwrite
 ```
 
-### Step 3: Verifikasi Pod dan Ingress
+### Step 3: Verify Pod and Ingress
 
 ```bash
-# Cek pod
+# Check pod
 kubectl get pods -n frontend -l app.kubernetes.io/name=bentopdf
 # Expected: 1/1 Running
 
-# Cek ingress
+# Check ingress
 kubectl get ingress bentopdf -n frontend
 # Expected: host=bentopdf.frengky.xyz, CLASS=traefik
 
-# Test koneksi internal
+# Test internal connection
 kubectl port-forward svc/bentopdf 8080:8080 -n frontend
-# Buka: http://localhost:8080
+# Open: http://localhost:8080
 ```
 
-### Step 4: Test Akses via Tailscale
+### Step 4: Test Access via Tailscale
 
 ```bash
-# Pastikan Tailscale aktif, lalu:
+# Make sure Tailscale is active, then:
 curl -I http://bentopdf.frengky.xyz
 # Expected: HTTP/1.1 200 OK
 
-# Verifikasi DNS resolve ke Tailscale IP:
+# Verify DNS resolves to Tailscale IP:
 nslookup bentopdf.frengky.xyz
 # Expected: Address: 100.120.133.63
 ```
 
 ---
 
-## Image BentoPDF
+## BentoPDF Image
 
-| Variant | Image | Keterangan |
-|---------|-------|------------|
-| Simple (dipakai) | `ghcr.io/alam00000/bentopdf-simple:latest` | Tanpa marketing/footer, ideal untuk internal |
-| Full | `ghcr.io/alam00000/bentopdf:latest` | Dengan landing page marketing |
+| Variant | Image | Description |
+|---------|-------|-------------|
+| Simple (used) | `ghcr.io/alam00000/bentopdf-simple:latest` | No marketing/footer, ideal for internal use |
+| Full | `ghcr.io/alam00000/bentopdf:latest` | With marketing landing page |
 
-BentoPDF memproses semua PDF **di browser** (client-side via WebAssembly).
-Server hanya serve static files. Tidak ada data PDF yang dikirim ke server.
+BentoPDF processes all PDFs **in the browser** (client-side via WebAssembly).
+The server only serves static files. No PDF data is sent to the server.
 
 ---
 
 ## Troubleshooting
 
-| Gejala | Penyebab | Solusi |
-|--------|----------|--------|
-| `CreateContainerConfigError` | Secret `bentopdf-secrets` tidak ada | Pastikan `disableSecrets: true` di values.yaml |
-| Domain tidak bisa diakses | DNS belum dikonfigurasi | Tambahkan A record di Cloudflare (DNS Only) |
-| ArgoCD `OutOfSync` | Chart dep tidak ditemukan | Pastikan `generic-app:0.1.12` ada di Harbor |
-| 404 saat akses | Ingress tidak ter-create | Cek `kubectl get ingress -n frontend` |
+| Symptom | Cause | Solution |
+|---------|-------|----------|
+| `CreateContainerConfigError` | Secret `bentopdf-secrets` not found | Make sure `disableSecrets: true` in values.yaml |
+| Domain unreachable | DNS not configured | Add A record in Cloudflare (DNS Only) |
+| ArgoCD `OutOfSync` | Chart dependency not found | Make sure `generic-app:0.1.12` exists in Harbor |
+| 404 when accessing | Ingress not created | Check `kubectl get ingress -n frontend` |
 
 ```bash
-# Debug lengkap
+# Full debug
 kubectl describe pod -n frontend -l app.kubernetes.io/name=bentopdf
 kubectl logs -n frontend -l app.kubernetes.io/name=bentopdf
 kubectl describe ingress bentopdf -n frontend

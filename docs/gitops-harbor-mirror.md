@@ -1,33 +1,33 @@
-# GitOps Helm Charts Mirroring ke Harbor (Air-Gapped / Private Registry)
+# GitOps Helm Charts Mirroring to Harbor (Air-Gapped / Private Registry)
 
-Dokumentasi ini menjelaskan konfigurasi dan alur kerja (*workflow*) yang diterapkan untuk mengatasi masalah limitasi akses *outbound internet* (kegagalan TCP `DeadlineExceeded` saat ArgoCD mencoba menarik Helm Chart dari *registry* eksternal).
+This document explains the configuration and workflow applied to overcome the outbound internet access limitation issue (TCP `DeadlineExceeded` failure when ArgoCD tries to pull Helm Charts from external registries).
 
-## Latar Belakang Masalah
-Pod di dalam cluster mengalami kendala resolusi TCP *outbound* (internet keluar), yang mengakibatkan `argocd-repo-server` tidak dapat melakukan `helm pull` dari *registry* publik seperti GitHub, HashiCorp, Prometheus Community, dll. Jika *sync* dibiarkan gagal, ArgoCD tidak akan memperbarui *state* cluster dan aplikasi akan stuck di status `Unknown` atau `ComparisonError`. 
+## Problem Background
+Pods inside the cluster experience outbound TCP resolution issues (outgoing internet), causing `argocd-repo-server` to be unable to run `helm pull` from public registries such as GitHub, HashiCorp, Prometheus Community, etc. If the sync is left failing, ArgoCD will not update the cluster state and applications will get stuck in `Unknown` or `ComparisonError` status.
 
-## Solusi: Air-Gapped GitOps Pattern
-Alih-alih mengandalkan internet untuk mengunduh Helm Chart secara real-time, kita mengimplementasikan pola **Private Registry Mirroring**:
-1. Menyalin (mem-pull) seluruh *external* Helm chart `.tgz` melalui *host server* (yang memiliki akses internet normal).
-2. Memasukkan (*push*) chart tersebut ke dalam *project* `helm-repos` di Harbor lokal kita (sebagai OCI artifacts).
-3. Mengkonfigurasi ArgoCD agar menjadikan Harbor lokal sebagai sumber (*Single Source of Truth*) Helm Chart.
+## Solution: Air-Gapped GitOps Pattern
+Instead of relying on the internet to download Helm Charts in real time, we implement a **Private Registry Mirroring** pattern:
+1. Copy (pull) all external Helm chart `.tgz` files via the host server (which has normal internet access).
+2. Push those charts into the `helm-repos` project in our local Harbor (as OCI artifacts).
+3. Configure ArgoCD to use the local Harbor as the source (Single Source of Truth) for Helm Charts.
 
-Keuntungan:
-- **Zero Internet Dependency:** ArgoCD kini berjalan 100% *offline* (berkomunikasi antar-pod di cluster via `harbor-core.harbor.svc.cluster.local`).
-- **Keamanan (Enterprise Grade):** Kebal terhadap pemadaman (downtime) pihak ketiga.
-- **Kinerja:** Proses sinkronisasi menjadi instan (dalam hitungan milidetik).
+Benefits:
+- **Zero Internet Dependency:** ArgoCD now runs 100% offline (communicating between pods in the cluster via `harbor-core.harbor.svc.cluster.local`).
+- **Security (Enterprise Grade):** Resilient against third-party downtime.
+- **Performance:** Sync process becomes instant (in milliseconds).
 
-## Konfigurasi yang Dilakukan
+## Configuration Performed
 
-### 1. Migrasi Charts ke Harbor
-Menggunakan _script_ otomatis, seluruh dependensi Helm chart ditarik (*pull*) dengan versi spesifik dan di-*push* ke OCI registry Harbor lokal:
+### 1. Migrating Charts to Harbor
+Using an automated script, all Helm chart dependencies are pulled at specific versions and pushed to the local Harbor OCI registry:
 ```bash
 helm pull hashicorp/vault --version 0.29.1
 helm push vault-0.29.1.tgz oci://harbor.frengky.xyz/helm-repos
-# (Dilakukan untuk seluruh chart seperti argo-cd, grafana, loki, kube-state-metrics, dll)
+# (Done for all charts such as argo-cd, grafana, loki, kube-state-metrics, etc.)
 ```
 
-### 2. Pendaftaran Secret Repository di ArgoCD
-Harbor harus didaftarkan di dalam namespace `argocd` sebagai *repository* berjenis `helm` (OCI). Rahasia ini memberitahu ArgoCD cara untuk masuk ke Harbor via HTTP internal:
+### 2. Registering the Repository Secret in ArgoCD
+Harbor must be registered inside the `argocd` namespace as a `helm` repository (OCI). This secret tells ArgoCD how to log in to Harbor via internal HTTP:
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -38,7 +38,7 @@ metadata:
     argocd.argoproj.io/secret-type: repository
 stringData:
   name: harbor-helm-repos
-  url: harbor-core.harbor.svc.cluster.local   # Menggunakan DNS Internal (bukan domain Cloudflare)
+  url: harbor-core.harbor.svc.cluster.local   # Uses Internal DNS (not the Cloudflare domain)
   type: helm
   enableOCI: "true"
   insecure: "true"
@@ -46,16 +46,16 @@ stringData:
   password: <harbor_password>
 ```
 
-### 3. Pembaruan Manifest GitOps (ArgoCD Application)
-Seluruh file manifest ArgoCD (seperti `k8s/clusters/production/applications/apps/monitoring/grafana.yaml`) telah di-_update_ sehingga blok `source` mengarah ke Harbor lokal dengan prefix `helm-repos/` untuk *chart name*-nya:
+### 3. Updating GitOps Manifests (ArgoCD Application)
+All ArgoCD manifest files (such as `k8s/clusters/production/applications/apps/monitoring/grafana.yaml`) have been updated so that the `source` block points to the local Harbor with the `helm-repos/` prefix for the chart name:
 ```yaml
 spec:
   source:
-    # SEBELUMNYA: repoURL: https://grafana.github.io/helm-charts (chart: grafana)
+    # PREVIOUSLY: repoURL: https://grafana.github.io/helm-charts (chart: grafana)
     repoURL: harbor-core.harbor.svc.cluster.local
     chart: helm-repos/grafana
     targetRevision: 8.10.4
 ```
 
-## Proses Sync
-Jika *sync* gagal di ArgoCD, komponen yang sedang berjalan di Kubernetes akan tetap aman (*tidak terganggu*). ArgoCD akan mencoba lagi dalam siklus sinkronisasi otomatis. Dengan konfigurasi Harbor internal ini, kemungkinan kegagalan karena masalah jaringan (konektivitas) sangatlah minimal.
+## Sync Process
+If a sync fails in ArgoCD, the components currently running in Kubernetes will remain safe (unaffected). ArgoCD will retry in the next automatic sync cycle. With this internal Harbor configuration, the likelihood of failure due to network (connectivity) issues is minimal.

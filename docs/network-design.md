@@ -1,10 +1,10 @@
-# Desain Jaringan k3s Cluster — frengky.xyz Homelab
+# k3s Cluster Network Design — frengky.xyz Homelab
 
-Dokumen ini menjelaskan arsitektur jaringan lengkap cluster k3s homelab, mencakup dua pola akses utama: **akses publik via Cloudflare Tunnel** dan **akses VPN-only via Tailscale**.
+This document describes the complete network architecture of the homelab k3s cluster, covering two main access patterns: **public access via Cloudflare Tunnel** and **VPN-only access via Tailscale**.
 
 ---
 
-## Gambaran Umum Infrastruktur
+## Infrastructure Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -57,11 +57,11 @@ Dokumen ini menjelaskan arsitektur jaringan lengkap cluster k3s homelab, mencaku
 
 ---
 
-## Pola Akses 1: VPN-Only via Tailscale (DNS-based restriction)
+## Access Pattern 1: VPN-Only via Tailscale (DNS-based restriction)
 
-Digunakan untuk apps internal/privat yang tidak boleh diakses dari internet.
+Used for internal/private apps that must not be accessible from the internet.
 
-**Apps yang menggunakan pola ini:**
+**Apps using this pattern:**
 - `bentopdf.frengky.xyz` — BentoPDF
 - `n8n.frengky.xyz` — N8N automation
 - `grafana.frengky.xyz` — Grafana monitoring
@@ -74,14 +74,14 @@ Digunakan untuk apps internal/privat yang tidak boleh diakses dari internet.
 - `mcp-bridge.frengky.xyz` — MCP Bridge
 - `rollouts.frengky.xyz` — Argo Rollouts dashboard
 
-### Alur Traffic VPN-Only
+### VPN-Only Traffic Flow
 
 ```
 User Device
   │
   ├─[Tailscale OFF]─→ nslookup bentopdf.frengky.xyz
   │                    → 100.120.133.63
-  │                    → ❌ Connection Refused (IP tidak reachable)
+  │                    → ❌ Connection Refused (IP not reachable)
   │
   └─[Tailscale ON]──→ nslookup bentopdf.frengky.xyz
                        → 100.120.133.63
@@ -92,17 +92,17 @@ User Device
                                   → Pod: bentopdf
 ```
 
-### Konfigurasi DNS di Cloudflare
+### DNS Configuration in Cloudflare
 
 ```
 Type: A
-Name: bentopdf (atau nama app lain)
+Name: bentopdf (or other app name)
 Content: 100.120.133.63
-Proxy: DNS Only (Gray Cloud) ← WAJIB
+Proxy: DNS Only (Gray Cloud) ← REQUIRED
 TTL: Auto
 ```
 
-### Konfigurasi Ingress (standard)
+### Ingress Configuration (standard)
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -127,14 +127,14 @@ spec:
 
 ---
 
-## Pola Akses 2: Public via Cloudflare Tunnel
+## Access Pattern 2: Public via Cloudflare Tunnel
 
-Digunakan untuk apps yang perlu diakses dari internet tanpa VPN.
+Used for apps that need to be accessible from the internet without a VPN.
 
-**Apps yang menggunakan pola ini:**
+**Apps using this pattern:**
 - `api.frengky.xyz` — Sample API (public endpoint)
 
-### Alur Traffic Public (Cloudflare Tunnel)
+### Public Traffic Flow (Cloudflare Tunnel)
 
 ```
 User Device (internet)
@@ -142,24 +142,24 @@ User Device (internet)
   └── api.frengky.xyz
        └── Cloudflare DNS: CNAME → <tunnel-id>.cfargotunnel.com
             └── Cloudflare Edge
-                 └── Encrypted Tunnel (outbound dari cluster)
+                 └── Encrypted Tunnel (outbound from cluster)
                       └── cloudflared pod (namespace: cloudflare)
                            └── http://traefik.kube-system.svc.cluster.local:80
                                 └── Traefik → Ingress rule: api.frengky.xyz
                                      └── Service: sample-api:80
 ```
 
-### Konfigurasi DNS di Cloudflare
+### DNS Configuration in Cloudflare
 
 ```
 Type: CNAME
 Name: api
 Content: <tunnel-id>.cfargotunnel.com
-Proxy: Proxied (Orange Cloud) ← untuk tunnel
+Proxy: Proxied (Orange Cloud) ← for tunnel
 TTL: Auto
 ```
 
-### Konfigurasi Tunnel di Cloudflare Zero Trust
+### Tunnel Configuration in Cloudflare Zero Trust
 
 ```
 Public Hostname: api.frengky.xyz
@@ -168,40 +168,40 @@ Service: http://traefik.kube-system.svc.cluster.local:80
 
 ---
 
-## Perbandingan Kedua Pola
+## Comparison of Both Patterns
 
-| Aspek | VPN-Only (Tailscale) | Public (Cloudflare Tunnel) |
+| Aspect | VPN-Only (Tailscale) | Public (Cloudflare Tunnel) |
 |-------|----------------------|---------------------------|
 | **DNS Record** | A → `100.120.133.63` | CNAME → cfargotunnel.com |
 | **Cloudflare Proxy** | DNS Only (Gray) | Proxied (Orange) |
-| **Siapa bisa akses** | Hanya user Tailscale | Semua orang |
+| **Who can access** | Tailscale users only | Everyone |
 | **SSL/TLS** | Traefik wildcard cert | Cloudflare SSL |
-| **Latensi** | Lebih rendah (direct) | Sedikit lebih tinggi (via CF) |
-| **DDoS protection** | Tidak | Ya (via Cloudflare) |
-| **Ingress config** | Standard Ingress | Standard Ingress (sama) |
-| **Middleware diperlukan** | Tidak | Tidak |
+| **Latency** | Lower (direct) | Slightly higher (via CF) |
+| **DDoS protection** | No | Yes (via Cloudflare) |
+| **Ingress config** | Standard Ingress | Standard Ingress (same) |
+| **Middleware required** | No | No |
 
 ---
 
 ## IP Address & Network Ranges
 
-| Range | Keterangan |
-|-------|------------|
-| `100.120.133.63` | Tailscale IP host `homelabs` |
-| `100.64.0.0/10` | Tailscale CGNAT range (semua devices) |
+| Range | Description |
+|-------|-------------|
+| `100.120.133.63` | Tailscale IP of host `homelabs` |
+| `100.64.0.0/10` | Tailscale CGNAT range (all devices) |
 | `10.42.0.0/16` | k3s pod network (internal) |
 | `10.43.0.0/16` | k3s service network (internal) |
-| `192.168.100.0/24` | LAN lokal homelab |
+| `192.168.100.0/24` | Homelab local LAN |
 | `173.245.48.0/20` + ranges | Cloudflare edge IP ranges |
 
 ---
 
 ## Tailscale Middleware (Optional Layer)
 
-Selain pembatasan via DNS, cluster juga punya Middleware `tailscale-whitelist` di namespace `traefik` yang bisa dipakai sebagai layer keamanan tambahan:
+In addition to DNS-based restriction, the cluster also has a `tailscale-whitelist` Middleware in the `traefik` namespace that can be used as an extra security layer:
 
 ```yaml
-# Middleware ini sudah ada di cluster (tidak perlu dibuat ulang)
+# This middleware already exists in the cluster (no need to recreate)
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -218,13 +218,13 @@ spec:
       - 10.42.0.0/16     # k3s pods
 ```
 
-Middleware ini tersedia di namespace: `traefik`, `argocd`, `harbor`, `monitoring`, `vault`.
+This middleware is available in the namespaces: `traefik`, `argocd`, `harbor`, `monitoring`, `vault`.
 
-> **Catatan:** Middleware ini tidak digunakan untuk BentoPDF karena pembatasan sudah cukup di level DNS (IP Tailscale tidak reachable dari internet). Middleware ini lebih relevan untuk skenario di mana host punya IP publik.
+> **Note:** This middleware is not used for BentoPDF because restriction at the DNS level (Tailscale IP not reachable from the internet) is sufficient. This middleware is more relevant for scenarios where the host has a public IP.
 
 ---
 
-## Diagram Namespace & Apps
+## Namespace & Apps Diagram
 
 ```
 k3s Cluster (homelabs)

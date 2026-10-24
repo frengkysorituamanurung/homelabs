@@ -15,7 +15,7 @@
 
 ---
 
-## Arsitektur & File GitOps
+## Architecture & GitOps Files
 
 ```
 gitops-repo/
@@ -25,14 +25,14 @@ gitops-repo/
 │   │       └── cloudnative-pg.yaml        # ArgoCD Application manifest
 │   └── production/
 │       └── cloudnative-pg/
-│           └── values.yaml                # Helm values untuk operator
+│           └── values.yaml                # Helm values for the operator
 └── docs/
-    └── cloudnative-pg-setup.md            # Dokumen ini
+    └── cloudnative-pg-setup.md            # This document
 ```
 
 ### App-of-Apps Pattern
 
-Cluster ini menggunakan pola **App-of-Apps** ArgoCD:
+This cluster uses the ArgoCD **App-of-Apps** pattern:
 
 ```
 root-app (argocd)
@@ -41,13 +41,13 @@ root-app (argocd)
               └── cloudnative-pg.yaml    ← Installs CNPG operator via Helm
 ```
 
-File `root-app.yaml` sudah dikonfigurasi dengan `directory.recurse: true`, sehingga begitu `cloudnative-pg.yaml` di-push ke Gitea, ArgoCD secara otomatis akan men-deploy operator.
+The `root-app.yaml` is already configured with `directory.recurse: true`, so once `cloudnative-pg.yaml` is pushed to Gitea, ArgoCD will automatically deploy the operator.
 
 ---
 
-## Instalasi
+## Installation
 
-### 1. File ArgoCD Application (`k8s/clusters/production/applications/infrastructure/cloudnative-pg.yaml`)
+### 1. ArgoCD Application File (`k8s/clusters/production/applications/infrastructure/cloudnative-pg.yaml`)
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -56,7 +56,7 @@ metadata:
   name: cloudnative-pg
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"   # Deploy setelah cert-manager
+    argocd.argoproj.io/sync-wave: "1"   # Deploy after cert-manager
 spec:
   project: default
   sources:
@@ -78,54 +78,54 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true    # Wajib untuk CRD management
+      - ServerSideApply=true    # Required for CRD management
 ```
 
-> **Catatan `sync-wave: "1"`**: Operator CNPG harus dipastikan running sebelum pembuatan `Cluster` resource (wave 2+). Cert-manager berada di wave 1 yang sama, namun biasanya sudah up lebih dulu.
+> **Note on `sync-wave: "1"`**: The CNPG operator must be confirmed running before creating any `Cluster` resource (wave 2+). Cert-manager is in the same wave 1, but is usually up earlier.
 
 ### 2. Helm Values (`infrastructure/cloudnative-pg/values.yaml`)
 
-Key configurations untuk homelab single-node:
-- `replicaCount: 1` — satu replica cukup untuk single-node
-- `crds.create: true` — CRD dikelola langsung oleh Helm chart
-- `config.clusterWide: true` — operator mengawasi semua namespace
-- `ServerSideApply=true` — diperlukan agar Helm dapat me-manage CRD dengan benar di Kubernetes 1.22+
+Key configurations for the single-node homelab:
+- `replicaCount: 1` — one replica is enough for single-node
+- `crds.create: true` — CRDs managed directly by the Helm chart
+- `config.clusterWide: true` — operator watches all namespaces
+- `ServerSideApply=true` — required so Helm can manage CRDs correctly on Kubernetes 1.22+
 
-### 3. Push ke Gitea & Sinkronisasi ArgoCD
+### 3. Push to Gitea & ArgoCD Sync
 
 ```bash
-# Di direktori gitops-repo
+# In the gitops-repo directory
 git add k8s/clusters/production/applications/infrastructure/cloudnative-pg.yaml
 git add infrastructure/cloudnative-pg/values.yaml
 git commit -m "feat: add CloudNativePG operator v1.30.0"
 git push gitea main
 ```
 
-ArgoCD akan otomatis mendeteksi perubahan dan men-sync aplikasi dalam ~3 menit, atau bisa di-trigger manual:
+ArgoCD will automatically detect the change and sync the app within ~3 minutes, or it can be triggered manually:
 
 ```bash
 argocd app sync cloudnative-pg
-# atau via kubectl
+# or via kubectl
 kubectl -n argocd patch application cloudnative-pg --type merge -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD"}}}'
 ```
 
-### 4. Verifikasi Instalasi Operator
+### 4. Verify Operator Installation
 
 ```bash
-# Cek status ArgoCD Application
+# Check ArgoCD Application status
 kubectl get application cloudnative-pg -n argocd
 
-# Cek pods operator di namespace cnpg-system
+# Check operator pods in the cnpg-system namespace
 kubectl get pods -n cnpg-system
 
-# Cek CRDs yang terdaftar
+# Check registered CRDs
 kubectl get crd | grep postgresql
 
-# Cek detail operator (nama deployment = Helm release name)
+# Check operator details (deployment name = Helm release name)
 kubectl describe deployment cloudnative-pg -n cnpg-system
 ```
 
-Output yang diharapkan:
+Expected output:
 ```
 NAME                        READY   STATUS    RESTARTS   AGE
 cnpg-controller-manager-x   1/1     Running   0          2m
@@ -143,27 +143,27 @@ subscriptions.postgresql.cnpg.io         ...
 
 ---
 
-## Membuat PostgreSQL Cluster (Contoh Penggunaan)
+## Creating a PostgreSQL Cluster (Usage Example)
 
-Setelah operator terinstall, kamu dapat membuat PostgreSQL cluster menggunakan CRD `Cluster`. Berikut contoh cluster minimal untuk development di homelab.
+Once the operator is installed, you can create a PostgreSQL cluster using the `Cluster` CRD. Below is a minimal cluster example for development in the homelab.
 
-### Contoh: Cluster Standalone (1 node, local-path storage)
+### Example: Standalone Cluster (1 node, local-path storage)
 
 ```yaml
-# Simpan sebagai: infrastructure/cloudnative-pg/example-cluster.yaml
+# Save as: infrastructure/cloudnative-pg/example-cluster.yaml
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: pg-cluster
   namespace: database
 spec:
-  # Jumlah instance (1 = standalone, 2+ = primary + standby)
+  # Number of instances (1 = standalone, 2+ = primary + standby)
   instances: 1
 
-  # Versi PostgreSQL
+  # PostgreSQL version
   imageName: ghcr.io/cloudnative-pg/postgresql:17.5
 
-  # Storage untuk data PostgreSQL
+  # Storage for PostgreSQL data
   storage:
     size: 5Gi
     storageClass: local-path
@@ -177,7 +177,7 @@ spec:
       cpu: 500m
       memory: 512Mi
 
-  # Bootstrap: inisialisasi database baru
+  # Bootstrap: initialize a new database
   bootstrap:
     initdb:
       database: myapp
@@ -185,15 +185,15 @@ spec:
       secret:
         name: pg-cluster-credentials
 
-  # PostgreSQL parameters tuning
+  # PostgreSQL parameter tuning
   postgresql:
     parameters:
       max_connections: "100"
       shared_buffers: "64MB"
-      log_min_duration_statement: "1000"  # log query > 1 detik
+      log_min_duration_statement: "1000"  # log queries > 1 second
 ```
 
-### Secret untuk credentials (buat sebelum deploy Cluster):
+### Secret for credentials (create before deploying the Cluster):
 
 ```bash
 kubectl create namespace database
@@ -204,25 +204,25 @@ kubectl create secret generic pg-cluster-credentials \
   --from-literal=password=SuperSecretPassword123!
 ```
 
-### Verifikasi Cluster:
+### Verify the Cluster:
 
 ```bash
 kubectl get cluster -n database
 kubectl get pods -n database
 kubectl get pvc -n database
 
-# Lihat status cluster detail
+# View detailed cluster status
 kubectl describe cluster pg-cluster -n database
 
-# Sambungkan ke primary instance via psql
+# Connect to the primary instance via psql
 kubectl exec -it pg-cluster-1 -n database -- psql -U myapp_user -d myapp
 ```
 
 ---
 
-## Contoh: Cluster High Availability (3 nodes)
+## Example: High Availability Cluster (3 nodes)
 
-> ⚠️ **Catatan**: Cluster ini adalah **single-node** (`homelabs`). Konfigurasi HA (3 instances) hanya relevan jika cluster dikembangkan menjadi multi-node di masa depan. Dengan single-node, semua instances akan berjalan pada node yang sama.
+> ⚠️ **Note**: This cluster is **single-node** (`homelabs`). The HA configuration (3 instances) is only relevant if the cluster is later expanded to multi-node. On a single node, all instances will run on the same node.
 
 ```yaml
 apiVersion: postgresql.cnpg.io/v1
@@ -254,18 +254,18 @@ spec:
       secret:
         name: pg-ha-credentials
 
-  # Connection pooling dengan PgBouncer
-  # (membutuhkan Pooler resource terpisah)
+  # Connection pooling with PgBouncer
+  # (requires a separate Pooler resource)
 
   monitoring:
-    enablePodMonitor: false   # set true jika Prometheus Operator tersedia
+    enablePodMonitor: false   # set true if Prometheus Operator is available
 ```
 
 ---
 
 ## Backup & Recovery
 
-### Scheduled Backup ke S3/MinIO (Opsional)
+### Scheduled Backup to S3/MinIO (Optional)
 
 ```yaml
 apiVersion: postgresql.cnpg.io/v1
@@ -274,13 +274,13 @@ metadata:
   name: pg-cluster-backup
   namespace: database
 spec:
-  schedule: "0 2 * * *"    # Setiap pukul 02:00
+  schedule: "0 2 * * *"    # Every day at 02:00
   backupOwnerReference: self
   cluster:
     name: pg-cluster
-  method: barmanObjectStore  # atau volumeSnapshot
+  method: barmanObjectStore  # or volumeSnapshot
 
-# Cluster harus dikonfigurasi dengan barmanObjectStore di spec.backup
+# The cluster must be configured with barmanObjectStore in spec.backup
 ```
 
 ### Point-in-Time Recovery (PITR)
@@ -298,39 +298,39 @@ spec:
 
   bootstrap:
     recovery:
-      source: pg-cluster      # Nama cluster sumber
+      source: pg-cluster      # Source cluster name
       recoveryTarget:
-        targetTime: "2026-08-01 12:00:00"  # PITR ke waktu tertentu
+        targetTime: "2026-08-01 12:00:00"  # PITR to a specific time
 
   externalClusters:
     - name: pg-cluster
       barmanObjectStore:
-        # ... konfigurasi S3/MinIO
+        # ... S3/MinIO configuration
 ```
 
 ---
 
-## Plugin kubectl-cnpg (Opsional tapi Direkomendasikan)
+## kubectl-cnpg Plugin (Optional but Recommended)
 
-Plugin CLI resmi untuk manajemen CNPG via kubectl:
+The official CNPG management CLI plugin for kubectl:
 
 ```bash
 # Install via krew
 kubectl krew install cnpg
 
-# Cek status cluster
+# Check cluster status
 kubectl cnpg status pg-cluster -n database
 
-# Promote standby menjadi primary (manual failover)
+# Promote a standby to primary (manual failover)
 kubectl cnpg promote pg-cluster pg-cluster-2 -n database
 
-# Lihat logs
+# View logs
 kubectl cnpg logs cluster pg-cluster -n database
 
-# Hibernate cluster (scale down ke 0)
+# Hibernate cluster (scale down to 0)
 kubectl cnpg hibernate on pg-cluster -n database
 
-# Wake up dari hibernate
+# Wake up from hibernate
 kubectl cnpg hibernate off pg-cluster -n database
 ```
 
@@ -338,55 +338,55 @@ kubectl cnpg hibernate off pg-cluster -n database
 
 ## Upgrade Operator
 
-Untuk upgrade versi operator, cukup update `targetRevision` di file ArgoCD Application:
+To upgrade the operator version, simply update `targetRevision` in the ArgoCD Application file:
 
 ```yaml
 # k8s/clusters/production/applications/infrastructure/cloudnative-pg.yaml
 sources:
   - repoURL: https://cloudnative-pg.github.io/charts
     chart: cloudnative-pg
-    targetRevision: "0.30.0"   # ← Update ke versi baru
+    targetRevision: "0.30.0"   # ← Update to the new version
 ```
 
-> **Peringatan**: Sebelum upgrade, selalu baca **Upgrade Notes** di [dokumentasi resmi](https://cloudnative-pg.io/documentation/1.30/installation_upgrade/) karena ada kalanya diperlukan langkah migrasi manual, terutama untuk minor version jump.
+> **Warning**: Before upgrading, always read the **Upgrade Notes** in the [official documentation](https://cloudnative-pg.io/documentation/1.30/installation_upgrade/) as manual migration steps may be required, especially for minor version jumps.
 
 ---
 
 ## Troubleshooting
 
-### Operator tidak sync di ArgoCD
+### Operator not syncing in ArgoCD
 
 ```bash
-# Cek events ArgoCD
+# Check ArgoCD events
 kubectl describe application cloudnative-pg -n argocd | tail -30
 
-# Cek logs ArgoCD application controller
+# Check ArgoCD application controller logs
 kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller --tail=50
 ```
 
-### CRD conflict saat sync
+### CRD conflict during sync
 
-Jika muncul error terkait CRD ownership:
+If an error occurs related to CRD ownership:
 ```bash
-# Force sync dengan replace
+# Force sync with replace
 argocd app sync cloudnative-pg --force
 ```
 
-Atau pastikan `ServerSideApply=true` sudah ada di syncOptions.
+Or make sure `ServerSideApply=true` is present in syncOptions.
 
-### Cluster stuck di "Setting up primary"
+### Cluster stuck in "Setting up primary"
 
 ```bash
 kubectl describe cluster pg-cluster -n database
 
-# Cek logs instance pertama
+# Check logs of the first instance
 kubectl logs pg-cluster-1 -n database -c postgres
 kubectl logs pg-cluster-1 -n database -c bootstrap-controller
 ```
 
-### Pod Cluster tidak bisa start (PVC pending)
+### Cluster Pod cannot start (PVC pending)
 
-Dengan `local-path`, PVC baru akan `Pending` sampai ada Pod yang dijadwalkan ke node (WaitForFirstConsumer). Ini **normal** pada local-path storage.
+With `local-path`, a new PVC will remain `Pending` until a Pod is scheduled to the node (WaitForFirstConsumer). This is **normal** for local-path storage.
 
 ```bash
 kubectl get pvc -n database
@@ -395,11 +395,11 @@ kubectl describe pvc pg-cluster-1 -n database
 
 ---
 
-## Referensi
+## References
 
 | Resource | URL |
 |----------|-----|
-| Dokumentasi Resmi | https://cloudnative-pg.io/documentation/1.30/ |
+| Official Documentation | https://cloudnative-pg.io/documentation/1.30/ |
 | GitHub | https://github.com/cloudnative-pg/cloudnative-pg |
 | Helm Chart | https://github.com/cloudnative-pg/charts |
 | ArtifactHub | https://artifacthub.io/packages/helm/cloudnative-pg/cloudnative-pg |

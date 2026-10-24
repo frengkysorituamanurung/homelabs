@@ -1,13 +1,13 @@
 # GitOps Repository — frengky.xyz Homelab
 
-Repository ini adalah **single source of truth** untuk seluruh workload yang berjalan di k3s cluster homelabs, di-manage oleh ArgoCD.
+This repository is the **single source of truth** for all workloads running in the k3s homelab cluster, managed by ArgoCD.
 
-## Arsitektur
+## Architecture
 
 ```
 GitHub (github.com/frengkysorituamanurung/homelabs)
-  └── Repository ini
-        └── ArgoCD watches → deploys ke k3s cluster
+  └── This repository
+        └── ArgoCD watches → deploys to k3s cluster
 ```
 
 - **Cluster**: k3s single-node (homelabs)
@@ -15,71 +15,73 @@ GitHub (github.com/frengkysorituamanurung/homelabs)
 - **StorageClass**: `local-path`
 - **Secrets**: HashiCorp Vault + External Secrets Operator
 
-## Struktur Folder
+## Folder Structure
 
 ```
 .
-├── k8s/clusters/production/applications/apps/                          # ArgoCD Application manifests
-│   ├── root-app.yaml              # App of Apps — entry point utama
-│   ├── monitoring/                # Grafana, Loki, Alloy, VictoriaMetrics, dll
-│   ├── cloudflare/                # Cloudflared tunnel daemon
-│   ├── infra/                     # ArgoCD, Harbor, Vault, ESO
-│   └── ingress/                   # Ingress rules per aplikasi
-├── charts/                        # Helm values files
-│   ├── monitoring/                # values per monitoring app
-│   └── infra/                     # argocd, harbor, vault values
-├── manifests/                     # Plain Kubernetes YAML (non-Helm)
+├── k8s/clusters/production/applications/   # ArgoCD Application manifests
+│   ├── root-app.yaml                      # App of Apps — main entry point
+│   ├── monitoring/                        # Grafana, Loki, Alloy, VictoriaMetrics, etc.
+│   ├── cloudflare/                        # Cloudflared tunnel daemon
+│   ├── infra/                             # ArgoCD, Harbor, Vault, ESO
+│   └── ingress/                           # Ingress rules per application
+├── charts/                                # Helm values files
+│   ├── monitoring/                        # values per monitoring app
+│   └── infra/                             # argocd, harbor, vault values
+├── manifests/                             # Plain Kubernetes YAML (non-Helm)
 │   ├── cloudflare/
 │   └── ingress/
-└── secrets/                       # ESO templates & Vault docs
-    ├── README.md
-    └── templates/                 # ExternalSecret CRD templates
+├── helm/                                  # Helm charts
+├── secrets/                               # ESO templates & Vault docs
+│   ├── README.md
+│   └── templates/                         # ExternalSecret CRD templates
+└── docs/                                  # Deployment documentation
 ```
 
-## Cara Kerja
+## How It Works
 
 ### App of Apps Pattern
 
-`k8s/clusters/production/applications/apps/root-app.yaml` adalah ArgoCD Application yang di-deploy **pertama kali secara manual**. Setelah itu, ia akan secara otomatis men-discover dan men-deploy semua Application lain di folder `k8s/clusters/production/applications/apps/**/*.yaml`.
+`k8s/clusters/production/applications/root-app.yaml` is the ArgoCD Application deployed **manually first**. After that, it automatically discovers and deploys every other Application in `k8s/clusters/production/applications/**/*.yaml`.
 
 ```bash
-# Deploy root-app pertama kali (bootstrap)
-kubectl apply -f k8s/clusters/production/applications/apps/root-app.yaml
+# Deploy root-app for the first time (bootstrap)
+kubectl apply -f k8s/clusters/production/applications/root-app.yaml
 ```
 
 ### Helm Chart Apps (sources pattern)
 
-Untuk aplikasi Helm, kami menggunakan pola **multi-source** (`sources`):
-- Source 1: Chart dari upstream Helm registry (Artifact Hub, dll)
-- Source 2: Repo GitOps ini (sebagai `ref: values`) untuk mengambil `values.yaml`
+For Helm applications we use the **multi-source** pattern (`sources`):
+- Source 1: Chart from an upstream Helm registry (Artifact Hub, etc.)
+- Source 2: This GitOps repo (as `ref: values`) to fetch `values.yaml`
 
-Ini memastikan values disimpan di Git, tapi chart selalu dari registry resmi.
+This keeps values in Git while charts always come from official registries.
 
 ### Plain Manifest Apps
 
-Untuk aplikasi non-Helm (Cloudflared, Ingress), ArgoCD langsung mem-point ke folder `manifests/` dengan tipe `Directory`.
+For non-Helm applications (Cloudflared, Ingress), ArgoCD points directly to the `manifests/` folder with type `Directory`.
 
-## Onboarding Aplikasi Baru
+## Onboarding a New Application
 
-1. Buat `values.yaml` di `charts/<kategori>/<nama-app>/values.yaml`
-2. Buat ArgoCD Application di `k8s/clusters/production/applications/apps/<kategori>/<nama-app>.yaml`
-3. Push ke GitHub → ArgoCD otomatis deploy
+1. Create `values.yaml` in `charts/<category>/<app-name>/values.yaml`
+2. Create an ArgoCD Application in `k8s/clusters/production/applications/<category>/<app-name>.yaml`
+3. Push to GitHub → ArgoCD deploys automatically
 
 ## Secret Management
 
-Secrets **tidak** disimpan di repo ini. Workflow:
+Secrets are **not** stored in this repository. Workflow:
 
-1. Simpan secret ke **Vault**: `vault kv put secret/<app> key=value`
-2. Buat **ExternalSecret** CR (gunakan template di `secrets/templates/`)
-3. ESO akan otomatis membuat Kubernetes Secret dari Vault
+1. Store the secret in **Vault**: `vault kv put secret/<app> key=value`
+2. Create an **ExternalSecret** CR (use the templates in `secrets/templates/`)
+3. ESO automatically creates the Kubernetes Secret from Vault
 
-Lihat [`secrets/README.md`](secrets/README.md) untuk panduan lengkap.
+See [`secrets/README.md`](secrets/README.md) for the full guide.
 
-Untuk pengelolaan sertifikat SSL/TLS otomatis via Tailscale, lihat [`docs/gitops-cert-manager.md`](docs/gitops-cert-manager.md).
+For automatic SSL/TLS certificate management via cert-manager, see [`docs/gitops-cert-manager.md`](docs/gitops-cert-manager.md).
 
-## Komponen yang Di-manage
+## Managed Components
 
-| Komponen | Namespace | Type | Chart Version |
+| Component | Namespace | Type | Chart Version |
 |---|---|---|---|
 | Traefik | kube-system | k3s native HelmChartConfig | - |
 | Grafana | monitoring | Helm | grafana/grafana ~8.x |
@@ -98,21 +100,9 @@ Untuk pengelolaan sertifikat SSL/TLS otomatis via Tailscale, lihat [`docs/gitops
 ## Useful Commands
 
 ```bash
-# Lihat semua ArgoCD apps
+# List all ArgoCD apps
 kubectl get applications -n argocd
 
-# Force sync satu app
+# Force sync one app
 argocd app sync grafana
-
-# Lihat status cluster
-kubectl get pods -A
-
-# Port-forward ArgoCD UI (sebelum ingress aktif)
-kubectl port-forward svc/argocd-server -n argocd 8080:443
-
-# Login ArgoCD CLI
-argocd login argocd.frengky.xyz --insecure
-
-# Vault: simpan secret
-kubectl exec -n vault vault-0 -- vault kv put secret/grafana adminUser=admin adminPassword=changeme123
 ```

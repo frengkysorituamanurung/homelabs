@@ -1,40 +1,40 @@
-# Dokumentasi Instalasi & Integrasi Qdrant (Vector Database untuk RAG)
+# Qdrant Installation & Integration Documentation (Vector Database for RAG)
 
-Dokumen ini menjelaskan instalasi, arsitektur deployment, dan integrasi untuk **Qdrant Vector Database** di cluster Kubernetes homelab `frengky.xyz`. Qdrant digunakan oleh **mcp-bridge** sebagai RAG backend untuk pencarian semantik (semantic search).
-
----
-
-## 🛠️ Ringkasan Arsitektur & Integrasi RAG
-
-Qdrant dideploy sebagai database single-node yang sangat efisien dan terintegrasi secara internal:
-
-1. **Penyimpanan Lokal**: Menggunakan persistent volume berbasis class `local-path` bawaan K3s sebesar `10Gi` untuk data vektor.
-2. **Cluster Mode Dinonaktifkan**: Karena berjalan pada single-node homelab, koordinasi Raft consensus dinonaktifkan (`cluster.enabled: false`) untuk menghemat resource CPU/RAM dan menghindari deadlock.
-3. **Konektivitas Internal & Ingress (Tailscale Only)**: Qdrant dideploy pada namespace yang sama dengan `mcp-bridge` (`backend`) dan dapat dihubungi via `http://qdrant:6333`. Untuk kebutuhan administrasi, dashboard Web UI diekspos melalui Traefik Ingress di domain `qdrant.frengky.xyz` (websecure) yang hanya bisa diakses saat terhubung ke VPN mesh **Tailscale**.
-4. **Offline-Ready & Mandiri**: Seluruh artefak Helm chart dan container image disimpan di dalam registry lokal Harbor (`harbor.frengky.xyz`) agar terhindar dari error network/limit IPv6 Docker Hub dan GitHub.
+This document describes the installation, deployment architecture, and integration for the **Qdrant Vector Database** in the `frengky.xyz` homelab Kubernetes cluster. Qdrant is used by **mcp-bridge** as a RAG backend for semantic search.
 
 ---
 
-## 📁 Struktur Manifest GitOps
+## 🛠️ Architecture Summary & RAG Integration
 
-File manifest disimpan di dalam repository GitOps (`gitops-repo`) dengan struktur berikut:
+Qdrant is deployed as a highly efficient single-node database and integrated internally:
+
+1. **Local Storage**: Uses a persistent volume based on the K3s built-in `local-path` storage class of `10Gi` for vector data.
+2. **Cluster Mode Disabled**: Since it runs on a single-node homelab, Raft consensus coordination is disabled (`cluster.enabled: false`) to save CPU/RAM resources and avoid deadlocks.
+3. **Internal Connectivity & Ingress (Tailscale Only)**: Qdrant is deployed in the same namespace as `mcp-bridge` (`backend`) and can be reached via `http://qdrant:6333`. For administration, the Web UI dashboard is exposed through Traefik Ingress at the domain `qdrant.frengky.xyz` (websecure), which is only accessible when connected to the **Tailscale** VPN mesh.
+4. **Offline-Ready & Self-Contained**: All Helm chart artifacts and container images are stored in the local Harbor registry (`harbor.frengky.xyz`) to avoid Docker Hub and GitHub network/IPv6 limit errors.
+
+---
+
+## 📁 GitOps Manifest Structure
+
+Manifest files are stored in the GitOps repository (`gitops-repo`) with the following structure:
 
 ```
 gitops-repo/
 ├── kubernetes/
 │   ├── applications/
 │   │   └── production/
-│   │       └── qdrant.yaml          # Definisi Aplikasi ArgoCD
+│   │       └── qdrant.yaml          # ArgoCD Application definition
 │   └── production/
 │       └── backend/
 │           └── qdrant/
-│               └── values.yaml      # File konfigurasi values Helm Qdrant
+│               └── values.yaml      # Qdrant Helm values configuration file
 └── docs/
-    └── qdrant-deployment.md         # Dokumen ini (Petunjuk Instalasi)
+    └── qdrant-deployment.md         # This document (Installation Instructions)
 ```
 
-### 1. Aplikasi ArgoCD (`k8s/clusters/production/applications/production/qdrant.yaml`)
-Menggunakan pattern **multi-source** ArgoCD untuk mengambil chart dari Harbor OCI Registry dan values dari gitops repository:
+### 1. ArgoCD Application (`k8s/clusters/production/applications/production/qdrant.yaml`)
+Uses the ArgoCD **multi-source** pattern to fetch the chart from the Harbor OCI Registry and values from the gitops repository:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -42,7 +42,7 @@ metadata:
   name: qdrant
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "3" # Dijalankan sebelum mcp-bridge (wave 5)
+    argocd.argoproj.io/sync-wave: "3" # Runs before mcp-bridge (wave 5)
 spec:
   project: default
   sources:
@@ -109,11 +109,11 @@ persistence:
 
 config:
   cluster:
-    enabled: false # Nonaktifkan multi-node raft
+    enabled: false # Disable multi-node raft
   service:
     enable_tls: false
 
-apiKey: false # Autentikasi internal dinonaktifkan demi kemudahan akses pod
+apiKey: false # Internal authentication disabled for pod access convenience
 readOnlyApiKey: false
 
 resources:
@@ -127,49 +127,49 @@ resources:
 
 ---
 
-## 🚀 Langkah Setup & Mirroring
+## 🚀 Setup & Mirroring Steps
 
-Apabila Anda ingin melakukan update atau instalasi ulang di kemudian hari, berikut perintah yang digunakan untuk setup mirroring:
+If you want to perform an update or reinstallation later, here are the commands used for setup mirroring:
 
-### 1. Mirroring Helm Chart ke Harbor
+### 1. Mirroring Helm Chart to Harbor
 ```bash
-# Tambahkan repo resmi Qdrant dan unduh chart
+# Add the official Qdrant repo and pull the chart
 helm repo add qdrant https://qdrant.to/helm
 helm repo update
 helm pull qdrant/qdrant --version 1.18.2
 
-# Login registry OCI Harbor
+# Login to Harbor OCI registry
 helm registry login harbor.frengky.xyz -u admin -p Harbor12345
 
-# Push Chart ke OCI repo
+# Push Chart to OCI repo
 helm push qdrant-1.18.2.tgz oci://harbor.frengky.xyz/helm-repos
 ```
 
-### 2. Mirroring Container Image ke Harbor
+### 2. Mirroring Container Image to Harbor
 ```bash
-# Pull image dari Docker Hub
+# Pull image from Docker Hub
 docker pull qdrant/qdrant:v1.18.2
 
-# Login ke docker registry
+# Login to docker registry
 echo "Harbor12345" | docker login -u admin --password-stdin harbor.frengky.xyz
 
-# Tag dan Push ke library Harbor
+# Tag and Push to Harbor library
 docker tag qdrant/qdrant:v1.18.2 harbor.frengky.xyz/library/qdrant:v1.18.2
 docker push harbor.frengky.xyz/library/qdrant:v1.18.2
 ```
 
 ---
 
-## 🔍 Pengujian Koneksi
+## 🔍 Connection Testing
 
-Guna memastikan mcp-bridge dapat berkomunikasi dengan database Qdrant di dalam cluster, lakukan pengujian berikut via `kubectl exec`:
+To ensure mcp-bridge can communicate with the Qdrant database inside the cluster, perform the following test via `kubectl exec`:
 
 ```bash
-# Lakukan query HTTP ke REST API Qdrant dari dalam pod mcp-bridge
+# Perform HTTP query to Qdrant REST API from inside the mcp-bridge pod
 kubectl exec -n backend <MCP-BRIDGE-POD-NAME> -- wget -qO- http://qdrant:6333
 ```
 
-**Respon Sukses yang Diharapkan:**
+**Expected Successful Response:**
 ```json
 {
   "title": "qdrant - vector search engine",
