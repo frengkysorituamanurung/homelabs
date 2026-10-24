@@ -2,7 +2,7 @@
 replicaCount: 1
 
 image:
-  repository: harbor.frengky.xyz/library/qdrant
+  repository: qdrant/qdrant
   tag: v1.20.0
   pullPolicy: IfNotPresent
 
