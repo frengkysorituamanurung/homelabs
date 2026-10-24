@@ -83,7 +83,7 @@ spec:
 ### 3. n8n Deployment (`k8s/clusters/production/applications/apps/production/n8n/deployment.yaml`)
 The n8n deployment uses the official image `n8nio/n8n:latest`. Pod security is tightened with a `securityContext` so it runs as user `1000` (node) to match permissions on the mounted folder `/home/node/.n8n`.
 ```yaml
-apiVersion: k8s/clusters/production/applications/apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: n8n
