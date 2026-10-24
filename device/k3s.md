@@ -31,8 +31,8 @@
 ## Networking
 
 - CNI: Flannel (VXLAN)
-- Pod CIDR: `10.42.0.0/24`
-- Service CIDR: `10.43.0.0/16`
+- Pod CIDR: `<POD_CIDR>`
+- Service CIDR: `<SERVICE_CIDR>`
 - MTU: 1400 (set for WSL2 compatibility)
 
 ## Storage

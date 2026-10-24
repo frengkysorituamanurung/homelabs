@@ -13,8 +13,8 @@ This folder documents the physical/virtual device, network, k3s cluster, and sec
 | CPU | Intel Core i7-10870H @ 2.20GHz (16 threads) |
 | Memory | ~15 GiB RAM + 4 GiB swap |
 | Disk | ~1 TB (`/dev/sdd`), ~9% used |
-| Primary IP (LAN) | `192.168.1.32/24` |
-| Tailscale IP | `100.120.133.63` |
+| Primary IP (LAN) | `<LAN_NODE_IP>/24` |
+| Tailscale IP | `<TAILSCALE_NODE_IP>` |
 | Kubernetes | k3s `v1.36.2+k3s1` |
 | Container runtime | containerd `2.3.2-k3s2` |
 
@@ -26,6 +26,6 @@ This folder documents the physical/virtual device, network, k3s cluster, and sec
 
 ## Access
 
-- SSH: `ssh kyykozeeks@100.120.177.76` (historical) or via Tailscale
+- SSH: `ssh <SSH_USER>@<SSH_ENDPOINT>` (historical) or via Tailscale
 - k3s kubeconfig: `/etc/rancher/k3s/k3s.yaml`
 - ArgoCD UI: `https://argocd.frengky.xyz` (via Tailscale/LAN)
