@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: harbor-registry-tls.harbor.svc.cluster.local
-    chart: helm-repos/kube-state-metrics
-    targetRevision: "5.30.0"
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-state-metrics
+    targetRevision: "8.6.0"
     helm:
       parameters:
         - name: tolerations[0].operator

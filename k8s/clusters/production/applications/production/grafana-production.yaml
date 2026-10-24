@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: harbor-registry-tls.harbor.svc.cluster.local
-      chart: helm-repos/grafana
-      targetRevision: "8.10.4"
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: grafana
+      targetRevision: "10.5.15"
       helm:
         valueFiles:
           - $values/infrastructure/grafana/values.yaml

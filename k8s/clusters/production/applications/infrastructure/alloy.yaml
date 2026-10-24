@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: harbor-registry-tls.harbor.svc.cluster.local
-      chart: helm-repos/alloy
-      targetRevision: "0.12.5"
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: alloy
+      targetRevision: "1.14.3"
       helm:
         valueFiles:
           - $values/infrastructure/alloy/values.yaml

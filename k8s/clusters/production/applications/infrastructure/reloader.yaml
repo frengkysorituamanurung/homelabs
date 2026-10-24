@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: harbor-registry-tls.harbor.svc.cluster.local
-    chart: helm-repos/reloader
-    targetRevision: "2.2.14"
+    repoURL: https://stakater.github.io/stakater-charts
+    chart: reloader
+    targetRevision: "2.2.18"
     helm:
       parameters:
         - name: reloader.deployment.image.name

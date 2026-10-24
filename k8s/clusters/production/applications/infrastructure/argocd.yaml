@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: harbor-registry-tls.harbor.svc.cluster.local
-      chart: helm-repos/argo-cd
-      targetRevision: "10.1.3"
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: "10.11.1"
       helm:
         valueFiles:
           - $values/infrastructure/argocd/values.yaml
