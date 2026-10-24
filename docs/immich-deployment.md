@@ -12,7 +12,7 @@
 
 - Flux CD Application: `k8s/clusters/production/applications/infrastructure/immich.yaml`
 - Helm values: `infrastructure/immich/values.yaml`
-- Vendored chart: `helm/charts/immich` (includes bjw-s common library 5.2.1)
+- Helm chart: `oci://ghcr.io/immich-app/immich-charts/immich` (Flux `HelmRepository` of type `oci`)
 - Manifests: `infrastructure/immich/manifests/`
   - `pvc.yaml`
   - `external-secret.yaml`
