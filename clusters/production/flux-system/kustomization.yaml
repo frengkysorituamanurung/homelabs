@@ -28,6 +28,7 @@ resources:
   - pilot-mcp-bridge.yaml
   - pilot-service-a.yaml
   - pilot-reloader.yaml
+  - pilot-glance.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
