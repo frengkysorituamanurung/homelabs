@@ -3,7 +3,7 @@ replicaCount: 1
 
 image:
   repository: harbor.frengky.xyz/frontend/hello-world
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: ""
 
 baseName: ""

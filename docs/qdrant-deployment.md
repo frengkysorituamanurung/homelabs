@@ -73,7 +73,7 @@ replicaCount: 1
 image:
   repository: harbor.frengky.xyz/library/qdrant
   tag: v1.18.2
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   type: ClusterIP

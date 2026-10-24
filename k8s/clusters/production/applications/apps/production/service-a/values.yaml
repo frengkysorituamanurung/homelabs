@@ -5,7 +5,7 @@ generic-app:
   image:
     repository: harbor.frengky.xyz/frontend/hello-world
     tag: "latest"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
 
   service:
     type: ClusterIP

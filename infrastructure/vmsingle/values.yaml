@@ -3,7 +3,7 @@ server:
     registry: docker.io
     repository: victoriametrics/victoria-metrics
     tag: "v1.154.0"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   retentionPeriod: 30d
   extraArgs:
     memory.allowedPercent: "40"

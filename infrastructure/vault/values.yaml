@@ -7,7 +7,7 @@ server:
   image:
     repository: "hashicorp/vault"
     tag: "2.0.4"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
 
   # Dev mode: untuk setup awal dan eksplorasi
   dev:

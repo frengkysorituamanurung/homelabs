@@ -7,7 +7,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/cloudnative-pg/cloudnative-pg
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Defaults to chart appVersion (v1.30.0)
   tag: "1.30.1"
 
