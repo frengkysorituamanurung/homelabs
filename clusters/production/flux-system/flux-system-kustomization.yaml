@@ -7,8 +7,8 @@ spec:
   interval: 10m
   path: ./clusters/production/flux-system
   prune: true
-  wait: true
+  wait: false
   sourceRef:
     kind: GitRepository
     name: homelabs
-  timeout: 5m
+  timeout: 10m
