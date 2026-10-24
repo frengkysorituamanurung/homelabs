@@ -30,7 +30,7 @@ alloy:
           url = "http://openobserve-router.openobserve.svc.cluster.local:5080/api/default/prometheus/api/v1/write"
           basic_auth {
             username = "admin@frengky.xyz"
-            password = "OpenObserve@123"
+            password = "REPLACE_WITH_OPENOBSERVE_PASSWORD"
           }
         }
       }

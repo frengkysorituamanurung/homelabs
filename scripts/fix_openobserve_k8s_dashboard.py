@@ -3,7 +3,7 @@ import urllib.request
 import base64
 
 url = "https://openobserve.frengky.xyz/api/default/dashboards"
-auth_header = "Basic " + base64.b64encode(b"admin@frengky.xyz:OpenObserve@123").decode()
+auth_header = "Basic " + base64.b64encode(b"admin@frengky.xyz:REPLACE_WITH_OPENOBSERVE_PASSWORD").decode()
 
 dashboard_payload = {
     "title": "Kubernetes / Namespace (Pods)",

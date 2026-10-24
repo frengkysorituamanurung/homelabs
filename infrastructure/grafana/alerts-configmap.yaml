@@ -15,7 +15,7 @@ data:
             type: telegram
             disableResolveMessage: false
             settings:
-              bottoken: "8950679283:AAFGTtMYZAln4U5ZJogwpVH68OriqrCmaX8"
+              bottoken: "REPLACE_WITH_TELEGRAM_BOT_TOKEN"
               chatid: "6170551940"
               parse_mode: "HTML"
               send_resolved: true

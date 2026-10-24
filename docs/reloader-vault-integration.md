@@ -118,7 +118,7 @@ To verify that the automation flow works perfectly:
 
 1. **Change the Secret Value in Vault**:
    ```bash
-   vault kv put secret/ci/credentials APP_VERSION="2.0.0" DB_PASSWORD="newpassword123"
+   vault kv put secret/ci/credentials APP_VERSION="2.0.0" DB_PASSWORD="REPLACE_WITH_DB_PASSWORD"
    ```
 
 2. **Check ExternalSecrets Sync**:

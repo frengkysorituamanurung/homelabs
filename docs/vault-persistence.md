@@ -22,14 +22,14 @@ Unlike Dev Mode, persistent Vault starts in a **Sealed** state upon pod restart.
 > Keep these keys secure. You need at least **3 out of 5** keys to unseal the Vault.
 
 ### Key Shares:
-1. `KNEAb8XPgLOOT/uonLRmekbVx8yOGbKE/Gn/oTKekU1o`
-2. `lOvbFobFKOa3U40K+/4ejS22hO3zdZAAoNN7/NtKYm3e`
-3. `uZFyw9hzdrN5TFkOXw5V8kLlw8hZmFMElXYlNkK0CShH`
-4. `JXre7pBHSw6bPmQ5fWHhw++28jnE2G+syhbAP+QFJ54G`
-5. `e6t6BSA/KuPmW2+EpeV7Eaz6oyq2Gm95f+4v6MwxEKPK`
+1. `REPLACE_WITH_UNSEAL_KEY`
+2. `REPLACE_WITH_UNSEAL_KEY`
+3. `REPLACE_WITH_UNSEAL_KEY`
+4. `REPLACE_WITH_UNSEAL_KEY`
+5. `REPLACE_WITH_UNSEAL_KEY`
 
 ### Active Root Token:
-- `hvs.4RzbJ8wDxCb2iPJnogZ9PZXa`
+- `REPLACE_WITH_VAULT_ROOT_TOKEN`
 
 ---
 
@@ -41,9 +41,9 @@ If the Vault pod restarts, its readiness probe will fail and it will show `0/1 R
 To unseal, run the following commands sequentially and provide 3 different unseal keys when prompted (or pass them directly):
 
 ```bash
-kubectl exec -n vault -it vault-0 -- vault operator unseal KNEAb8XPgLOOT/uonLRmekbVx8yOGbKE/Gn/oTKekU1o
-kubectl exec -n vault -it vault-0 -- vault operator unseal lOvbFobFKOa3U40K+/4ejS22hO3zdZAAoNN7/NtKYm3e
-kubectl exec -n vault -it vault-0 -- vault operator unseal uZFyw9hzdrN5TFkOXw5V8kLlw8hZmFMElXYlNkK0CShH
+kubectl exec -n vault -it vault-0 -- vault operator unseal REPLACE_WITH_UNSEAL_KEY
+kubectl exec -n vault -it vault-0 -- vault operator unseal REPLACE_WITH_UNSEAL_KEY
+kubectl exec -n vault -it vault-0 -- vault operator unseal REPLACE_WITH_UNSEAL_KEY
 ```
 
 Once `Sealed` changes to `false`, the pod will become healthy and ready.

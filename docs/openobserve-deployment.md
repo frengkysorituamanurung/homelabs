@@ -260,7 +260,7 @@ OpenObserve runs in **Local Mode** (`ZO_LOCAL_MODE: "true"`), suitable for singl
 
 ```bash
 # Send log via HTTP API (Basic Auth)
-curl -u "admin@frengky.xyz:OpenObserve@123" \
+curl -u "admin@frengky.xyz:REPLACE_WITH_OPENOBSERVE_PASSWORD" \
   -H "Content-Type: application/json" \
   -d '[{"level":"info","job":"test","log":"Hello OpenObserve!"}]' \
   https://openobserve.frengky.xyz/api/default/default/_json
@@ -293,7 +293,7 @@ remote_write:
   - url: https://openobserve.frengky.xyz/api/default/prometheus/api/v1/write
     basic_auth:
       username: admin@frengky.xyz
-      password: OpenObserve@123
+      password: REPLACE_WITH_OPENOBSERVE_PASSWORD
 ```
 
 ### Ingest Traces (OpenTelemetry)
@@ -334,7 +334,7 @@ kubectl get ingress -n openobserve
 curl -s https://openobserve.frengky.xyz/healthz
 
 # Login test
-curl -u "admin@frengky.xyz:OpenObserve@123" \
+curl -u "admin@frengky.xyz:REPLACE_WITH_OPENOBSERVE_PASSWORD" \
   https://openobserve.frengky.xyz/api/default/streams
 ```
 
