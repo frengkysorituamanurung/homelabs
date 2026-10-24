@@ -1,46 +1,46 @@
-generic-app:
-  baseNamespace: backend
-  baseName: sample-api
-  environment: production
-  refreshInterval: "10s"
-  replicaCount: 1
-  resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
-      cpu: 50m
-      memory: 64Mi
-  image:
-    repository: harbor.frengky.xyz/backend/sample-api
-    tag: "5f9d9c5"
-    pullPolicy: Always
-  service:
-    enabled: true
-    type: ClusterIP
-    ports:
-      - name: http
-        port: 8080
-  ingress:
-    enabled: true
-    stripPath: false
-    hosts:
-      - host: api.frengky.xyz
-        path: /
-        port: 8080
-  deploymentStrategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1     # Membuat 1 pod baru terlebih dahulu sebelum menghapus pod lama
-      maxUnavailable: 0
-  healthCheck:
-    enabled: true
-    endpoint: /
-    port: 8080
-    # type: Canary
-    # canary:
-    #   steps:
-    #     - setWeight: 20
-    #     - pause: {}
-    #     - setWeight: 50
-    #     - pause: { duration: 10s }
+# generic-app:
+#   baseNamespace: backend
+#   baseName: sample-api
+#   environment: production
+#   refreshInterval: "10s"
+#   replicaCount: 1
+#   resources:
+#     limits:
+#       cpu: 200m
+#       memory: 256Mi
+#     requests:
+#       cpu: 50m
+#       memory: 64Mi
+#   image:
+#     repository: harbor.frengky.xyz/backend/sample-api
+#     tag: "5f9d9c5"
+#     pullPolicy: Always
+#   service:
+#     enabled: true
+#     type: ClusterIP
+#     ports:
+#       - name: http
+#         port: 8080
+#   ingress:
+#     enabled: true
+#     stripPath: false
+#     hosts:
+#       - host: api.frengky.xyz
+#         path: /
+#         port: 8080
+#   deploymentStrategy:
+#     type: RollingUpdate
+#     rollingUpdate:
+#       maxSurge: 1     # Membuat 1 pod baru terlebih dahulu sebelum menghapus pod lama
+#       maxUnavailable: 0
+#   healthCheck:
+#     enabled: true
+#     endpoint: /
+#     port: 8080
+#     # type: Canary
+#     # canary:
+#     #   steps:
+#     #     - setWeight: 20
+#     #     - pause: {}
+#     #     - setWeight: 50
+#     #     - pause: { duration: 10s }
