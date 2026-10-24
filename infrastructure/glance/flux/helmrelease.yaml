@@ -28,7 +28,7 @@ spec:
       baseName: glance
       environment: production
       refreshInterval: "10s"
-      hostNetwork: true
+      hostNetwork: false
       dnsPolicy: ClusterFirstWithHostNet
       image:
         repository: glanceapp/glance
