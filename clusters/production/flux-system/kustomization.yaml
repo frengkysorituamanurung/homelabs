@@ -6,3 +6,9 @@ resources:
   - flux-system-kustomization.yaml
   - pilot-cloudflared.yaml
   - pilot-kube-state-metrics.yaml
+patches:
+  - path: source-controller-hostnetwork.yaml
+    target:
+      kind: Deployment
+      name: source-controller
+      namespace: flux-system
