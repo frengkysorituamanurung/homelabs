@@ -1,0 +1,67 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cloudnative-pg
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: cloudnative-pg
+      version: "0.29.1"
+      sourceRef:
+        kind: HelmRepository
+        name: cloudnative-pg
+        namespace: flux-system
+  releaseName: cloudnative-pg
+  targetNamespace: cnpg-system
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    replicaCount: 1
+    image:
+      repository: ghcr.io/cloudnative-pg/cloudnative-pg
+      pullPolicy: Always
+      tag: "1.30.1"
+    crds:
+      create: true
+    config:
+      create: true
+      name: cnpg-controller-manager-config
+      secret: false
+      clusterWide: true
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    tolerations: []
+    affinity: {}
+    nodeSelector: {}
+    monitoring:
+      podMonitorEnabled: false
+      grafanaDashboard:
+        create: false
+    webhook:
+      port: 9443
+      mutating:
+        create: true
+        failurePolicy: Fail
+      validating:
+        create: true
+        failurePolicy: Fail
+      livenessProbe:
+        initialDelaySeconds: 3
+      readinessProbe:
+        initialDelaySeconds: 3
+      startupProbe:
+        failureThreshold: 6
+        periodSeconds: 5
+    priorityClassName: ""

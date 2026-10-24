@@ -11,6 +11,7 @@ resources:
   - pilot-external-secrets.yaml
   - pilot-cert-manager.yaml
   - batch-plain-manifests.yaml
+  - pilot-cloudnative-pg.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
