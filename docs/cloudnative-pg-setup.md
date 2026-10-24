@@ -36,7 +36,7 @@ Cluster ini menggunakan pola **App-of-Apps** ArgoCD:
 
 ```
 root-app (argocd)
-  └── kubernetes/applications/           ← ArgoCD recursively picks up all .yaml
+  └── argocd/applications/           ← ArgoCD recursively picks up all .yaml
         └── infrastructure/
               └── cloudnative-pg.yaml    ← Installs CNPG operator via Helm
 ```
@@ -47,7 +47,7 @@ File `root-app.yaml` sudah dikonfigurasi dengan `directory.recurse: true`, sehin
 
 ## Instalasi
 
-### 1. File ArgoCD Application (`kubernetes/applications/infrastructure/cloudnative-pg.yaml`)
+### 1. File ArgoCD Application (`argocd/applications/infrastructure/cloudnative-pg.yaml`)
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -65,7 +65,7 @@ spec:
       targetRevision: "0.29.0"
       helm:
         valueFiles:
-          - $values/kubernetes/production/cloudnative-pg/values.yaml
+          - $values/infrastructure/cloudnative-pg/values.yaml
     - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
       targetRevision: main
       ref: values
@@ -83,7 +83,7 @@ spec:
 
 > **Catatan `sync-wave: "1"`**: Operator CNPG harus dipastikan running sebelum pembuatan `Cluster` resource (wave 2+). Cert-manager berada di wave 1 yang sama, namun biasanya sudah up lebih dulu.
 
-### 2. Helm Values (`kubernetes/production/cloudnative-pg/values.yaml`)
+### 2. Helm Values (`infrastructure/cloudnative-pg/values.yaml`)
 
 Key configurations untuk homelab single-node:
 - `replicaCount: 1` — satu replica cukup untuk single-node
@@ -95,8 +95,8 @@ Key configurations untuk homelab single-node:
 
 ```bash
 # Di direktori gitops-repo
-git add kubernetes/applications/infrastructure/cloudnative-pg.yaml
-git add kubernetes/production/cloudnative-pg/values.yaml
+git add argocd/applications/infrastructure/cloudnative-pg.yaml
+git add infrastructure/cloudnative-pg/values.yaml
 git commit -m "feat: add CloudNativePG operator v1.30.0"
 git push gitea main
 ```
@@ -150,7 +150,7 @@ Setelah operator terinstall, kamu dapat membuat PostgreSQL cluster menggunakan C
 ### Contoh: Cluster Standalone (1 node, local-path storage)
 
 ```yaml
-# Simpan sebagai: kubernetes/production/cloudnative-pg/example-cluster.yaml
+# Simpan sebagai: infrastructure/cloudnative-pg/example-cluster.yaml
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -341,7 +341,7 @@ kubectl cnpg hibernate off pg-cluster -n database
 Untuk upgrade versi operator, cukup update `targetRevision` di file ArgoCD Application:
 
 ```yaml
-# kubernetes/applications/infrastructure/cloudnative-pg.yaml
+# argocd/applications/infrastructure/cloudnative-pg.yaml
 sources:
   - repoURL: https://cloudnative-pg.github.io/charts
     chart: cloudnative-pg

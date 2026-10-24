@@ -40,8 +40,8 @@ declare -A TO_SYNC_APPS
 declare -A PATH_TO_APP_NAME
 declare -A VALUE_FILE_TO_APP_NAME
 
-# Pre-build mapping dari seluruh file Application YAML di kubernetes/applications/
-for app_file in $(find "${REPO_ROOT}/kubernetes/applications" -type f -name "*.yaml"); do
+# Pre-build mapping dari seluruh file Application YAML di argocd/applications/
+for app_file in $(find "${REPO_ROOT}/argocd/applications" -type f -name "*.yaml"); do
     APP_NAME=$(grep -E "^\s*name:" "$app_file" | head -n 1 | awk '{print $2}')
     APP_PATH=$(grep -E "^\s*path:" "$app_file" | head -n 1 | awk '{print $2}')
     
@@ -75,7 +75,7 @@ for file in $CHANGED_FILES; do
         fi
     done
     
-    # 2. Matching dengan valueFiles (misal $values/kubernetes/production/harbor/values.yaml)
+    # 2. Matching dengan valueFiles (misal $values/infrastructure/harbor/values.yaml)
     if [ "$MATCHED" = false ]; then
         for vf in "${!VALUE_FILE_TO_APP_NAME[@]}"; do
             if [[ "$file" == "$vf" ]]; then
@@ -88,11 +88,11 @@ for file in $CHANGED_FILES; do
         done
     fi
 
-    # 3. Fallback Heuristic untuk struktur bertingkat (misal kubernetes/production/backend/sample-api/values.yaml)
+    # 3. Fallback Heuristic untuk struktur bertingkat (misal apps/production/backend/sample-api/values.yaml)
     if [ "$MATCHED" = false ]; then
-        if [[ $file =~ ^kubernetes/(production|staging|development)/([^/]+)/([^/]+)/ ]]; then
+        if [[ $file =~ ^apps/(production|staging|development)/([^/]+)/([^/]+)/ ]] || [[ $file =~ ^infrastructure/([^/]+)/([^/]+)/ ]]; then
             DIR_NAME="${BASH_REMATCH[3]}"
-            MATCHED_FILE=$(find "${REPO_ROOT}/kubernetes/applications" -type f -name "*${DIR_NAME}*.yaml" | head -n 1)
+            MATCHED_FILE=$(find "${REPO_ROOT}/argocd/applications" -type f -name "*${DIR_NAME}*.yaml" | head -n 1)
             if [ -n "$MATCHED_FILE" ]; then
                 APP_NAME=$(grep -E "^\s*name:" "$MATCHED_FILE" | head -n 1 | awk '{print $2}')
                 if [ -n "$APP_NAME" ]; then
@@ -101,9 +101,9 @@ for file in $CHANGED_FILES; do
                     echo "Match file '$file' -> App: $APP_NAME (via fallback sub-directory '$DIR_NAME')"
                 fi
             fi
-        elif [[ $file =~ ^kubernetes/(production|staging|development)/([^/]+)/ ]]; then
+        elif [[ $file =~ ^apps/(production|staging|development)/([^/]+)/ ]] || [[ $file =~ ^infrastructure/([^/]+)/ ]]; then
             DIR_NAME="${BASH_REMATCH[2]}"
-            MATCHED_FILE=$(find "${REPO_ROOT}/kubernetes/applications" -type f -name "*${DIR_NAME}*.yaml" | head -n 1)
+            MATCHED_FILE=$(find "${REPO_ROOT}/argocd/applications" -type f -name "*${DIR_NAME}*.yaml" | head -n 1)
             if [ -n "$MATCHED_FILE" ]; then
                 APP_NAME=$(grep -E "^\s*name:" "$MATCHED_FILE" | head -n 1 | awk '{print $2}')
                 if [ -n "$APP_NAME" ]; then

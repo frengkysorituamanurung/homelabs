@@ -33,7 +33,7 @@ gitops-repo/
     └── qdrant-deployment.md         # Dokumen ini (Petunjuk Instalasi)
 ```
 
-### 1. Aplikasi ArgoCD (`kubernetes/applications/production/qdrant.yaml`)
+### 1. Aplikasi ArgoCD (`argocd/applications/production/qdrant.yaml`)
 Menggunakan pattern **multi-source** ArgoCD untuk mengambil chart dari Harbor OCI Registry dan values dari gitops repository:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -51,7 +51,7 @@ spec:
       targetRevision: "1.18.2"
       helm:
         valueFiles:
-          - $values/kubernetes/production/backend/qdrant/values.yaml
+          - $values/apps/production/backend/qdrant/values.yaml
     - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
       targetRevision: main
       ref: values
@@ -66,7 +66,7 @@ spec:
       - CreateNamespace=true
 ```
 
-### 2. Helm Values (`kubernetes/production/backend/qdrant/values.yaml`)
+### 2. Helm Values (`apps/production/backend/qdrant/values.yaml`)
 ```yaml
 replicaCount: 1
 

@@ -54,7 +54,7 @@ spec:
   project: default
   source:
     repoURL: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
-    path: kubernetes/production/frontend/bentopdf
+    path: apps/production/frontend/bentopdf
     targetRevision: main
   destination:
     server: https://kubernetes.default.svc

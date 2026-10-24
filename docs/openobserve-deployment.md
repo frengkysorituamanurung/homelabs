@@ -87,7 +87,7 @@ gitops-repo/
 
 ## 📄 Detail Manifest
 
-### 1. ArgoCD Application (`kubernetes/applications/infrastructure/openobserve.yaml`)
+### 1. ArgoCD Application (`argocd/applications/infrastructure/openobserve.yaml`)
 
 ArgoCD mengelola deployment ini menggunakan Helm chart dari Harbor OCI registry:
 
@@ -107,7 +107,7 @@ spec:
       targetRevision: "0.91.2"
       helm:
         valueFiles:
-          - $values/kubernetes/production/openobserve/values.yaml
+          - $values/infrastructure/openobserve/values.yaml
     - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
       targetRevision: main
       ref: values
@@ -122,7 +122,7 @@ spec:
       - CreateNamespace=true
 ```
 
-### 2. Helm Values (`kubernetes/production/openobserve/values.yaml`)
+### 2. Helm Values (`infrastructure/openobserve/values.yaml`)
 
 Konfigurasi utama deployment mencakup:
 - **Mode**: `ZO_LOCAL_MODE: "true"` — single-node tanpa clustering
@@ -365,7 +365,7 @@ Untuk mengupgrade versi OpenObserve:
 
 2. **Update targetRevision di ArgoCD Application:**
    ```yaml
-   # kubernetes/applications/infrastructure/openobserve.yaml
+   # argocd/applications/infrastructure/openobserve.yaml
    targetRevision: "<VERSI_BARU>"
    ```
 
@@ -377,8 +377,8 @@ Untuk mengupgrade versi OpenObserve:
 
 | File | Fungsi |
 |------|--------|
-| `kubernetes/applications/infrastructure/openobserve.yaml` | ArgoCD Application manifest |
-| `kubernetes/production/openobserve/values.yaml` | Helm chart values |
+| `argocd/applications/infrastructure/openobserve.yaml` | ArgoCD Application manifest |
+| `infrastructure/openobserve/values.yaml` | Helm chart values |
 | `secrets/templates/openobserve-secret.yaml` | ExternalSecret (Vault → K8s Secret) |
 | `docs/openobserve-deployment.md` | Dokumen ini |
 | `docs/reloader-vault-integration.md` | Panduan Vault + ESO + Reloader |

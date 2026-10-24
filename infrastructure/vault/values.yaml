@@ -1,0 +1,62 @@
+# Vault Helm values
+# PERHATIAN: Dev mode HANYA untuk setup awal!
+# Dev mode menyimpan semua data di memory - data HILANG jika pod restart!
+# Setelah setup selesai, migrate ke production mode dengan HA storage.
+
+server:
+  # Dev mode: untuk setup awal dan eksplorasi
+  dev:
+    enabled: false
+    devRootToken: "root"  # Root token - GANTI SETELAH PRODUCTION!
+
+  # Ingress dikelola manual di infrastructure/ingress/
+  ingress:
+    enabled: false
+
+  # Storage config (digunakan di production mode)
+  dataStorage:
+    enabled: true
+    size: 5Gi
+    storageClass: local-path
+    accessMode: ReadWriteOnce
+
+  # Nonaktifkan HA untuk single-node
+  ha:
+    enabled: false
+
+  # Standalone mode
+  standalone:
+    enabled: true
+    config: |
+      ui = true
+
+      listener "tcp" {
+        tls_disable = 1
+        address     = "[::]:8200"
+        cluster_address = "[::]:8201"
+      }
+
+      storage "file" {
+        path = "/vault/data"
+      }
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Nonaktifkan injector (belum dibutuhkan, pakai ESO saja)
+injector:
+  enabled: false
+
+# UI aktifkan
+ui:
+  enabled: true
+  serviceType: ClusterIP
+
+# Agent sidecar - nonaktifkan, pakai ESO
+csi:
+  enabled: false

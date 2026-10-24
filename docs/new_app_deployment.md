@@ -145,7 +145,7 @@ jobs:
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
         run: |
           chmod +x ./deployment-tools/scripts/build-and-deploy.sh
-          ./deployment-tools/scripts/build-and-deploy.sh "sample-api" "harbor.frengky.xyz/backend/sample-api" "kubernetes/production/backend/sample-api/values.yaml"
+          ./deployment-tools/scripts/build-and-deploy.sh "sample-api" "harbor.frengky.xyz/backend/sample-api" "apps/production/backend/sample-api/values.yaml"
 ```
  
 ### 4. Push Kode ke Gitea
@@ -164,7 +164,7 @@ git push -u origin main
  
 Tambahkan manifest dan values di repositori `devops/gitops` Anda.
  
-### 1. File `kubernetes/production/backend/sample-api/Chart.yaml`
+### 1. File `apps/production/backend/sample-api/Chart.yaml`
 ```yaml
 apiVersion: v2
 name: sample-api
@@ -176,7 +176,7 @@ dependencies:
     repository: oci://harbor.frengky.xyz/helm-repos
 ```
  
-### 2. File `kubernetes/production/backend/sample-api/values.yaml`
+### 2. File `apps/production/backend/sample-api/values.yaml`
 ```yaml
 generic-app:
   baseNamespace: backend
@@ -201,7 +201,7 @@ generic-app:
         port: 8080
 ```
  
-### 3. File `kubernetes/applications/production/sample-api.yaml`
+### 3. File `argocd/applications/production/sample-api.yaml`
 Daftarkan ke ArgoCD via pola *App of Apps*:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -215,7 +215,7 @@ spec:
   project: default
   source:
     repoURL: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
-    path: kubernetes/production/backend/sample-api
+    path: apps/production/backend/sample-api
     targetRevision: main
   destination:
     server: https://kubernetes.default.svc
@@ -265,7 +265,7 @@ kubectl exec -n vault vault-0 -- env VAULT_TOKEN=root \
  
 Buat berkas konfigurasi Helm values dan aplikasi ArgoCD untuk n8n di repositori `devops/gitops` Anda.
  
-#### A. File `kubernetes/production/tools/n8n/Chart.yaml`
+#### A. File `apps/production/tools/n8n/Chart.yaml`
 ```yaml
 apiVersion: v2
 name: n8n
@@ -277,7 +277,7 @@ dependencies:
     repository: oci://harbor.frengky.xyz/helm-repos
 ```
  
-#### B. File `kubernetes/production/tools/n8n/values.yaml`
+#### B. File `apps/production/tools/n8n/values.yaml`
 ```yaml
 generic-app:
   baseNamespace: tools
@@ -309,7 +309,7 @@ generic-app:
       memory: 512Mi
 ```
  
-#### C. File `kubernetes/applications/production/n8n.yaml` (ArgoCD Application)
+#### C. File `argocd/applications/production/n8n.yaml` (ArgoCD Application)
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -322,7 +322,7 @@ spec:
   project: default
   source:
     repoURL: http://gitea-http.gitea.svc.cluster.local:3000/devops/gitops.git
-    path: kubernetes/production/tools/n8n
+    path: apps/production/tools/n8n
     targetRevision: main
   destination:
     server: https://kubernetes.default.svc

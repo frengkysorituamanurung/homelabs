@@ -48,7 +48,7 @@ Semua komponen Reloader disimpan dan dikelola secara mandiri melalui **Harbor (P
 * **Container Image**: `harbor.frengky.xyz/library/reloader:v1.4.19`
 * **Helm Chart OCI**: `oci://harbor.frengky.xyz/helm-repos/reloader:2.2.14`
 
-### 2. ArgoCD Application Manifest (`kubernetes/applications/infrastructure/reloader.yaml`)
+### 2. ArgoCD Application Manifest (`argocd/applications/infrastructure/reloader.yaml`)
 Reloader didaftarkan ke pola GitOps ArgoCD dengan manifest berikut:
 
 ```yaml
@@ -147,6 +147,6 @@ Untuk memverifikasi bahwa alur otomatisasi berfungsi dengan sempurna:
 
 | File | Fungsi |
 | :--- | :--- |
-| `kubernetes/applications/infrastructure/reloader.yaml` | Manifest ArgoCD Application untuk Reloader |
+| `argocd/applications/infrastructure/reloader.yaml` | Manifest ArgoCD Application untuk Reloader |
 | `helm-charts/charts/generic-app/templates/deployment.yaml` | Template Helm Chart mikroservis yang mendukung Reloader |
 | `docs/reloader-vault-integration.md` | Dokumentasi arsitektur dan panduan setup ini |

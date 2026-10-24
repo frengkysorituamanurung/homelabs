@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  sources:
+    - repoURL: harbor-registry-tls.harbor.svc.cluster.local
+      chart: helm-repos/loki
+      targetRevision: "6.30.1"
+      helm:
+        valueFiles:
+          - $values/infrastructure/loki/values.yaml
+    - repoURL: https://github.com/frengkysorituamanurung/homelabs.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

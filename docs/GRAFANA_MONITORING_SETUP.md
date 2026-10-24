@@ -17,19 +17,19 @@ Monitoring cluster ini didukung oleh stack observabilitas modern:
 ## 📂 2. Katalog Dashboard Monitoring
 
 Seluruh file JSON dashboard disimpan di dalam repository GitOps pada direktori:
-`kubernetes/production/grafana/dashboards/`
+`apps/production/grafana/dashboards/`
 
 | File Dashboard | Name & Purpose | Datasource | Key Metrics & Features |
 | :--- | :--- | :--- | :--- |
-| [`cluster-overview.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/cluster-overview.json) | **Cluster & Node Performance Command Center** | `VictoriaMetrics` | Node CPU/RAM/Swap, Top 10 Pod Consumers (Memory & CPU), Network Traffic In/Out (Bps), Disk Throughput (Read/Write). |
-| [`k8s-workloads-health.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/k8s-workloads-health.json) | **Kubernetes Workloads & Pod Health** | `VictoriaMetrics` | Pod Running/Pending/Failed count, Container Restarts (24h tracker), Pod Memory/CPU vs Request vs Limits, PVC Disk Storage % Gauge. |
-| [`loki-logs-explorer.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/loki-logs-explorer.json) | **Centralized Log Explorer & Error Tracker** | `Loki` | Log Ingestion Rate (lines/sec), Error Log Rate (errors/min), Warning Log Rate, Top Error-generating Pods, Real-time Live Log Console. |
-| [`devops-services-overview.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/devops-services-overview.json) | **DevOps Platform Services Overview** | `VictoriaMetrics` | Monitoring footprint & performansi tool DevOps: **ArgoCD**, **Gitea & Runners**, **Harbor Registry**, **Vault**, dan **n8n**. |
-| [`internet-network-connectivity.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/internet-network-connectivity.json) | **Internet Speed & Network Connectivity** | `VictoriaMetrics` | Kecepatan Internet Download & Upload (Mbps), Total Data Downloaded/Uploaded (GB), Network Packet Rate (pps), Drops & Errors, Top Pod Network Traffic. |
-| [`database-cache-health.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/database-cache-health.json) | **Database & Cache Health** | `VictoriaMetrics` | Performansi & alokasi RAM untuk **PostgreSQL** (Gitea/Harbor), **Redis Caches** (Harbor/ArgoCD), dan **Qdrant Vector DB**. |
-| [`security-certificates-vault.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/security-certificates-vault.json) | **Security, SSL Certificates & Vault** | `VictoriaMetrics` | Countdown sisa hari kadaluwarsa Sertifikat TLS/SSL Traefik (`*.frengky.xyz`), status Vault Unsealer, dan ExternalSecrets operator footprint. |
-| [`ingress-traffic-latency.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/ingress-traffic-latency.json) | **Traefik Ingress Traffic & Domain Latency** | `VictoriaMetrics` | Total Ingress Request Rate (RPS), Traefik Active Open Connections, HTTP Response Status Codes (2xx, 3xx, 4xx, 5xx), P50/P90/P99 Request Duration Latency (ms). |
-| [`k8s-events-failures.json`](file:///root/server/gitops-repo/kubernetes/production/grafana/dashboards/k8s-events-failures.json) | **Kubernetes Cluster Events & OOMKilled Tracker** | `VictoriaMetrics` & `Loki` | OOMKilled Container Counter, Spike Restarts Timeline, Unhealthy Pod Waiting Reasons, dan Log Stream Real-time Error/Failure Cluster. |
+| [`cluster-overview.json`](file:///root/server/gitops-repo/apps/production/grafana/dashboards/cluster-overview.json) | **Cluster & Node Performance Command Center** | `VictoriaMetrics` | Node CPU/RAM/Swap, Top 10 Pod Consumers (Memory & CPU), Network Traffic In/Out (Bps), Disk Throughput (Read/Write). |
+| [`k8s-workloads-health.json`](file:///root/server/gitops-repo/apps/production/grafana/dashboards/k8s-workloads-health.json) | **Kubernetes Workloads & Pod Health** | `VictoriaMetrics` | Pod Running/Pending/Failed count, Container Restarts (24h tracker), Pod Memory/CPU vs Request vs Limits, PVC Disk Storage % Gauge. |
+| [`loki-logs-explorer.json`](file:///root/server/gitops-repo/apps/production/grafana/dashboards/loki-logs-explorer.json) | **Centralized Log Explorer & Error Tracker** | `Loki` | Log Ingestion Rate (lines/sec), Error Log Rate (errors/min), Warning Log Rate, Top Error-generating Pods, Real-time Live Log Console. |
+| [`devops-services-overview.json`](file:///root/server/gitops-repo/apps/production/grafana/dashboards/devops-services-overview.json) | **DevOps Platform Services Overview** | `VictoriaMetrics` | Monitoring footprint & performansi tool DevOps: **ArgoCD**, **Gitea & Runners**, **Harbor Registry**, **Vault**, dan **n8n**. |
+| [`internet-network-connectivity.json`](file:///root/server/gitops-repo/apps/production/grafana/dashboards/internet-network-connectivity.json) | **Internet Speed & Network Connectivity** | `VictoriaMetrics` | Kecepatan Internet Download & Upload (Mbps), Total Data Downloaded/Uploaded (GB), Network Packet Rate (pps), Drops & Errors, Top Pod Network Traffic. |
+| [`database-cache-health.json`](file:///root/server/gitops-repo/apps/production/grafana/dashboards/database-cache-health.json) | **Database & Cache Health** | `VictoriaMetrics` | Performansi & alokasi RAM untuk **PostgreSQL** (Gitea/Harbor), **Redis Caches** (Harbor/ArgoCD), dan **Qdrant Vector DB**. |
+| [`security-certificates-vault.json`](file:///root/server/gitops-repo/apps/production/grafana/dashboards/security-certificates-vault.json) | **Security, SSL Certificates & Vault** | `VictoriaMetrics` | Countdown sisa hari kadaluwarsa Sertifikat TLS/SSL Traefik (`*.frengky.xyz`), status Vault Unsealer, dan ExternalSecrets operator footprint. |
+| [`ingress-traffic-latency.json`](file:///root/server/gitops-repo/apps/production/grafana/dashboards/ingress-traffic-latency.json) | **Traefik Ingress Traffic & Domain Latency** | `VictoriaMetrics` | Total Ingress Request Rate (RPS), Traefik Active Open Connections, HTTP Response Status Codes (2xx, 3xx, 4xx, 5xx), P50/P90/P99 Request Duration Latency (ms). |
+| [`k8s-events-failures.json`](file:///root/server/gitops-repo/apps/production/grafana/dashboards/k8s-events-failures.json) | **Kubernetes Cluster Events & OOMKilled Tracker** | `VictoriaMetrics` & `Loki` | OOMKilled Container Counter, Spike Restarts Timeline, Unhealthy Pod Waiting Reasons, dan Log Stream Real-time Error/Failure Cluster. |
 
 ---
 
@@ -44,7 +44,7 @@ Dashboard di-provisioning secara otomatis menggunakan fitur **Grafana Sidecar Da
 
 ### Manifest File:
 File ConfigMap Kubernetes digabungkan di:
-`kubernetes/production/grafana/dashboards-configmap.yaml`
+`apps/production/grafana/dashboards-configmap.yaml`
 
 ---
 
@@ -56,7 +56,7 @@ Jika Anda ingin membuat atau menambahkan dashboard JSON baru ke dalam cluster vi
 
 1. **Simpan File JSON Dashboard**:
    Simpan file JSON dashboard baru Anda ke dalam folder:
-   `kubernetes/production/grafana/dashboards/nama-dashboard.json`
+   `apps/production/grafana/dashboards/nama-dashboard.json`
 
 2. **Generate / Update ConfigMap**:
    Tambahkan ConfigMap baru ke dalam `dashboards-configmap.yaml`:
@@ -75,7 +75,7 @@ Jika Anda ingin membuat atau menambahkan dashboard JSON baru ke dalam cluster vi
 
 3. **Commit & Push ke Git**:
    ```bash
-   git add kubernetes/production/grafana/
+   git add apps/production/grafana/
    git commit -m "feat(grafana): add nama-dashboard JSON dashboard"
    git push origin main
    ```
@@ -86,7 +86,7 @@ Jika Anda ingin membuat atau menambahkan dashboard JSON baru ke dalam cluster vi
 
 1. Buka Grafana di browser: `https://grafana.frengky.xyz` (Login: `admin` / `<password>`).
 2. Di menu navigasi sebelah kiri, klik **Dashboards** ➡️ **New** ➡️ **Import**.
-3. Klik **Upload dashboard JSON file** dan pilih file `.json` dari folder `kubernetes/production/grafana/dashboards/`.
+3. Klik **Upload dashboard JSON file** dan pilih file `.json` dari folder `apps/production/grafana/dashboards/`.
 4. Pilih Datasource `VictoriaMetrics` (Prometheus) atau `Loki`, lalu klik **Import**.
 
 ---
@@ -99,7 +99,7 @@ Gunakan perintah cURL berikut dari terminal server untuk meng-import file JSON d
 curl -X POST \
   -H "Content-Type: application/json" \
   -u admin:changeme123 \
-  -d "{\"dashboard\": $(cat /root/server/gitops-repo/kubernetes/production/grafana/dashboards/cluster-overview.json), \"overwrite\": true}" \
+  -d "{\"dashboard\": $(cat /root/server/gitops-repo/apps/production/grafana/dashboards/cluster-overview.json), \"overwrite\": true}" \
   http://10.43.55.39/api/dashboards/db
 ```
 

@@ -25,7 +25,7 @@ Cek versi aplikasi dan pod yang sedang berjalan di kluster:
 kubectl get pods -n harbor -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[*].image}{"\n"}{end}'
 
 # Cek manifest ArgoCD saat ini
-cat kubernetes/applications/infrastructure/harbor.yaml
+cat argocd/applications/infrastructure/harbor.yaml
 ```
 
 ---
@@ -99,7 +99,7 @@ Untuk memastikan kluster tidak bergantung pada koneksi internet publik saat *run
 ### Langkah 4: Perbarui Konfigurasi Manifest di GitOps Repository
 
 1. **Perbarui Version Target pada ArgoCD Application Spec**:
-   Edit file `kubernetes/applications/infrastructure/harbor.yaml`:
+   Edit file `argocd/applications/infrastructure/harbor.yaml`:
    ```yaml
    apiVersion: argoproj.io/v1alpha1
    kind: Application
@@ -113,11 +113,11 @@ Untuk memastikan kluster tidak bergantung pada koneksi internet publik saat *run
          targetRevision: "1.16.2"  # <-- Update ke versi chart baru
          helm:
            valueFiles:
-             - $values/kubernetes/production/harbor/values.yaml
+             - $values/infrastructure/harbor/values.yaml
    ```
 
 2. **Perbarui Image Tag pada `values.yaml` (jika ada)**:
-   Edit file `kubernetes/production/harbor/values.yaml` untuk menyesuaikan tag versi terbaru jika diperlukan:
+   Edit file `infrastructure/harbor/values.yaml` untuk menyesuaikan tag versi terbaru jika diperlukan:
    ```yaml
    # Contoh penyesuaian tag di values.yaml jika menggunakan tag kustom
    core:
@@ -135,8 +135,8 @@ Commit perubahan manifest yang sudah diperbarui ke repository GitOps agar ArgoCD
 ```bash
 cd /root/server/gitops-repo
 
-git add kubernetes/applications/infrastructure/harbor.yaml
-git add kubernetes/production/harbor/values.yaml
+git add argocd/applications/infrastructure/harbor.yaml
+git add infrastructure/harbor/values.yaml
 git commit -m "chore(harbor): upgrade harbor helm chart to 1.16.2 (app v2.15.2)"
 git push origin main
 ```

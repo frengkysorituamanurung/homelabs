@@ -29,7 +29,7 @@ Untuk mengatasi masalah ini, manifest deployment controller `cert-manager` dipat
 Seluruh komponen dideklarasikan di dalam repositori GitOps:
 
 ### 1. ArgoCD Application Manifest
-Dideklarasikan di `kubernetes/applications/infrastructure/cert-manager.yaml`. Manifest ini mendaftarkan aplikasi cert-manager ke ArgoCD.
+Dideklarasikan di `argocd/applications/infrastructure/cert-manager.yaml`. Manifest ini mendaftarkan aplikasi cert-manager ke ArgoCD.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -42,7 +42,7 @@ metadata:
 spec:
   project: default
   source:
-    path: kubernetes/production/cert-manager
+    path: infrastructure/cert-manager
     repoURL: http://gitlab-http.gitlab.svc.cluster.local/devops/gitops.git
     targetRevision: main
   destination:
@@ -58,7 +58,7 @@ spec:
 ```
 
 ### 2. K3s Deployment Manifests
-Terdapat di direktori `kubernetes/production/cert-manager/`:
+Terdapat di direktori `infrastructure/cert-manager/`:
 * **`cert-manager.yaml`**: Manifest resmi `cert-manager v1.15.1` yang telah disesuaikan dengan konfigurasi `hostNetwork: true` pada deployment controller utama.
 * **`cert-manager-manifests.yaml`**: Berisi konfigurasi `ClusterIssuer` (konektor Let's Encrypt) dan `Certificate` (definisi sertifikat wildcard `*.frengky.xyz`).
 * **`tlsstore-default.yaml`**: Konfigurasi Traefik `default` TLSStore agar otomatis menyajikan sertifikat wildcard `wildcard-frengky-xyz-tls` dari namespace `kube-system` sebagai sertifikat SSL default untuk semua router HTTPS.

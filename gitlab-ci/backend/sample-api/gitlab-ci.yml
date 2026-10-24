@@ -5,4 +5,4 @@ include:
 variables:
   APP_NAME: "sample-api"
   IMAGE_REPO: "harbor.frengky.xyz/backend/sample-api"
-  VALUES_PATH: "kubernetes/production/backend/sample-api/values.yaml"
+  VALUES_PATH: "apps/production/backend/sample-api/values.yaml"
