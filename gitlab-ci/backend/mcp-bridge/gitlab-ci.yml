@@ -1,8 +1,0 @@
-include:
-  - project: 'devops/deployment-tools'
-    file: '/templates/.gitlab-ci-template.yml'
-
-variables:
-  APP_NAME: "mcp-bridge"
-  IMAGE_REPO: "harbor.frengky.xyz/backend/mcp-bridge"
-  VALUES_PATH: "apps/production/backend/mcp-bridge/values.yaml"

@@ -1,8 +1,0 @@
-include:
-  - project: 'devops/deployment-tools'
-    file: '/templates/.gitlab-ci-template.yml'
-
-variables:
-  APP_NAME: "hello-world"
-  IMAGE_REPO: "harbor.frengky.xyz/frontend/hello-world"
-  VALUES_PATH: "apps/production/frontend/hello-world/values.yaml"
