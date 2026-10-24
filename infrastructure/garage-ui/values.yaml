@@ -10,9 +10,9 @@ config:
     host: "::"
     port: 8080
     environment: "production"
-    domain: "garage-ui.frengky.xyz"
+    domain: "garage.frengky.xyz"
     protocol: "https"
-    root_url: "https://garage-ui.frengky.xyz"
+    root_url: "https://garage.frengky.xyz"
 
   garage:
     endpoint: "http://garage:3900"
@@ -47,7 +47,7 @@ ingress:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
   hosts:
-    - host: "garage-ui.frengky.xyz"
+    - host: "garage.frengky.xyz"
       paths:
         - path: /
           pathType: Prefix

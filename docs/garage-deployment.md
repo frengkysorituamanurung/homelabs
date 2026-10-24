@@ -4,7 +4,8 @@ This document describes the deployment of [Garage](https://garagehq.deuxfleurs.f
 
 ## Summary
 
-- **Domain (S3 API):** `https://garage.frengky.xyz`
+- **UI Domain:** `https://garage.frengky.xyz`
+- **S3 API:** internal service `garage:3900` (not publicly exposed)
 - **Mode:** single-node (`--single-node`, `replication_factor = 1`)
 - **StorageClass:** `local-path`
 - **Persistence:** 1Gi metadata + 20Gi data
@@ -40,16 +41,19 @@ kubectl exec -n garage garage-0 -- ./garage bucket allow --read --write homelab-
 
 ## S3 Client Usage
 
-Endpoint: `https://garage.frengky.xyz`
+The S3 API is not publicly exposed. Use the in-cluster endpoint from workloads:
+
+Endpoint: `http://garage:3900` (namespace `garage`)
 Region: `garage`
 
-Example with AWS CLI:
+For external access, use port-forward:
 
 ```bash
-aws --endpoint-url https://garage.frengky.xyz s3 ls
+kubectl port-forward -n garage svc/garage 3900:3900
+aws --endpoint-url http://localhost:3900 s3 ls
 ```
 
-Use path-style addressing. Vhost-style buckets are not exposed through the single `garage.frengky.xyz` ingress.
+Use path-style addressing.
 
 ## Notes
 
@@ -61,7 +65,7 @@ Use path-style addressing. Vhost-style buckets are not exposed through the singl
 
 A web UI is deployed as `garage-ui` in the same `garage` namespace.
 
-- **Domain:** `https://garage-ui.frengky.xyz`
+- **Domain:** `https://garage.frengky.xyz`
 - **Chart:** `oci://ghcr.io/noooste/charts/garage-ui` (`0.14.0`)
 - **Manifest:** `k8s/clusters/production/applications/infrastructure/garage-ui.yaml`
 - **Values:** `infrastructure/garage-ui/values.yaml`
