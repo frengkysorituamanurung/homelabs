@@ -25,7 +25,6 @@ resources:
   - pilot-immich.yaml
   - pilot-finance-landing.yaml
   - pilot-bentopdf.yaml
-  - pilot-glance.yaml
   - pilot-mcp-bridge.yaml
   - pilot-service-a.yaml
 patches:
