@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: harbor-registry-tls.harbor.svc.cluster.local
     chart: helm-repos/prometheus-node-exporter
-    targetRevision: "4.45.0"
+    targetRevision: "4.60.0"
     helm:
       valuesObject:
         tolerations:

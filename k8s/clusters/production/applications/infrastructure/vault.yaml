@@ -10,7 +10,7 @@ spec:
   sources:
     - repoURL: harbor-registry-tls.harbor.svc.cluster.local
       chart: helm-repos/vault
-      targetRevision: "0.29.1"
+      targetRevision: "0.34.1"
       helm:
         valueFiles:
           - $values/infrastructure/vault/values.yaml
