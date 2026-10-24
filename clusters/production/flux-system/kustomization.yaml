@@ -27,6 +27,7 @@ resources:
   - pilot-bentopdf.yaml
   - pilot-mcp-bridge.yaml
   - pilot-service-a.yaml
+  - pilot-reloader.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:

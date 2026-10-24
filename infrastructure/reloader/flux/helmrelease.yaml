@@ -13,9 +13,12 @@ spec:
         kind: HelmRepository
         name: stakater
         namespace: flux-system
+  releaseName: reloader
   targetNamespace: reloader
   install:
     createNamespace: true
+    remediation:
+      retries: 3
   upgrade:
     remediation:
       retries: 3

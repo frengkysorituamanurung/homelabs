@@ -23,8 +23,5 @@ spec:
     server: https://kubernetes.default.svc
     namespace: reloader
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true
