@@ -12,6 +12,7 @@ resources:
   - pilot-cert-manager.yaml
   - batch-plain-manifests.yaml
   - pilot-cloudnative-pg.yaml
+  - pilot-vmsingle.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
