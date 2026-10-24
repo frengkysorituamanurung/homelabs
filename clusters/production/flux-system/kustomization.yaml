@@ -23,6 +23,7 @@ resources:
   - pilot-sandbox-finance-db.yaml
   - pilot-qdrant.yaml
   - pilot-immich.yaml
+  - pilot-finance-landing.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:

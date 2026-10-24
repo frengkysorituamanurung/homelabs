@@ -1,0 +1,55 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: finance-landing
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: ./k8s/clusters/production/applications/apps/production/frontend/finance-landing
+      version: "1.0.0"
+      sourceRef:
+        kind: GitRepository
+        name: homelabs
+        namespace: flux-system
+  releaseName: finance-landing
+  targetNamespace: frontend
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    generic-app:
+      baseNamespace: frontend
+      baseName: finance-landing
+      environment: production
+      refreshInterval: "10s"
+      replicaCount: 1
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 20m
+          memory: 32Mi
+      image:
+        repository: harbor.frengky.xyz/frontend/finance-landing
+        tag: "v1.3.2"
+        pullPolicy: Always
+      service:
+        enabled: true
+        type: ClusterIP
+        ports:
+          - name: http
+            port: 80
+      ingress:
+        enabled: true
+        stripPath: false
+        hosts:
+          - host: cash.frengky.xyz
+            path: /
+            port: 80
