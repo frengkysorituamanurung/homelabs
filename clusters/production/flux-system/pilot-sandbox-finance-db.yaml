@@ -1,0 +1,17 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: sandbox-finance-db
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: flux-system
+  interval: 10m
+  path: ./k8s/clusters/production/applications/apps/production/database/sandbox-finance
+  prune: false
+  wait: true
+  targetNamespace: database
+  sourceRef:
+    kind: GitRepository
+    name: homelabs
+  timeout: 5m

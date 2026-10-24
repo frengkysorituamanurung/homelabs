@@ -20,6 +20,7 @@ resources:
   - pilot-garage.yaml
   - pilot-grafana-production.yaml
   - pilot-n8n.yaml
+  - pilot-sandbox-finance-db.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:
