@@ -201,7 +201,7 @@ generic-app:
         port: 8080
 ```
  
-### 3. File `argocd/applications/production/sample-api.yaml`
+### 3. File `k8s/clusters/production/apps/production/sample-api.yaml`
 Daftarkan ke ArgoCD via pola *App of Apps*:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -309,7 +309,7 @@ generic-app:
       memory: 512Mi
 ```
  
-#### C. File `argocd/applications/production/n8n.yaml` (ArgoCD Application)
+#### C. File `k8s/clusters/production/apps/production/n8n.yaml` (ArgoCD Application)
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application

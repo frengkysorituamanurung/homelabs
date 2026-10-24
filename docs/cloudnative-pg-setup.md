@@ -36,7 +36,7 @@ Cluster ini menggunakan pola **App-of-Apps** ArgoCD:
 
 ```
 root-app (argocd)
-  └── argocd/applications/           ← ArgoCD recursively picks up all .yaml
+  └── k8s/clusters/production/apps/           ← ArgoCD recursively picks up all .yaml
         └── infrastructure/
               └── cloudnative-pg.yaml    ← Installs CNPG operator via Helm
 ```
@@ -47,7 +47,7 @@ File `root-app.yaml` sudah dikonfigurasi dengan `directory.recurse: true`, sehin
 
 ## Instalasi
 
-### 1. File ArgoCD Application (`argocd/applications/infrastructure/cloudnative-pg.yaml`)
+### 1. File ArgoCD Application (`k8s/clusters/production/apps/infrastructure/cloudnative-pg.yaml`)
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -95,7 +95,7 @@ Key configurations untuk homelab single-node:
 
 ```bash
 # Di direktori gitops-repo
-git add argocd/applications/infrastructure/cloudnative-pg.yaml
+git add k8s/clusters/production/apps/infrastructure/cloudnative-pg.yaml
 git add infrastructure/cloudnative-pg/values.yaml
 git commit -m "feat: add CloudNativePG operator v1.30.0"
 git push gitea main
@@ -341,7 +341,7 @@ kubectl cnpg hibernate off pg-cluster -n database
 Untuk upgrade versi operator, cukup update `targetRevision` di file ArgoCD Application:
 
 ```yaml
-# argocd/applications/infrastructure/cloudnative-pg.yaml
+# k8s/clusters/production/apps/infrastructure/cloudnative-pg.yaml
 sources:
   - repoURL: https://cloudnative-pg.github.io/charts
     chart: cloudnative-pg

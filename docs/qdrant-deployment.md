@@ -33,7 +33,7 @@ gitops-repo/
     └── qdrant-deployment.md         # Dokumen ini (Petunjuk Instalasi)
 ```
 
-### 1. Aplikasi ArgoCD (`argocd/applications/production/qdrant.yaml`)
+### 1. Aplikasi ArgoCD (`k8s/clusters/production/apps/production/qdrant.yaml`)
 Menggunakan pattern **multi-source** ArgoCD untuk mengambil chart dari Harbor OCI Registry dan values dari gitops repository:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
