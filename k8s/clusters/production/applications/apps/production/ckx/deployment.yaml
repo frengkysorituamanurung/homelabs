@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ckx
+  name: ckx-cluster
   namespace: ckx
   labels:
-    app: ckx
+    app: ckx-cluster
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ckx
+      app: ckx-cluster
   template:
     metadata:
       labels:
-        app: ckx
+        app: ckx-cluster
     spec:
       containers:
-        - name: ckx-cluster
+        - name: k8s-api-server
           image: nishanb/ck-x-simulator-cluster:latest
           imagePullPolicy: Always
           ports:
@@ -50,4 +50,308 @@ spec:
             failureThreshold: 20
       volumes:
         - name: kube-config
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: ckx-kube-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ckx-jumphost
+  namespace: ckx
+  labels:
+    app: ckx-jumphost
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ckx-jumphost
+  template:
+    metadata:
+      labels:
+        app: ckx-jumphost
+    spec:
+      containers:
+        - name: jumphost
+          image: nishanb/ck-x-simulator-jumphost:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 22
+              name: ssh
+              protocol: TCP
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: kube-config
+              mountPath: /home/candidate/.kube
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: kube-config
+          persistentVolumeClaim:
+            claimName: ckx-kube-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ckx-remote-terminal
+  namespace: ckx
+  labels:
+    app: ckx-remote-terminal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ckx-remote-terminal
+  template:
+    metadata:
+      labels:
+        app: ckx-remote-terminal
+    spec:
+      containers:
+        - name: remote-terminal
+          image: nishanb/ck-x-simulator-remote-terminal:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 22
+              name: ssh
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: 256Mi
+            limits:
+              cpu: "0.5"
+              memory: 512Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ckx-remote-desktop
+  namespace: ckx
+  labels:
+    app: ckx-remote-desktop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ckx-remote-desktop
+  template:
+    metadata:
+      labels:
+        app: ckx-remote-desktop
+    spec:
+      containers:
+        - name: remote-desktop
+          image: nishanb/ck-x-simulator-remote-desktop:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5901
+              name: vnc
+              protocol: TCP
+            - containerPort: 6901
+              name: web-vnc
+              protocol: TCP
+          env:
+            - name: VNC_PW
+              value: "bakku-the-wizard"
+            - name: VNC_PASSWORD
+              value: "bakku-the-wizard"
+            - name: VNC_VIEW_ONLY
+              value: "false"
+            - name: VNC_RESOLUTION
+              value: "1280x800"
+          volumeMounts:
+            - name: shm
+              mountPath: /dev/shm
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+      volumes:
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 512Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ckx-webapp
+  namespace: ckx
+  labels:
+    app: ckx-webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ckx-webapp
+  template:
+    metadata:
+      labels:
+        app: ckx-webapp
+    spec:
+      containers:
+        - name: webapp
+          image: nishanb/ck-x-simulator-webapp:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          env:
+            - name: VNC_SERVICE_HOST
+              value: "remote-desktop"
+            - name: VNC_SERVICE_PORT
+              value: "6901"
+            - name: VNC_PASSWORD
+              value: "bakku-the-wizard"
+            - name: SSH_HOST
+              value: "remote-terminal"
+            - name: SSH_PORT
+              value: "22"
+            - name: SSH_USER
+              value: "candidate"
+            - name: SSH_PASSWORD
+              value: "password"
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: 256Mi
+            limits:
+              cpu: "0.5"
+              memory: 512Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ckx-redis
+  namespace: ckx
+  labels:
+    app: ckx-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ckx-redis
+  template:
+    metadata:
+      labels:
+        app: ckx-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 6379
+              name: redis
+              protocol: TCP
+          command: ["redis-server", "--appendonly", "yes"]
+          resources:
+            requests:
+              cpu: "0.1"
+              memory: 128Mi
+            limits:
+              cpu: "0.3"
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ckx-facilitator
+  namespace: ckx
+  labels:
+    app: ckx-facilitator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ckx-facilitator
+  template:
+    metadata:
+      labels:
+        app: ckx-facilitator
+    spec:
+      containers:
+        - name: facilitator
+          image: nishanb/ck-x-simulator-facilitator:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "3000"
+            - name: NODE_ENV
+              value: "prod"
+            - name: SSH_HOST
+              value: "jumphost"
+            - name: SSH_PORT
+              value: "22"
+            - name: SSH_USERNAME
+              value: "candidate"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: TRACK_METRICS
+              value: "true"
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: 256Mi
+            limits:
+              cpu: "0.5"
+              memory: 512Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ckx-nginx
+  namespace: ckx
+  labels:
+    app: ckx-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ckx-nginx
+  template:
+    metadata:
+      labels:
+        app: ckx-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nishanb/ck-x-simulator-nginx:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+          resources:
+            requests:
+              cpu: "0.1"
+              memory: 128Mi
+            limits:
+              cpu: "0.2"
+              memory: 256Mi
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: ckx-nginx-config

@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: ckx
+  name: ckx-cluster
   namespace: ckx
   labels:
-    app: ckx
+    app: ckx-cluster
 spec:
   selector:
-    app: ckx
+    app: ckx-cluster
   ports:
     - name: kube-api
       port: 6443
@@ -16,5 +16,128 @@ spec:
     - name: ssh
       port: 22
       targetPort: 22
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jumphost
+  namespace: ckx
+  labels:
+    app: ckx-jumphost
+spec:
+  selector:
+    app: ckx-jumphost
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: 22
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: remote-terminal
+  namespace: ckx
+  labels:
+    app: ckx-remote-terminal
+spec:
+  selector:
+    app: ckx-remote-terminal
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: 22
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: remote-desktop
+  namespace: ckx
+  labels:
+    app: ckx-remote-desktop
+spec:
+  selector:
+    app: ckx-remote-desktop
+  ports:
+    - name: vnc
+      port: 5901
+      targetPort: 5901
+      protocol: TCP
+    - name: web-vnc
+      port: 6901
+      targetPort: 6901
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+  namespace: ckx
+  labels:
+    app: ckx-webapp
+spec:
+  selector:
+    app: ckx-webapp
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: ckx
+  labels:
+    app: ckx-redis
+spec:
+  selector:
+    app: ckx-redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: facilitator
+  namespace: ckx
+  labels:
+    app: ckx-facilitator
+spec:
+  selector:
+    app: ckx-facilitator
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ckx
+  namespace: ckx
+  labels:
+    app: ckx-nginx
+spec:
+  selector:
+    app: ckx-nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
       protocol: TCP
   type: ClusterIP
