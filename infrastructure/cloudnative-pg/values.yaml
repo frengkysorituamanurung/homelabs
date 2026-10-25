@@ -38,7 +38,7 @@ nodeSelector: {}
 
 # -- Prometheus monitoring via PodMonitor CRD.
 monitoring:
-  podMonitorEnabled: true
+  podMonitorEnabled: false
   grafanaDashboard:
     create: true
 

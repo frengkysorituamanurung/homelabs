@@ -79,13 +79,7 @@ spec:
         root_url: "https://grafana.frengky.xyz"
         enforce_domain: false
 
-    env:
-      - name: TELEGRAM_BOT_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: grafana-telegram-credentials
-            key: bot-token
-            optional: true
+    # envFromSecret: grafana-telegram-credentials  # enable once token is in Vault (secret/telegram botToken)
 
     service:
       type: ClusterIP

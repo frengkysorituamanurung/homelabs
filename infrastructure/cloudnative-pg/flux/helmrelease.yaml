@@ -46,7 +46,7 @@ spec:
     affinity: {}
     nodeSelector: {}
     monitoring:
-      podMonitorEnabled: true
+      podMonitorEnabled: false
       grafanaDashboard:
         create: true
     webhook:
