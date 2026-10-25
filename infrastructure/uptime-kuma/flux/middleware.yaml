@@ -5,6 +5,6 @@ metadata:
   namespace: uptime-kuma
 spec:
   redirectRegex:
-    regex: "^/$"
-    replacement: "/status/homelabs"
+    regex: "^https://status\\.frengky\\.xyz/?$"
+    replacement: "https://status.frengky.xyz/status/homelabs"
     permanent: false
