@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ckx
+  namespace: ckx
+  labels:
+    app: ckx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ckx
+  template:
+    metadata:
+      labels:
+        app: ckx
+    spec:
+      containers:
+        - name: ckx-cluster
+          image: nishanb/ck-x-simulator-cluster:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 6443
+              name: kube-api
+              protocol: TCP
+            - containerPort: 22
+              name: ssh
+              protocol: TCP
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: kube-config
+              mountPath: /home/candidate/.kube
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "test -f /ready"
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 20
+      volumes:
+        - name: kube-config
+          emptyDir: {}

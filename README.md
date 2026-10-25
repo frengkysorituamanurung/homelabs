@@ -101,6 +101,7 @@ See [`secrets/README.md`](secrets/README.md) for the full guide.
 | qdrant | backend | Flux HelmRelease | Flux |
 | n8n | n8n | Flux Kustomization | Flux |
 | service-a | production | Flux HelmRelease | Flux |
+| ckx | ckx | Flux Kustomization (plain manifests) | Flux |
 
 ## Useful Commands
 

@@ -1,0 +1,17 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: ckx
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: flux-system
+  interval: 10m
+  path: ./k8s/clusters/production/applications/apps/production/ckx
+  prune: false
+  wait: true
+  targetNamespace: ckx
+  sourceRef:
+    kind: GitRepository
+    name: homelabs
+  timeout: 10m

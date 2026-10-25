@@ -33,6 +33,7 @@ resources:
   - pilot-service-a.yaml
   - pilot-reloader.yaml
   - pilot-glance.yaml
+  - pilot-ckx.yaml
 patches:
   - path: source-controller-hostnetwork.yaml
     target:

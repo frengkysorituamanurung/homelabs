@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ckx
+  namespace: ckx
+  labels:
+    app: ckx
+spec:
+  selector:
+    app: ckx
+  ports:
+    - name: kube-api
+      port: 6443
+      targetPort: 6443
+      protocol: TCP
+    - name: ssh
+      port: 22
+      targetPort: 22
+      protocol: TCP
+  type: ClusterIP
