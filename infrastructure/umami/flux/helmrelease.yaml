@@ -27,7 +27,7 @@ spec:
       enabled: true
       ingressClassName: traefik
       annotations:
-        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
       hosts:
         - host: analytics.frengky.xyz
           paths:
