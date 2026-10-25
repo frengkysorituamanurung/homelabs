@@ -48,7 +48,7 @@ spec:
     monitoring:
       podMonitorEnabled: false
       grafanaDashboard:
-        create: true
+        create: false
     webhook:
       port: 9443
       mutating:

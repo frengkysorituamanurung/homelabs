@@ -40,7 +40,7 @@ nodeSelector: {}
 monitoring:
   podMonitorEnabled: false
   grafanaDashboard:
-    create: true
+    create: false
 
 # -- Webhook server settings.
 webhook:

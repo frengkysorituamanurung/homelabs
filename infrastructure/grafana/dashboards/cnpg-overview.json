@@ -1,0 +1,70 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" }, "editorMode": "code", "expr": "count(cnpg_backends_total)", "legendFormat": "Instances", "range": true, "refId": "A" } ],
+      "title": "CNPG Instances",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth" }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "id": 2,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" }, "editorMode": "code", "expr": "sum(cnpg_backends_total) by (cluster, datname)", "legendFormat": "{{cluster}} / {{datname}}", "range": true, "refId": "A" } ],
+      "title": "CNPG Backends by Database",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth" }, "unit": "ops" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "id": 3,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" }, "editorMode": "code", "expr": "sum(rate(cnpg_pg_stat_database_xact_commit[5m])) by (cluster, datname)", "legendFormat": "{{cluster}} / {{datname}} commits", "range": true, "refId": "A" }, { "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" }, "editorMode": "code", "expr": "sum(rate(cnpg_pg_stat_database_xact_rollback[5m])) by (cluster, datname)", "legendFormat": "{{cluster}} / {{datname}} rollbacks", "range": true, "refId": "B" } ],
+      "title": "CNPG Transaction Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth" }, "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "id": 4,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" }, "editorMode": "code", "expr": "max(cnpg_pg_replication_lag) by (cluster)", "legendFormat": "{{cluster}} lag", "range": true, "refId": "A" } ],
+      "title": "CNPG Replication Lag",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth" }, "unit": "bytes" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "id": 5,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" }, "editorMode": "code", "expr": "sum(container_memory_working_set_bytes{job=\"prometheus.scrape.cnpg\"}) by (pod)", "legendFormat": "{{pod}}", "range": true, "refId": "A" } ],
+      "title": "CNPG Pod Memory",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [ "cnpg", "database", "postgresql" ],
+  "templating": { "list": [ { "current": { "selected": false, "text": "All", "value": "$__all" }, "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" }, "definition": "label_values(cnpg_backends_total, cluster)", "hide": 0, "includeAll": true, "multi": false, "name": "cluster", "options": [], "query": { "query": "label_values(cnpg_backends_total, cluster)", "refId": "StandardVariableQuery" }, "refresh": 1, "regex": "", "sort": 1, "type": "query" } ] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "CloudNativePG Overview",
+  "uid": "cnpg-overview",
+  "version": 1
+}
