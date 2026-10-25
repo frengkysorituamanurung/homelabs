@@ -28,6 +28,7 @@ spec:
       className: traefik
       annotations:
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        traefik.ingress.kubernetes.io/router.middlewares: uptime-kuma-redirect-to-status@kubernetescrd
       hosts:
         - host: status.frengky.xyz
           paths:
