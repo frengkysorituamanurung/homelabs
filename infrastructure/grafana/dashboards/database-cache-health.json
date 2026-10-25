@@ -222,12 +222,12 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"argocd\", pod=~\"argocd-redis.*\"})",
-          "legendFormat": "ArgoCD Redis RAM",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"harbor\", pod=~\"harbor-redis.*\"})",
+          "legendFormat": "Harbor Redis RAM",
           "refId": "A"
         }
       ],
-      "title": "ArgoCD Redis Memory",
+      "title": "Harbor Redis Memory",
       "type": "stat"
     },
     {

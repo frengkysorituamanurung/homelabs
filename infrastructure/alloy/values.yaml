@@ -19,22 +19,12 @@ alloy:
 
       prometheus.scrape "kubernetes_pods" {
         targets    = discovery.relabel.pods.output
-        forward_to = [prometheus.remote_write.vm.receiver, prometheus.remote_write.openobserve.receiver]
+        forward_to = [prometheus.remote_write.vm.receiver]
       }
 
       prometheus.remote_write "vm" {
         endpoint {
           url = "http://vmsingle-victoria-metrics-single-server.monitoring.svc.cluster.local:8428/api/v1/write"
-        }
-      }
-
-      prometheus.remote_write "openobserve" {
-        endpoint {
-          url = "http://openobserve-router.openobserve.svc.cluster.local:5080/api/default/prometheus/api/v1/write"
-          basic_auth {
-            username = "admin@frengky.xyz"
-            password = "REPLACE_WITH_OPENOBSERVE_PASSWORD"
-          }
         }
       }
 
@@ -74,7 +64,7 @@ alloy:
 
       prometheus.scrape "kube_state_metrics" {
         targets    = discovery.relabel.kube_state_metrics.output
-        forward_to = [prometheus.remote_write.vm.receiver, prometheus.remote_write.openobserve.receiver]
+        forward_to = [prometheus.remote_write.vm.receiver]
       }
 
       discovery.kubernetes "nodes" {
@@ -90,7 +80,7 @@ alloy:
           insecure_skip_verify = true
         }
 
-        forward_to = [prometheus.remote_write.vm.receiver, prometheus.remote_write.openobserve.receiver]
+        forward_to = [prometheus.remote_write.vm.receiver]
       }
 
       prometheus.scrape "cadvisor" {
@@ -103,7 +93,7 @@ alloy:
           insecure_skip_verify = true
         }
 
-        forward_to = [prometheus.remote_write.vm.receiver, prometheus.remote_write.openobserve.receiver]
+        forward_to = [prometheus.remote_write.vm.receiver]
       }
 
       discovery.kubernetes "node_exporter" {
@@ -122,7 +112,175 @@ alloy:
 
       prometheus.scrape "node_exporter" {
         targets    = discovery.relabel.node_exporter.output
-        forward_to = [prometheus.remote_write.vm.receiver, prometheus.remote_write.openobserve.receiver]
+        forward_to = [prometheus.remote_write.vm.receiver]
+      }
+
+      discovery.kubernetes "traefik" {
+        role = "service"
+      }
+
+      discovery.relabel "traefik" {
+        targets = discovery.kubernetes.traefik.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_service_name"]
+          regex         = "traefik"
+          action        = "keep"
+        }
+
+        rule {
+          source_labels = ["__address__"]
+          regex         = "(.*):.*"
+          target_label  = "__address__"
+          replacement   = "${1}:9100"
+        }
+      }
+
+      prometheus.scrape "traefik" {
+        targets      = discovery.relabel.traefik.output
+        metrics_path = "/metrics"
+        forward_to   = [prometheus.remote_write.vm.receiver]
+      }
+
+      discovery.kubernetes "garage" {
+        role = "service"
+      }
+
+      discovery.relabel "garage" {
+        targets = discovery.kubernetes.garage.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_service_name"]
+          regex         = "garage-metrics"
+          action        = "keep"
+        }
+      }
+
+      prometheus.scrape "garage" {
+        targets    = discovery.relabel.garage.output
+        forward_to = [prometheus.remote_write.vm.receiver]
+      }
+
+      discovery.kubernetes "flux" {
+        role = "pod"
+        namespaces {
+          names = ["flux-system"]
+        }
+      }
+
+      discovery.relabel "flux" {
+        targets = discovery.kubernetes.flux.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          regex         = "flux-system"
+          action        = "keep"
+        }
+
+        rule {
+          source_labels = ["__address__"]
+          regex         = "(.*):.*"
+          target_label  = "__address__"
+          replacement   = "${1}:8080"
+        }
+      }
+
+      prometheus.scrape "flux" {
+        targets      = discovery.relabel.flux.output
+        metrics_path = "/metrics"
+        forward_to   = [prometheus.remote_write.vm.receiver]
+      }
+
+      discovery.relabel "annotated_pods" {
+        targets = discovery.kubernetes.pods.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+          regex         = "true"
+          action        = "keep"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_ip", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
+          separator     = ":"
+          target_label  = "__address__"
+          replacement   = "$1:$2"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
+          target_label  = "__metrics_path__"
+          replacement   = "$1"
+        }
+      }
+
+      prometheus.scrape "annotated_pods" {
+        targets    = discovery.relabel.annotated_pods.output
+        forward_to = [prometheus.remote_write.vm.receiver]
+      }
+
+      discovery.kubernetes "blackbox" {
+        role = "service"
+      }
+
+      discovery.relabel "blackbox" {
+        targets = discovery.kubernetes.blackbox.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_service_name"]
+          regex         = "blackbox-exporter"
+          action        = "keep"
+        }
+
+        rule {
+          source_labels = ["__address__"]
+          regex         = "(.*):.*"
+          target_label  = "__address__"
+          replacement   = "${1}:9115"
+        }
+      }
+
+      prometheus.scrape "blackbox_self" {
+        targets    = discovery.relabel.blackbox.output
+        forward_to = [prometheus.remote_write.vm.receiver]
+      }
+
+      discovery.kubernetes "cnpg" {
+        role = "pod"
+      }
+
+      discovery.relabel "cnpg" {
+        targets = discovery.kubernetes.cnpg.targets
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_cnpg_io_cluster"]
+          regex         = ".+"
+          action        = "keep"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_ip"]
+          target_label  = "__address__"
+          replacement   = "$1:9187"
+        }
+      }
+
+      prometheus.scrape "cnpg" {
+        targets    = discovery.relabel.cnpg.output
+        forward_to = [prometheus.remote_write.vm.receiver]
+      }
+
+      prometheus.scrape "blackbox" {
+        targets = [
+          {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://grafana.frengky.xyz", "__param_module" = "http_2xx"},
+          {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://vault.frengky.xyz", "__param_module" = "http_2xx"},
+          {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://harbor.frengky.xyz", "__param_module" = "http_2xx"},
+          {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://gitea.frengky.xyz", "__param_module" = "http_2xx"},
+          {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://glance.frengky.xyz", "__param_module" = "http_2xx"},
+          {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://hello.frengky.xyz", "__param_module" = "http_2xx"},
+          {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://service-a.frengky.xyz", "__param_module" = "http_2xx"},
+          {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://traefik.frengky.xyz/dashboard/", "__param_module" = "http_2xx"},
+        ]
+        forward_to  = [prometheus.remote_write.vm.receiver]
+        metrics_path = "/probe"
       }
 
       loki.source.kubernetes "pods_logs" {

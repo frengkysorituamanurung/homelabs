@@ -46,7 +46,7 @@ spec:
 
     immich:
       metrics:
-        enabled: false
+        enabled: true
       persistence:
         library:
           existingClaim: immich-library

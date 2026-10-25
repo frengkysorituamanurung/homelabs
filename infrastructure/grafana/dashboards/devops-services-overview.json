@@ -81,8 +81,8 @@
             "uid": "VictoriaMetrics"
           },
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"argocd\", container!=\"\"})",
-          "legendFormat": "ArgoCD RAM",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"flux-system\", container!=\"\"})",
+          "legendFormat": "Flux CD RAM",
           "range": true,
           "refId": "A"
         }
@@ -322,7 +322,7 @@
             "uid": "VictoriaMetrics"
           },
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=~\"argocd|github|vault|harbor|n8n\", container!=\"\"}) by (namespace)",
+          "expr": "sum(container_memory_working_set_bytes{namespace=~\"github|vault|harbor|n8n\", container!=\"\"}) by (namespace)",
           "legendFormat": "{{namespace}}",
           "range": true,
           "refId": "A"
@@ -371,7 +371,7 @@
             "uid": "VictoriaMetrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"argocd|github|vault|harbor|n8n\", container!=\"\"}[5m])) by (namespace)",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"github|vault|harbor|n8n\", container!=\"\"}[5m])) by (namespace)",
           "legendFormat": "{{namespace}}",
           "range": true,
           "refId": "A"
@@ -433,7 +433,7 @@
             "uid": "VictoriaMetrics"
           },
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=~\"argocd|github|vault|harbor|n8n\", container!=\"\"}) by (pod, namespace)",
+          "expr": "sum(container_memory_working_set_bytes{namespace=~\"github|vault|harbor|n8n\", container!=\"\"}) by (pod, namespace)",
           "legendFormat": "{{namespace}} / {{pod}}",
           "range": true,
           "refId": "A"

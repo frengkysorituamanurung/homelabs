@@ -46,9 +46,9 @@ spec:
     affinity: {}
     nodeSelector: {}
     monitoring:
-      podMonitorEnabled: false
+      podMonitorEnabled: true
       grafanaDashboard:
-        create: false
+        create: true
     webhook:
       port: 9443
       mutating:

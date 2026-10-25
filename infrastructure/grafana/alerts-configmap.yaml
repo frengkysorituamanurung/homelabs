@@ -15,7 +15,7 @@ data:
             type: telegram
             disableResolveMessage: false
             settings:
-              bottoken: "REPLACE_WITH_TELEGRAM_BOT_TOKEN"
+              bottoken: "${TELEGRAM_BOT_TOKEN}"
               chatid: "6170551940"
               parse_mode: "HTML"
               send_resolved: true
@@ -72,7 +72,7 @@ data:
               description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has container {{ $labels.container }} stuck in {{ $labels.reason }} state."
             data:
               - refId: A
-                datasourceUid: P4169E866C3094E38
+                datasourceUid: VictoriaMetrics
                 relativeTimeRange:
                   from: 300
                   to: 0
@@ -118,7 +118,7 @@ data:
               description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} container {{ $labels.container }} restarted > 3 times in 15 minutes."
             data:
               - refId: A
-                datasourceUid: P4169E866C3094E38
+                datasourceUid: VictoriaMetrics
                 relativeTimeRange:
                   from: 900
                   to: 0
@@ -164,7 +164,7 @@ data:
               description: "Container {{ $labels.container }} in pod {{ $labels.pod }} (namespace {{ $labels.namespace }}) terminated due to Out Of Memory."
             data:
               - refId: A
-                datasourceUid: P4169E866C3094E38
+                datasourceUid: VictoriaMetrics
                 relativeTimeRange:
                   from: 300
                   to: 0
@@ -210,7 +210,7 @@ data:
               description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is in Failed or Pending state for > 5 minutes."
             data:
               - refId: A
-                datasourceUid: P4169E866C3094E38
+                datasourceUid: VictoriaMetrics
                 relativeTimeRange:
                   from: 300
                   to: 0
@@ -261,7 +261,7 @@ data:
               description: "Cluster node memory usage exceeds 85% for 3+ minutes."
             data:
               - refId: A
-                datasourceUid: P4169E866C3094E38
+                datasourceUid: VictoriaMetrics
                 relativeTimeRange:
                   from: 300
                   to: 0
@@ -307,7 +307,7 @@ data:
               description: "Cluster node CPU usage exceeds 85% for 5+ minutes."
             data:
               - refId: A
-                datasourceUid: P4169E866C3094E38
+                datasourceUid: VictoriaMetrics
                 relativeTimeRange:
                   from: 300
                   to: 0
@@ -353,7 +353,7 @@ data:
               description: "Root filesystem free disk space is below 15%."
             data:
               - refId: A
-                datasourceUid: P4169E866C3094E38
+                datasourceUid: VictoriaMetrics
                 relativeTimeRange:
                   from: 300
                   to: 0
@@ -404,7 +404,7 @@ data:
               description: "Domain TLS certificate expires in < 14 days."
             data:
               - refId: A
-                datasourceUid: P4169E866C3094E38
+                datasourceUid: VictoriaMetrics
                 relativeTimeRange:
                   from: 300
                   to: 0
@@ -450,7 +450,7 @@ data:
               description: "Database or Redis container RAM usage > 800MB."
             data:
               - refId: A
-                datasourceUid: P4169E866C3094E38
+                datasourceUid: VictoriaMetrics
                 relativeTimeRange:
                   from: 300
                   to: 0
@@ -496,7 +496,7 @@ data:
               description: "More than 5% of HTTP requests returned 5xx errors."
             data:
               - refId: A
-                datasourceUid: P4169E866C3094E38
+                datasourceUid: VictoriaMetrics
                 relativeTimeRange:
                   from: 300
                   to: 0
@@ -542,7 +542,7 @@ data:
               description: "Cluster recorded > 20 error log entries per minute."
             data:
               - refId: A
-                datasourceUid: P8E80F9AEF21F6940
+                datasourceUid: Loki
                 relativeTimeRange:
                   from: 300
                   to: 0
@@ -571,5 +571,240 @@ data:
                   conditions:
                     - evaluator:
                         params: [20]
+                        type: gt
+                  refId: C
+
+      - orgId: 1
+        name: Observability-Platform-Alerts
+        folder: Cluster Production Alerts
+        interval: 1m
+        rules:
+          - uid: obs-alloy-down
+            title: "Alloy Collector Down"
+            condition: C
+            for: 2m
+            no_data_state: Alerting
+            exec_err_state: Alerting
+            labels:
+              severity: critical
+              cluster: homelabs
+            annotations:
+              summary: "Grafana Alloy collector is down or not scraping"
+              description: "Alloy instance {{ $labels.instance }} has been down for >2m. Metrics and logs collection may be impaired."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: 'up{job=~".*alloy.*"} == 0 or absent(up{job=~".*alloy.*"})'
+                  refId: A
+              - refId: B
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: reduce
+                  reducer: last
+                  expression: A
+                  refId: B
+              - refId: C
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                  refId: C
+
+          - uid: obs-victoriametrics-down
+            title: "VictoriaMetrics Down"
+            condition: C
+            for: 2m
+            no_data_state: Alerting
+            exec_err_state: Alerting
+            labels:
+              severity: critical
+              cluster: homelabs
+            annotations:
+              summary: "VictoriaMetrics is down"
+              description: "VictoriaMetrics has been unreachable for >2m. All metrics queries will fail."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: 'up{job=~".*vmsingle.*|.*victoria-metrics.*"} == 0 or absent(up{job=~".*victoria.*"})'
+                  refId: A
+              - refId: B
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: reduce
+                  reducer: last
+                  expression: A
+                  refId: B
+              - refId: C
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                  refId: C
+
+          - uid: obs-loki-down
+            title: "Loki Down"
+            condition: C
+            for: 2m
+            no_data_state: Alerting
+            exec_err_state: Alerting
+            labels:
+              severity: critical
+              cluster: homelabs
+            annotations:
+              summary: "Loki log backend is down"
+              description: "Loki has been unreachable for >2m. Log ingestion and queries will fail."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: 'up{job=~".*loki.*"} == 0 or absent(up{job=~".*loki.*"})'
+                  refId: A
+              - refId: B
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: reduce
+                  reducer: last
+                  expression: A
+                  refId: B
+              - refId: C
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                  refId: C
+
+          - uid: obs-scrape-target-down
+            title: "Scrape Target Down"
+            condition: C
+            for: 5m
+            no_data_state: OK
+            exec_err_state: OK
+            labels:
+              severity: warning
+              cluster: homelabs
+            annotations:
+              summary: "A scrape target is down"
+              description: "Target {{ $labels.job }} ({{ $labels.instance }}) has been down for >5m."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: 'up == 0'
+                  refId: A
+              - refId: B
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: reduce
+                  reducer: last
+                  expression: A
+                  refId: B
+              - refId: C
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                  refId: C
+
+          - uid: obs-blackbox-probe-failed
+            title: "Blackbox Probe Failed"
+            condition: C
+            for: 5m
+            no_data_state: OK
+            exec_err_state: OK
+            labels:
+              severity: warning
+              cluster: homelabs
+            annotations:
+              summary: "External endpoint probe failed"
+              description: "Endpoint {{ $labels.target }} is unreachable (probe_success=0)."
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: 'probe_success == 0'
+                  refId: A
+              - refId: B
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: reduce
+                  reducer: last
+                  expression: A
+                  refId: B
+              - refId: C
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        params: [0]
                         type: gt
                   refId: C

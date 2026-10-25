@@ -38,9 +38,9 @@ nodeSelector: {}
 
 # -- Prometheus monitoring via PodMonitor CRD.
 monitoring:
-  podMonitorEnabled: false
+  podMonitorEnabled: true
   grafanaDashboard:
-    create: false
+    create: true
 
 # -- Webhook server settings.
 webhook:

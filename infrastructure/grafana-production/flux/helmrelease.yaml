@@ -23,14 +23,17 @@ spec:
     remediation:
       retries: 3
   values:
-    adminUser: admin
+    admin:
+      existingSecret: grafana-credentials
+      userKey: admin-user
+      passwordKey: admin-password
 
     image:
       registry: docker.io
       repository: grafana/grafana
       tag: "12.3.1"
       pullPolicy: Always
-    adminPassword: changeme123
+    # adminPassword moved to grafana-credentials secret (Vault)
 
     persistence:
       enabled: true
@@ -75,6 +78,14 @@ spec:
         domain: grafana.frengky.xyz
         root_url: "https://grafana.frengky.xyz"
         enforce_domain: false
+
+    env:
+      - name: TELEGRAM_BOT_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: grafana-telegram-credentials
+            key: bot-token
+            optional: true
 
     service:
       type: ClusterIP

@@ -19,6 +19,8 @@ resources:
   - pilot-garage-ui.yaml
   - pilot-garage.yaml
   - pilot-grafana-production.yaml
+  - pilot-grafana-configs.yaml
+  - pilot-blackbox-exporter.yaml
   - pilot-n8n.yaml
   - pilot-sandbox-finance-db.yaml
   - pilot-qdrant.yaml
