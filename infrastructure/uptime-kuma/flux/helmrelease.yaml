@@ -1,0 +1,48 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: uptime-kuma
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: uptime-kuma
+      version: "4.2.0"
+      sourceRef:
+        kind: HelmRepository
+        name: uptime-kuma
+        namespace: flux-system
+  releaseName: uptime-kuma
+  targetNamespace: uptime-kuma
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    ingress:
+      enabled: true
+      className: traefik
+      annotations: {}
+      hosts:
+        - host: status.frengky.xyz
+          paths:
+            - path: /
+              pathType: Prefix
+      tls: []
+    volume:
+      enabled: true
+      accessMode: ReadWriteOnce
+      size: 4Gi
+      storageClassName: local-path
+      existingClaim: ""
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi

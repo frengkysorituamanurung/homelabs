@@ -21,6 +21,7 @@ resources:
   - pilot-grafana-production.yaml
   - pilot-grafana-configs.yaml
   - pilot-blackbox-exporter.yaml
+  - pilot-uptime-kuma.yaml
   - pilot-n8n.yaml
   - pilot-sandbox-finance-db.yaml
   - pilot-qdrant.yaml
