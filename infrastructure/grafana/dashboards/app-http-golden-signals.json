@@ -1,108 +1,263 @@
 {
+  "uid": "app-http-golden-signals",
+  "title": "4. Application Monitoring (Golden Signals)",
+  "tags": [
+    "observability",
+    "applications",
+    "traefik"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "1. Home Server Overview",
+      "url": "/d/homelab-home-dashboard",
+      "type": "link",
+      "icon": "apps",
+      "keepTime": true
+    },
+    {
+      "title": "2. Kubernetes Cluster",
+      "url": "/d/k8s-workloads-health",
+      "type": "link",
+      "icon": "cloud",
+      "keepTime": true
+    },
+    {
+      "title": "3. Node & Infrastructure",
+      "url": "/d/physical-server-monitoring",
+      "type": "link",
+      "icon": "monitor",
+      "keepTime": true
+    },
+    {
+      "title": "4. Application Monitoring",
+      "url": "/d/app-http-golden-signals",
+      "type": "link",
+      "icon": "bolt",
+      "keepTime": true
+    },
+    {
+      "title": "5. Logs & Troubleshooting",
+      "url": "/d/loki-logs-explorer",
+      "type": "link",
+      "icon": "file-alt",
+      "keepTime": true
+    },
+    {
+      "title": "6. Distributed Tracing",
+      "url": "/d/distributed-tracing-tempo",
+      "type": "link",
+      "icon": "sitemap",
+      "keepTime": true
+    },
+    {
+      "title": "7. Observability Stack Health",
+      "url": "/d/observability-stack-health",
+      "type": "link",
+      "icon": "heart",
+      "keepTime": true
+    },
+    {
+      "title": "Grafana Explore",
+      "url": "/explore",
+      "type": "link",
+      "icon": "compass",
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "label": "Traefik Backend Service",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "VictoriaMetrics"
+        },
+        "query": {
+          "query": "label_values(traefik_service_requests_total{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\"}, service)",
+          "refId": "StandardVariableQuery"
+        },
+        "includeAll": true,
+        "allValue": ".+",
+        "multi": true,
+        "refresh": 1,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
+        "name": "namespace",
+        "label": "App Namespace (Logs)",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "VictoriaMetrics"
+        },
+        "query": {
+          "query": "label_values(kube_pod_info{cluster=\"homelabs\", namespace=~\"backend|production|staging|development|frontend|immich|harbor|n8n|umami|uptime-kuma\"}, namespace)",
+          "refId": "StandardVariableQuery"
+        },
+        "includeAll": true,
+        "allValue": "backend|production|staging|development|frontend|immich|harbor|n8n|umami|uptime-kuma",
+        "multi": true,
+        "refresh": 1,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      }
+    ]
+  },
   "annotations": {
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
         "type": "dashboard"
       }
     ]
   },
-  "editable": true,
-  "fiscalYearStartMonth": 0,
-  "graphTooltip": 1,
-  "id": null,
-  "links": [],
-  "liveNow": false,
   "panels": [
     {
+      "id": 1,
+      "type": "row",
+      "title": "HTTP Golden Signals (Traefik Ingress & Application Telemetry)",
       "collapsed": false,
       "gridPos": {
-        "h": 1,
-        "w": 24,
         "x": 0,
-        "y": 0
+        "y": 0,
+        "w": 24,
+        "h": 1
       },
-      "id": 100,
-      "title": "Application API Golden Signals Overview",
-      "type": "row"
+      "panels": []
     },
     {
+      "id": 2,
+      "type": "stat",
+      "title": "Total Request Rate (RPS)",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "VictoriaMetrics"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
       "gridPos": {
-        "h": 4,
-        "w": 4,
         "x": 0,
-        "y": 1
+        "y": 1,
+        "w": 4,
+        "h": 4
       },
-      "id": 1,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
       "targets": [
         {
+          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "editorMode": "code",
-          "expr": "sum(rate(traefik_service_requests_total{service=~\"$service\"}[5m]))",
-          "legendFormat": "RPS",
-          "range": true,
-          "refId": "A"
+          "expr": "sum(rate(traefik_service_requests_total{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\"}[5m]))",
+          "editorMode": "code"
         }
       ],
-      "title": "Total Request Rate (RPS)",
-      "type": "stat"
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      }
     },
     {
+      "id": 3,
+      "type": "stat",
+      "title": "HTTP 5xx Server Error %",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "VictoriaMetrics"
       },
+      "gridPos": {
+        "x": 4,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "(sum(rate(traefik_service_requests_total{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\", code=~\"5..\"}[5m])) or vector(0)) / sum(rate(traefik_service_requests_total{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\"}[5m])) * 100",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
+          "unit": "percent",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -120,59 +275,54 @@
               }
             ]
           },
-          "unit": "percent"
+          "mappings": []
         },
         "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 4,
-        "y": 1
-      },
-      "id": 2,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "(sum(rate(traefik_service_requests_total{service=~\"$service\", code=~\"5..\"}[5m])) / sum(rate(traefik_service_requests_total{service=~\"$service\"}[5m]))) * 100",
-          "legendFormat": "5xx Error Rate",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "HTTP 5xx Server Error Rate (%)",
-      "type": "stat"
+      }
     },
     {
+      "id": 4,
+      "type": "stat",
+      "title": "HTTP 4xx Client Error %",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "VictoriaMetrics"
       },
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "(sum(rate(traefik_service_requests_total{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\", code=~\"4..\"}[5m])) or vector(0)) / sum(rate(traefik_service_requests_total{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\"}[5m])) * 100",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
+          "unit": "percent",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -186,61 +336,58 @@
               },
               {
                 "color": "red",
-                "value": 15
+                "value": 20
               }
             ]
           },
-          "unit": "percent"
+          "mappings": []
         },
         "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 8,
-        "y": 1
-      },
-      "id": 3,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "(sum(rate(traefik_service_requests_total{service=~\"$service\", code=~\"4..\"}[5m])) / sum(rate(traefik_service_requests_total{service=~\"$service\"}[5m]))) * 100",
-          "legendFormat": "4xx Error Rate",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "HTTP 4xx Client Error Rate (%)",
-      "type": "stat"
+      }
     },
     {
+      "id": 5,
+      "type": "stat",
+      "title": "P95 Response Latency",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "VictoriaMetrics"
       },
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(traefik_service_request_duration_seconds_bucket{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\"}[5m])) by (le))",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
+          "unit": "s",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -254,616 +401,465 @@
               },
               {
                 "color": "red",
-                "value": 1.0
+                "value": 2.0
               }
             ]
           },
-          "unit": "s"
+          "mappings": []
         },
         "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 12,
-        "y": 1
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(traefik_service_request_duration_seconds_bucket{service=~\"$service\"}[5m])) by (le))",
-          "legendFormat": "P95 Latency",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "P95 Response Latency",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "purple",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 16,
-        "y": 1
-      },
-      "id": 5,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(traefik_open_connections{service=~\"$service\"})",
-          "legendFormat": "Connections",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Active Connections",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "unit": "binBps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 20,
-        "y": 1
-      },
-      "id": 6,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(traefik_service_responses_bytes_total{service=~\"$service\"}[5m]))",
-          "legendFormat": "Traffic Out",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Data Egress Rate (B/s)",
-      "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 5
-      },
-      "id": 101,
-      "title": "Traffic Throughput & Status Code Distribution",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "fillOpacity": 15,
-            "lineInterpolation": "smooth"
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 14,
-        "x": 0,
-        "y": 6
-      },
-      "id": 7,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(traefik_service_requests_total{service=~\"$service\"}[5m])) by (service)",
-          "legendFormat": "{{service}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Requests Per Second (RPS) per Application Service",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "lineInterpolation": "smooth",
-            "stacking": {
-              "group": "A",
-              "mode": "normal"
-            }
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 10,
-        "x": 14,
-        "y": 6
-      },
-      "id": 8,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(traefik_service_requests_total{service=~\"$service\"}[5m])) by (code)",
-          "legendFormat": "HTTP {{code}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "HTTP Status Code Distribution",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 14
-      },
-      "id": 102,
-      "title": "API Response Time & Latency Percentiles",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "fillOpacity": 15,
-            "lineInterpolation": "smooth"
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 14,
-        "x": 0,
-        "y": 15
-      },
-      "id": 9,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(traefik_service_request_duration_seconds_bucket{service=~\"$service\"}[5m])) by (le, service))",
-          "legendFormat": "P95 - {{service}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "P95 Latency by Application Service",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "lineInterpolation": "smooth"
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 10,
-        "x": 14,
-        "y": 15
-      },
-      "id": 10,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.50, sum(rate(traefik_service_request_duration_seconds_bucket{service=~\"$service\"}[5m])) by (le))",
-          "legendFormat": "P50 (Median)",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.90, sum(rate(traefik_service_request_duration_seconds_bucket{service=~\"$service\"}[5m])) by (le))",
-          "legendFormat": "P90",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(traefik_service_request_duration_seconds_bucket{service=~\"$service\"}[5m])) by (le))",
-          "legendFormat": "P95",
-          "range": true,
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum(rate(traefik_service_request_duration_seconds_bucket{service=~\"$service\"}[5m])) by (le))",
-          "legendFormat": "P99",
-          "range": true,
-          "refId": "D"
-        }
-      ],
-      "title": "Latency Percentiles (P50, P90, P95, P99)",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 23
-      },
-      "id": 103,
-      "title": "HTTP Error Rates & Network Bandwidth",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "fillOpacity": 15,
-            "lineInterpolation": "smooth"
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 24
-      },
-      "id": 11,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "(sum(rate(traefik_service_requests_total{service=~\"$service\", code=~\"5..\"}[5m])) by (service) / sum(rate(traefik_service_requests_total{service=~\"$service\"}[5m])) by (service)) * 100",
-          "legendFormat": "5xx % - {{service}}",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "(sum(rate(traefik_service_requests_total{service=~\"$service\", code=~\"4..\"}[5m])) by (service) / sum(rate(traefik_service_requests_total{service=~\"$service\"}[5m])) by (service)) * 100",
-          "legendFormat": "4xx % - {{service}}",
-          "range": true,
-          "refId": "B"
-        }
-      ],
-      "title": "HTTP Error Rates (%) per Application Service",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "fillOpacity": 15,
-            "lineInterpolation": "smooth"
-          },
-          "unit": "binBps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 24
-      },
-      "id": 12,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(traefik_service_requests_bytes_total{service=~\"$service\"}[5m])) by (service)",
-          "legendFormat": "Request In - {{service}}",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(traefik_service_responses_bytes_total{service=~\"$service\"}[5m])) by (service)",
-          "legendFormat": "Response Out - {{service}}",
-          "range": true,
-          "refId": "B"
-        }
-      ],
-      "title": "Data Bandwidth Throughput per Service",
-      "type": "timeseries"
-    }
-  ],
-  "refresh": "10s",
-  "schemaVersion": 38,
-  "style": "dark",
-  "tags": [
-    "application",
-    "apm",
-    "golden-signals",
-    "http",
-    "latency",
-    "traffic"
-  ],
-  "templating": {
-    "list": [
-      {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "VictoriaMetrics"
-        },
-        "definition": "label_values(traefik_service_requests_total, service)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Application Service",
-        "multi": true,
-        "name": "service",
-        "options": [],
-        "query": {
-          "query": "label_values(traefik_service_requests_total, service)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "sort": 1,
-        "type": "query"
       }
-    ]
-  },
-  "time": {
-    "from": "now-1h",
-    "to": "now"
-  },
-  "timepicker": {
-    "refresh_intervals": [
-      "5s",
-      "10s",
-      "30s",
-      "1m",
-      "5m"
-    ]
-  },
-  "timezone": "browser",
-  "title": "Application API & HTTP Golden Signals Monitoring",
-  "uid": "app-http-golden-signals",
-  "version": 1
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Synthetic Probes Up",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "count(probe_success{cluster=\"homelabs\"} == 1)",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Finance-Backend Uptime",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "max(finance_uptime_seconds{cluster=\"homelabs\"})",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "Throughput, Error Breakdown & Latency Percentiles",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Requests Per Second (RPS) by Service",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(rate(traefik_service_requests_total{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\"}[5m])) by (service)",
+          "legendFormat": "{{service}}",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "HTTP Status Code Distribution",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 6,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(rate(traefik_service_requests_total{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\"}[5m])) by (code)",
+          "legendFormat": "HTTP {{code}}",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Response Latency Percentiles (P50, P90, P95, P99)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 6,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.50, sum(rate(traefik_service_request_duration_seconds_bucket{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\"}[5m])) by (le))",
+          "legendFormat": "P50",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.90, sum(rate(traefik_service_request_duration_seconds_bucket{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\"}[5m])) by (le))",
+          "legendFormat": "P90",
+          "editorMode": "code"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(traefik_service_request_duration_seconds_bucket{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\"}[5m])) by (le))",
+          "legendFormat": "P95",
+          "editorMode": "code"
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.99, sum(rate(traefik_service_request_duration_seconds_bucket{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\", service=~\"$service\"}[5m])) by (le))",
+          "legendFormat": "P99",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "Synthetic Probe Latency & Correlated Application / Access Logs (with Tempo Trace Links)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Blackbox HTTP Probe Duration by Application",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 10,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "probe_duration_seconds{cluster=\"homelabs\"}",
+          "legendFormat": "{{job}}",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 14,
+      "type": "logs",
+      "title": "Correlated Ingress & Application Logs (Click TraceID in log details to open Tempo)",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "gridPos": {
+        "x": 10,
+        "y": 15,
+        "w": 14,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "{cluster=\"homelabs\", namespace=~\"$namespace\"}",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      }
+    }
+  ]
 }

@@ -1,234 +1,305 @@
 {
+  "uid": "k8s-workloads-health",
+  "title": "2. Kubernetes Cluster & Workloads",
+  "tags": [
+    "observability",
+    "kubernetes",
+    "sre"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "1. Home Server Overview",
+      "url": "/d/homelab-home-dashboard",
+      "type": "link",
+      "icon": "apps",
+      "keepTime": true
+    },
+    {
+      "title": "2. Kubernetes Cluster",
+      "url": "/d/k8s-workloads-health",
+      "type": "link",
+      "icon": "cloud",
+      "keepTime": true
+    },
+    {
+      "title": "3. Node & Infrastructure",
+      "url": "/d/physical-server-monitoring",
+      "type": "link",
+      "icon": "monitor",
+      "keepTime": true
+    },
+    {
+      "title": "4. Application Monitoring",
+      "url": "/d/app-http-golden-signals",
+      "type": "link",
+      "icon": "bolt",
+      "keepTime": true
+    },
+    {
+      "title": "5. Logs & Troubleshooting",
+      "url": "/d/loki-logs-explorer",
+      "type": "link",
+      "icon": "file-alt",
+      "keepTime": true
+    },
+    {
+      "title": "6. Distributed Tracing",
+      "url": "/d/distributed-tracing-tempo",
+      "type": "link",
+      "icon": "sitemap",
+      "keepTime": true
+    },
+    {
+      "title": "7. Observability Stack Health",
+      "url": "/d/observability-stack-health",
+      "type": "link",
+      "icon": "heart",
+      "keepTime": true
+    },
+    {
+      "title": "Grafana Explore",
+      "url": "/explore",
+      "type": "link",
+      "icon": "compass",
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "namespace",
+        "label": "Namespace",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "VictoriaMetrics"
+        },
+        "query": {
+          "query": "label_values(kube_pod_info{cluster=\"homelabs\"}, namespace)",
+          "refId": "StandardVariableQuery"
+        },
+        "includeAll": true,
+        "allValue": ".+",
+        "multi": true,
+        "refresh": 1,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
+        "name": "workload",
+        "label": "Pod / Workload Filter",
+        "type": "textbox",
+        "query": ".*",
+        "current": {
+          "selected": false,
+          "text": ".*",
+          "value": ".*"
+        }
+      }
+    ]
+  },
   "annotations": {
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
         "type": "dashboard"
       }
     ]
   },
-  "editable": true,
-  "fiscalYearStartMonth": 0,
-  "graphTooltip": 1,
-  "id": null,
-  "links": [],
-  "liveNow": false,
   "panels": [
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 100,
-      "title": "Workload Status & Container Restarts",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 0,
-        "y": 1
-      },
       "id": 1,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
+      "type": "row",
+      "title": "Kubernetes Workload Status",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
       },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(kube_pod_status_phase{namespace=~\"$namespace\", phase=\"Running\"})",
-          "legendFormat": "Running Pods",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Running Pods",
-      "type": "stat"
+      "panels": []
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
-        "y": 1
-      },
       "id": 2,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(kube_pod_status_phase{namespace=~\"$namespace\", phase=\"Pending\"})",
-          "legendFormat": "Pending Pods",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Pending Pods",
-      "type": "stat"
-    },
-    {
+      "type": "stat",
+      "title": "Ready Nodes",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "VictoriaMetrics"
       },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(kube_node_status_condition{cluster=\"homelabs\", condition=\"Ready\", status=\"true\"})",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
+          "unit": "none",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
               }
             ]
           },
-          "unit": "short"
+          "mappings": []
         },
         "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 12,
-        "y": 1
-      },
+      }
+    },
+    {
       "id": 3,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(kube_pod_status_phase{namespace=~\"$namespace\", phase=\"Failed\"})",
-          "legendFormat": "Failed Pods",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Failed Pods",
-      "type": "stat"
-    },
-    {
+      "type": "stat",
+      "title": "Running Pods",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "VictoriaMetrics"
       },
+      "gridPos": {
+        "x": 3,
+        "y": 1,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(kube_pod_status_phase{cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$workload\", phase=\"Running\"})",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           },
-          "mappings": [],
+          "mappings": []
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Pending / Unschedulable",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 1,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(kube_pod_status_phase{cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$workload\", phase=\"Pending\"})",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -237,234 +308,250 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 1
-              },
-              {
                 "color": "red",
-                "value": 5
+                "value": 1
               }
             ]
           },
-          "unit": "short"
+          "mappings": []
         },
         "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Failed Pods",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
       },
       "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 1
+        "x": 9,
+        "y": 1,
+        "w": 3,
+        "h": 4
       },
-      "id": 4,
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(kube_pod_status_phase{cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$workload\", phase=\"Failed\"})",
+          "editorMode": "code"
+        }
+      ],
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
         "reduceOptions": {
+          "values": false,
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=~\"$namespace\"}[24h]))",
-          "legendFormat": "Restarts (24h)",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Container Restarts (24h)",
-      "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 5
-      },
-      "id": 101,
-      "title": "Pod Resource Usage vs Requests & Limits",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
       },
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "fillOpacity": 15,
-            "lineInterpolation": "smooth"
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
           },
-          "unit": "bytes"
+          "mappings": []
         },
         "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 6
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"$pod\", container!=\"\"}) by (pod)",
-          "legendFormat": "{{pod}} (Used Memory)",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_requests{resource=\"memory\", namespace=~\"$namespace\", pod=~\"$pod\"}) by (pod)",
-          "legendFormat": "{{pod}} (Requested)",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_limits{resource=\"memory\", namespace=~\"$namespace\", pod=~\"$pod\"}) by (pod)",
-          "legendFormat": "{{pod}} (Limit)",
-          "range": true,
-          "refId": "C"
-        }
-      ],
-      "title": "Pod Memory Usage vs Requests & Limits",
-      "type": "timeseries"
+      }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "fillOpacity": 15,
-            "lineInterpolation": "smooth"
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 6
-      },
       "id": 6,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"$pod\", container!=\"\"}[5m])) by (pod)",
-          "legendFormat": "{{pod}} (Used CPU)",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_requests{resource=\"cpu\", namespace=~\"$namespace\", pod=~\"$pod\"}) by (pod)",
-          "legendFormat": "{{pod}} (Requested)",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_limits{resource=\"cpu\", namespace=~\"$namespace\", pod=~\"$pod\"}) by (pod)",
-          "legendFormat": "{{pod}} (Limit)",
-          "range": true,
-          "refId": "C"
-        }
-      ],
-      "title": "Pod CPU Usage vs Requests & Limits",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 14
-      },
-      "id": 102,
-      "title": "Persistent Volume Storage (PVC) Utilization",
-      "type": "row"
-    },
-    {
+      "type": "stat",
+      "title": "Deployments Available",
+      "description": "",
       "datasource": {
         "type": "prometheus",
         "uid": "VictoriaMetrics"
       },
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(kube_deployment_status_replicas_available{cluster=\"homelabs\", namespace=~\"$namespace\"}) / sum(kube_deployment_spec_replicas{cluster=\"homelabs\", namespace=~\"$namespace\"}) * 100",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 90
+              },
+              {
+                "color": "green",
+                "value": 100
+              }
+            ]
           },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
+          "mappings": []
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "StatefulSets Ready",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(kube_statefulset_status_replicas_ready{cluster=\"homelabs\", namespace=~\"$namespace\"}) / sum(kube_statefulset_replicas{cluster=\"homelabs\", namespace=~\"$namespace\"}) * 100",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 90
+              },
+              {
+                "color": "green",
+                "value": 100
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Container Restarts (24h)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(increase(kube_pod_container_status_restarts_total{cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$workload\"}[24h]))",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -474,134 +561,416 @@
               },
               {
                 "color": "yellow",
-                "value": 75
+                "value": 3
               },
               {
                 "color": "red",
-                "value": 90
+                "value": 10
               }
             ]
           },
-          "unit": "percent"
+          "mappings": []
         },
         "overrides": []
+      }
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "title": "Resource Consumption vs Requests & Limits (By Namespace / Top Pods)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Top 15 Pods Memory Usage (Working Set)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
       },
       "gridPos": {
-        "h": 8,
-        "w": 24,
         "x": 0,
-        "y": 15
+        "y": 6,
+        "w": 12,
+        "h": 8
       },
-      "id": 7,
-      "options": {
-        "displayMode": "gradient",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "valueMode": "color"
-      },
-      "pluginVersion": "10.0.0",
       "targets": [
         {
+          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "editorMode": "code",
-          "expr": "(kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim!=\"\"} / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim!=\"\"}) * 100",
-          "legendFormat": "{{namespace}} / {{persistentvolumeclaim}}",
-          "range": true,
-          "refId": "A"
+          "expr": "topk(15, sum(container_memory_working_set_bytes{cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$workload\", pod!=\"\"}) by (namespace, pod))",
+          "legendFormat": "{{namespace}}/{{pod}}",
+          "editorMode": "code"
         }
       ],
-      "title": "PVC Disk Usage Percentage",
-      "type": "bargauge"
-    }
-  ],
-  "refresh": "10s",
-  "schemaVersion": 38,
-  "style": "dark",
-  "tags": [
-    "kubernetes",
-    "workloads",
-    "pods",
-    "health"
-  ],
-  "templating": {
-    "list": [
-      {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "VictoriaMetrics"
-        },
-        "definition": "label_values(kube_pod_info, namespace)",
-        "hide": 0,
-        "includeAll": true,
-        "multi": true,
-        "name": "namespace",
-        "options": [],
-        "query": {
-          "query": "label_values(kube_pod_info, namespace)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "sort": 1,
-        "type": "query"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
-      {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "VictoriaMetrics"
-        },
-        "definition": "label_values(kube_pod_info{namespace=~\"$namespace\"}, pod)",
-        "hide": 0,
-        "includeAll": true,
-        "multi": true,
-        "name": "pod",
-        "options": [],
-        "query": {
-          "query": "label_values(kube_pod_info{namespace=~\"$namespace\"}, pod)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "sort": 1,
-        "type": "query"
+        "overrides": []
       }
-    ]
-  },
-  "time": {
-    "from": "now-1h",
-    "to": "now"
-  },
-  "timepicker": {
-    "refresh_intervals": [
-      "5s",
-      "10s",
-      "30s",
-      "1m",
-      "5m"
-    ]
-  },
-  "timezone": "browser",
-  "title": "Kubernetes Workloads & Pod Health",
-  "uid": "k8s-workloads-health",
-  "version": 1
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Top 15 Pods CPU Usage (Cores)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "topk(15, sum(rate(container_cpu_usage_seconds_total{cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$workload\", pod!=\"\"}[5m])) by (namespace, pod))",
+          "legendFormat": "{{namespace}}/{{pod}}",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Namespace Memory: Actual Usage vs Requests vs Limits",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(container_memory_working_set_bytes{cluster=\"homelabs\", namespace=~\"$namespace\", pod!=\"\"}) by (namespace)",
+          "legendFormat": "Actual: {{namespace}}",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(kube_pod_container_resource_requests{cluster=\"homelabs\", resource=\"memory\", namespace=~\"$namespace\"}) by (namespace)",
+          "legendFormat": "Request: {{namespace}}",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Kubernetes API Server Request Rate & P99 Latency (Control Plane)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(rate(apiserver_request_total{cluster=\"homelabs\"}[5m])) by (verb)",
+          "legendFormat": "{{verb}} req/s",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.99, sum(rate(apiserver_request_duration_seconds_bucket{cluster=\"homelabs\", verb!=\"WATCH\"}[5m])) by (le))",
+          "legendFormat": "P99 Latency (s)",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 14,
+      "type": "row",
+      "title": "Restarts, OOMKills, Waiting Containers & Kubernetes Events",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Container Restart Rate & Waiting Containers",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 10,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(increase(kube_pod_container_status_restarts_total{cluster=\"homelabs\", namespace=~\"$namespace\"}[15m])) by (namespace, pod) > 0",
+          "legendFormat": "Restarts: {{namespace}}/{{pod}}",
+          "editorMode": "code"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(kube_pod_container_status_waiting_reason{cluster=\"homelabs\", namespace=~\"$namespace\"}) by (namespace, pod, reason) > 0",
+          "legendFormat": "Waiting ({{reason}}): {{namespace}}/{{pod}}",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 16,
+      "type": "logs",
+      "title": "Live Kubernetes Cluster Events Stream (Loki source=\"k8s-events\")",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "gridPos": {
+        "x": 10,
+        "y": 22,
+        "w": 14,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "{cluster=\"homelabs\", source=\"k8s-events\", namespace=~\"$namespace\"}",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      }
+    }
+  ]
 }

@@ -4,3 +4,4 @@ resources:
   - grafana-ingress.yaml
   - new-apps-ingress.yaml
   - traefik-dashboard-ingressroute.yaml
+  - traefik-helmchartconfig.yaml

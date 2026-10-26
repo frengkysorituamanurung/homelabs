@@ -69,9 +69,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "(min(traefik_tls_certs_not_after) - time()) / 86400",
+          "expr": "(max(traefik_tls_certs_not_after{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\"}) - time()) / 86400",
           "legendFormat": "Days Until Expiration",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Next TLS Certificate Expiration (Days)",
@@ -107,9 +111,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "(traefik_tls_certs_not_after - time()) / 86400",
+          "expr": "(max by (sans) (traefik_tls_certs_not_after{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\"}) - time()) / 86400",
           "legendFormat": "{{cn}} / {{sans}}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "TLS Certificate Expiration Timeline by Domain",
@@ -161,7 +169,11 @@
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"vault\", pod=\"vault-0\"})",
           "legendFormat": "Vault RAM",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Vault Server Memory",
@@ -201,7 +213,11 @@
           "editorMode": "code",
           "expr": "sum(kube_pod_status_phase{namespace=\"vault\", pod=~\"vault-unsealer.*\", phase=\"Running\"})",
           "legendFormat": "Unsealer Status",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Vault Auto-Unsealer Active",
@@ -239,9 +255,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"external-secrets\", container!=\"\"})",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"external-secrets\", pod!=\"\"})",
           "legendFormat": "External Secrets RAM",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "ExternalSecrets Operator Memory",
@@ -277,9 +297,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=~\"vault|external-secrets\", container!=\"\"}) by (pod, namespace)",
+          "expr": "sum(container_memory_working_set_bytes{namespace=~\"vault|external-secrets\", pod!=\"\"}) by (pod, namespace)",
           "legendFormat": "{{namespace}} / {{pod}}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Vault & Secrets Manager Pod Memory Footprint",

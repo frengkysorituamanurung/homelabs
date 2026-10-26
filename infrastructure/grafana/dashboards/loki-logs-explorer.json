@@ -1,170 +1,308 @@
 {
+  "uid": "loki-logs-explorer",
+  "title": "5. Logs & Troubleshooting",
+  "tags": [
+    "observability",
+    "logs",
+    "loki"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "1. Home Server Overview",
+      "url": "/d/homelab-home-dashboard",
+      "type": "link",
+      "icon": "apps",
+      "keepTime": true
+    },
+    {
+      "title": "2. Kubernetes Cluster",
+      "url": "/d/k8s-workloads-health",
+      "type": "link",
+      "icon": "cloud",
+      "keepTime": true
+    },
+    {
+      "title": "3. Node & Infrastructure",
+      "url": "/d/physical-server-monitoring",
+      "type": "link",
+      "icon": "monitor",
+      "keepTime": true
+    },
+    {
+      "title": "4. Application Monitoring",
+      "url": "/d/app-http-golden-signals",
+      "type": "link",
+      "icon": "bolt",
+      "keepTime": true
+    },
+    {
+      "title": "5. Logs & Troubleshooting",
+      "url": "/d/loki-logs-explorer",
+      "type": "link",
+      "icon": "file-alt",
+      "keepTime": true
+    },
+    {
+      "title": "6. Distributed Tracing",
+      "url": "/d/distributed-tracing-tempo",
+      "type": "link",
+      "icon": "sitemap",
+      "keepTime": true
+    },
+    {
+      "title": "7. Observability Stack Health",
+      "url": "/d/observability-stack-health",
+      "type": "link",
+      "icon": "heart",
+      "keepTime": true
+    },
+    {
+      "title": "Grafana Explore",
+      "url": "/explore",
+      "type": "link",
+      "icon": "compass",
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "namespace",
+        "label": "Namespace",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "Loki"
+        },
+        "query": {
+          "label": "namespace",
+          "refId": "LokiVariableQuery",
+          "stream": "",
+          "type": 1
+        },
+        "includeAll": true,
+        "allValue": ".+",
+        "multi": true,
+        "refresh": 1,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
+        "name": "pod",
+        "label": "Pod",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "Loki"
+        },
+        "query": {
+          "label": "pod",
+          "refId": "LokiVariableQuery",
+          "stream": "{namespace=~\"$namespace\"}",
+          "type": 1
+        },
+        "includeAll": true,
+        "allValue": ".+",
+        "multi": true,
+        "refresh": 1,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
+        "name": "level",
+        "label": "Severity Level",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "Loki"
+        },
+        "query": {
+          "label": "level",
+          "refId": "LokiVariableQuery",
+          "stream": "{namespace=~\"$namespace\"}",
+          "type": 1
+        },
+        "includeAll": true,
+        "allValue": ".+",
+        "multi": true,
+        "refresh": 1,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
+        "name": "search",
+        "label": "Search Text / TraceID",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        }
+      }
+    ]
+  },
   "annotations": {
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
         "type": "dashboard"
       }
     ]
   },
-  "editable": true,
-  "fiscalYearStartMonth": 0,
-  "graphTooltip": 1,
-  "id": null,
-  "links": [],
-  "liveNow": false,
   "panels": [
     {
-      "collapsed": false,
+      "id": 1,
+      "type": "text",
+      "title": "LogQL Investigation Workflows & Quick Links",
       "gridPos": {
-        "h": 1,
-        "w": 24,
         "x": 0,
-        "y": 0
+        "y": 0,
+        "w": 24,
+        "h": 4
       },
-      "id": 100,
-      "title": "Centralized Log Metrics & Error Activity",
-      "type": "row"
+      "options": {
+        "mode": "markdown",
+        "content": "### Quick LogQL Troubleshooting Guide & Explore Navigation\n- **Open in Grafana Explore:** [Explore Loki Logs](/explore?left=%7B%22datasource%22:%22Loki%22%7D) | [Explore Tempo Traces](/explore?left=%7B%22datasource%22:%22Tempo%22%7D)\n- **Errors across cluster:** `{cluster=\"homelabs\", level=~\"error|fatal|critical\"}` or `{cluster=\"homelabs\"} |~ \"(?i)(error|exception|panic|fatal)\"`\n- **Kubernetes Warning Events:** `{cluster=\"homelabs\", source=\"k8s-events\"} |= \"type=Warning\"`\n- **Correlate by Trace ID:** Paste a `trace_id` (e.g., from `finance-backend` or `traefik` access logs) into the **Search Text / TraceID** box above, or expand any log line and click **Inspect Trace in Tempo**."
+      }
     },
     {
+      "id": 2,
+      "type": "stat",
+      "title": "Log Ingestion Rate (Lines/s)",
+      "description": "",
       "datasource": {
         "type": "loki",
         "uid": "Loki"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "unit": "pps"
-        },
-        "overrides": []
-      },
       "gridPos": {
-        "h": 4,
-        "w": 8,
         "x": 0,
-        "y": 1
+        "y": 4,
+        "w": 6,
+        "h": 4
       },
-      "id": 1,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
       "targets": [
         {
+          "refId": "A",
           "datasource": {
             "type": "loki",
             "uid": "Loki"
           },
-          "editorMode": "code",
-          "expr": "sum(rate({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"}[5m]))",
-          "legendFormat": "Log Rate",
-          "queryType": "range",
-          "refId": "A"
+          "expr": "sum(rate({cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$pod\"}[5m]))",
+          "editorMode": "code"
         }
       ],
-      "title": "Log Ingestion Rate (Lines/sec)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "Loki"
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
+          "unit": "ops",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
               }
             ]
           },
-          "unit": "short"
+          "mappings": []
         },
         "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 8,
-        "x": 8,
-        "y": 1
-      },
-      "id": 2,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "Loki"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"} |~ \"(?i)(error|exception|fail|fatal)\" [5m])) * 60",
-          "legendFormat": "Errors / min",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Error Logs Rate (Errors/min)",
-      "type": "stat"
+      }
     },
     {
+      "id": 3,
+      "type": "stat",
+      "title": "Error Log Rate (Lines/min)",
+      "description": "",
       "datasource": {
         "type": "loki",
         "uid": "Loki"
       },
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "sum(rate({cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$pod\"} |~ \"(?i)(error|exception|fatal|panic)\" [5m])) * 60",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
+          "unit": "opm",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -174,341 +312,291 @@
               },
               {
                 "color": "yellow",
-                "value": 1
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 50
               }
             ]
           },
-          "unit": "short"
+          "mappings": []
         },
         "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Warning Log Rate (Lines/min)",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
       },
       "gridPos": {
-        "h": 4,
-        "w": 8,
-        "x": 16,
-        "y": 1
+        "x": 12,
+        "y": 4,
+        "w": 6,
+        "h": 4
       },
-      "id": 3,
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "sum(rate({cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$pod\"} |~ \"(?i)(warn|warning)\" [5m])) * 60",
+          "editorMode": "code"
+        }
+      ],
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
         "reduceOptions": {
+          "values": false,
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "Loki"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"} |~ \"(?i)(warn|warning)\" [5m])) * 60",
-          "legendFormat": "Warnings / min",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Warning Logs Rate (Warnings/min)",
-      "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 5
-      },
-      "id": 101,
-      "title": "Log Timeline & Distribution by Namespace & Deployment",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "Loki"
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
       },
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "fillOpacity": 15,
-            "lineInterpolation": "smooth"
+          "unit": "opm",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           },
-          "unit": "pps"
+          "mappings": []
         },
         "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 14,
-        "x": 0,
-        "y": 6
-      },
-      "id": 4,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "Loki"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"}[5m])) by (namespace, pod)",
-          "legendFormat": "{{namespace}} / {{pod}}",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Log Volume by Pod Over Time",
-      "type": "timeseries"
+      }
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "Loki"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "orientation": "horizontal"
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 10,
-        "x": 14,
-        "y": 6
-      },
       "id": 5,
+      "type": "stat",
+      "title": "K8s Events Rate (Events/min)",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "sum(rate({cluster=\"homelabs\", source=\"k8s-events\"}[5m])) * 60",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "opm",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Log Volume by Namespace (Lines/sec)",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "sum(rate({cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$pod\", level=~\"$level\"}[5m])) by (namespace)",
+          "legendFormat": "{{namespace}}",
+          "editorMode": "code"
+        }
+      ],
       "options": {
         "legend": {
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
         },
         "tooltip": {
-          "mode": "single"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "Loki"
-          },
-          "editorMode": "code",
-          "expr": "topk(10, sum(count_over_time({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"} |~ \"(?i)(error|exception|fail|fatal)\" [1h])) by (pod))",
-          "legendFormat": "{{pod}}",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Top Error-Generating Pods (Last 1h)",
-      "type": "barchart"
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      }
     },
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 14
-      },
-      "id": 102,
-      "title": "Live Interactive Application & Deployment Log Console",
-      "type": "row"
-    },
-    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Top Error-Generating Pods",
+      "description": "",
       "datasource": {
         "type": "loki",
         "uid": "Loki"
       },
       "gridPos": {
-        "h": 14,
-        "w": 24,
-        "x": 0,
-        "y": 15
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 7
       },
-      "id": 6,
-      "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": true,
-        "showControls": true,
-        "showLabels": true,
-        "showLogLabels": true,
-        "showTime": true,
-        "sortOrder": "Descending",
-        "wrapLogMessage": true
-      },
-      "pluginVersion": "10.0.0",
       "targets": [
         {
+          "refId": "A",
           "datasource": {
             "type": "loki",
             "uid": "Loki"
           },
-          "editorMode": "code",
-          "expr": "{namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"} |= \"$search\"",
-          "queryType": "range",
-          "refId": "A"
+          "expr": "topk(10, sum(rate({cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$pod\"} |~ \"(?i)(error|exception|fatal|panic)\" [5m])) by (namespace, pod) * 60)",
+          "legendFormat": "{{namespace}}/{{pod}}",
+          "editorMode": "code"
         }
       ],
-      "title": "Real-Time Deployment & Pod Log Stream",
-      "type": "logs"
-    }
-  ],
-  "refresh": "10s",
-  "schemaVersion": 38,
-  "style": "dark",
-  "tags": [
-    "loki",
-    "logs",
-    "explorer",
-    "deployments",
-    "errors"
-  ],
-  "templating": {
-    "list": [
-      {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
         },
-        "datasource": {
-          "type": "loki",
-          "uid": "Loki"
-        },
-        "definition": "label_values(namespace)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Namespace",
-        "multi": true,
-        "name": "namespace",
-        "options": [],
-        "query": {
-          "label": "namespace",
-          "refId": "LokiVariableQuery",
-          "stream": "",
-          "type": 1
-        },
-        "refresh": 1,
-        "sort": 1,
-        "type": "query"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
-      {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "VictoriaMetrics"
-        },
-        "definition": "label_values(kube_deployment_spec_replicas{namespace=~\"$namespace\"}, deployment)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Deployment",
-        "multi": true,
-        "name": "deployment",
-        "options": [],
-        "query": {
-          "query": "label_values(kube_deployment_spec_replicas{namespace=~\"$namespace\"}, deployment)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "sort": 1,
-        "type": "query"
-      },
-      {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": {
-          "type": "loki",
-          "uid": "Loki"
-        },
-        "definition": "label_values({namespace=~\"$namespace\", pod=~\"($deployment).*\"}, pod)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Pod",
-        "multi": true,
-        "name": "pod",
-        "options": [],
-        "query": {
-          "label": "pod",
-          "refId": "LokiVariableQuery",
-          "stream": "{namespace=~\"$namespace\", pod=~\"($deployment).*\"}",
-          "type": 1
-        },
-        "refresh": 1,
-        "sort": 1,
-        "type": "query"
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "",
-          "value": ""
-        },
-        "hide": 0,
-        "label": "Search Text",
-        "name": "search",
-        "options": [
-          {
-            "selected": true,
-            "text": "",
-            "value": ""
+      "fieldConfig": {
+        "defaults": {
+          "unit": "opm",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
           }
-        ],
-        "query": "",
-        "skipUrlSync": false,
-        "type": "textbox"
+        },
+        "overrides": []
       }
-    ]
-  },
-  "time": {
-    "from": "now-1h",
-    "to": "now"
-  },
-  "timepicker": {
-    "refresh_intervals": [
-      "5s",
-      "10s",
-      "30s",
-      "1m",
-      "5m"
-    ]
-  },
-  "timezone": "browser",
-  "title": "Centralized Log Explorer & Error Tracker",
-  "uid": "loki-logs-explorer",
-  "version": 2
+    },
+    {
+      "id": 8,
+      "type": "logs",
+      "title": "Live Container & Event Log Stream (Expand line to view Structured Metadata & Tempo Trace Link)",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 12
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "{cluster=\"homelabs\", namespace=~\"$namespace\", pod=~\"$pod\"} |= \"$search\"",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      }
+    }
+  ]
 }

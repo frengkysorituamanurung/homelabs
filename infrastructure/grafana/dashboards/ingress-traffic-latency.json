@@ -54,7 +54,11 @@
           "editorMode": "code",
           "expr": "sum(rate(traefik_entrypoint_requests_total[1m]))",
           "legendFormat": "Total Ingress RPS",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Total Ingress Requests (RPS)",
@@ -94,7 +98,11 @@
           "editorMode": "code",
           "expr": "sum(traefik_open_connections)",
           "legendFormat": "Open Connections",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Traefik Open Connections",
@@ -134,7 +142,11 @@
           "editorMode": "code",
           "expr": "sum(rate(traefik_entrypoint_requests_bytes_total[1m]))",
           "legendFormat": "Inbound Bps",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Inbound Ingress Bandwidth",
@@ -174,7 +186,11 @@
           "editorMode": "code",
           "expr": "sum(rate(traefik_entrypoint_responses_bytes_total[1m]))",
           "legendFormat": "Outbound Bps",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Outbound Ingress Bandwidth",
@@ -224,25 +240,41 @@
           "editorMode": "code",
           "expr": "sum(rate(traefik_entrypoint_requests_total{code=~\"2..\"}[1m]))",
           "legendFormat": "HTTP 2xx (Success)",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         },
         {
           "editorMode": "code",
           "expr": "sum(rate(traefik_entrypoint_requests_total{code=~\"3..\"}[1m]))",
           "legendFormat": "HTTP 3xx (Redirect)",
-          "refId": "B"
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         },
         {
           "editorMode": "code",
           "expr": "sum(rate(traefik_entrypoint_requests_total{code=~\"4..\"}[1m]))",
           "legendFormat": "HTTP 4xx (Client Error)",
-          "refId": "C"
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         },
         {
           "editorMode": "code",
           "expr": "sum(rate(traefik_entrypoint_requests_total{code=~\"5..\"}[1m]))",
           "legendFormat": "HTTP 5xx (Server Error)",
-          "refId": "D"
+          "refId": "D",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "HTTP Response Status Code Rates",
@@ -280,19 +312,31 @@
           "editorMode": "code",
           "expr": "histogram_quantile(0.50, sum(rate(traefik_service_request_duration_seconds_bucket[5m])) by (le)) * 1000",
           "legendFormat": "P50 Latency (ms)",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         },
         {
           "editorMode": "code",
           "expr": "histogram_quantile(0.90, sum(rate(traefik_service_request_duration_seconds_bucket[5m])) by (le)) * 1000",
           "legendFormat": "P90 Latency (ms)",
-          "refId": "B"
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         },
         {
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum(rate(traefik_service_request_duration_seconds_bucket[5m])) by (le)) * 1000",
           "legendFormat": "P99 Latency (ms)",
-          "refId": "C"
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Ingress Request Duration Latency (P50, P90, P99 ms)",

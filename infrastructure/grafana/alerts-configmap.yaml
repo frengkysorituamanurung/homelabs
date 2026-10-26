@@ -9,37 +9,29 @@ data:
   telegram-notifiers.yaml: |
     apiVersion: 1
     contactPoints:
-      - name: Telegram-Alerts
+      - orgId: 1
+        name: Telegram-Alerts
         receivers:
           - uid: telegram-receiver
             type: telegram
             disableResolveMessage: false
             settings:
-              bottoken: "REPLACE_WITH_TELEGRAM_BOT_TOKEN"
+              bottoken: "${TELEGRAM_BOT_TOKEN}"
               chatid: "6170551940"
-              parse_mode: "HTML"
+              parse_mode: "None"
               send_resolved: true
               message: |
-                {{ range .Alerts }}
-                {{ if eq .Status "firing" }}🚨{{ else }}✅{{ end }} <b>[{{ .Status | toUpper }}] {{ .Labels.alertname }}</b>
-
-                <b>Severity:</b> {{ .Labels.severity }}
-                <b>Cluster:</b> {{ if .Labels.cluster }}{{ .Labels.cluster }}{{ else }}homelabs{{ end }}
-                <b>Namespace:</b> {{ if .Labels.namespace }}{{ .Labels.namespace }}{{ else }}N/A{{ end }}
-                <b>Pod:</b> {{ if .Labels.pod }}{{ .Labels.pod }}{{ else }}N/A{{ end }}
-                {{ if .Labels.reason }}<b>Reason:</b> {{ .Labels.reason }}{{ end }}
-                {{ if .Labels.container }}<b>Container:</b> {{ .Labels.container }}{{ end }}
-
-                <b>Summary:</b> {{ .Annotations.summary }}
-                <b>Description:</b> {{ .Annotations.description }}
-                -----------------------------------
-                {{ end }}
+                [{{ .Status | toUpper }}] ({{ .Alerts | len }} alert(s))
+                {{- range .Alerts }}
+                - {{ .Labels.alertname }} ({{ .Labels.severity }}){{ if .Labels.namespace }} ns={{ .Labels.namespace }}{{ end }}{{ if .Labels.pod }} pod={{ .Labels.pod }}{{ end }}{{ if .Labels.job }} job={{ .Labels.job }}{{ end }}: {{ .Annotations.summary }}
+                {{- end }}
     policies:
-      - receiver: Telegram-Alerts
-        group_by: ['alertname', 'namespace', 'pod', 'reason']
-        group_wait: 10s
-        group_interval: 1m
-        repeat_interval: 1h
+      - orgId: 1
+        receiver: Telegram-Alerts
+        group_by: ['alertname', 'namespace', 'pod', 'job', 'reason']
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 4h
 
 ---
 apiVersion: v1
@@ -52,16 +44,39 @@ metadata:
 data:
   cluster-rules.yaml: |
     apiVersion: 1
+    deleteRules:
+      - orgId: 1
+        uid: v2-alert-node-mem
+      - orgId: 1
+        uid: v2-alert-node-cpu
+      - orgId: 1
+        uid: v2-alert-node-disk
+      - orgId: 1
+        uid: v2-alert-pod-waiting
+      - orgId: 1
+        uid: v2-alert-pod-restarts
+      - orgId: 1
+        uid: v2-alert-container-oomkilled
+      - orgId: 1
+        uid: v2-alert-pod-unhealthy
+      - orgId: 1
+        uid: v2-alert-tls-expiring
+      - orgId: 1
+        uid: v2-alert-database-mem
+      - orgId: 1
+        uid: v2-alert-ingress-5xx
+      - orgId: 1
+        uid: v2-alert-loki-errors
     groups:
       - orgId: 1
         name: Cluster-Pod-Health-Alerts
         folder: Cluster Production Alerts
-        interval: 30s
+        interval: 1m
         rules:
           - uid: rule-v3-pod-waiting
             title: "Pod ImagePullBackOff or Container Crash Waiting"
             condition: C
-            for: 30s
+            for: 2m
             no_data_state: OK
             exec_err_state: OK
             labels:
@@ -69,7 +84,8 @@ data:
               cluster: homelabs
             annotations:
               summary: "Pod Container Waiting: {{ $labels.reason }}"
-              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has container {{ $labels.container }} stuck in {{ $labels.reason }} state."
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has container {{ $labels.container }} stuck in {{ $labels.reason }} state for > 2m."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-pod-waiting"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -78,7 +94,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: 'sum(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CrashLoopBackOff|CreateContainerConfigError|CreateContainerError"}) by (namespace, pod, container, reason)'
+                  expr: 'sum(kube_pod_container_status_waiting_reason{cluster="homelabs", reason=~"ImagePullBackOff|ErrImagePull|CrashLoopBackOff|CreateContainerConfigError|CreateContainerError"}) by (namespace, pod, container, reason)'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -107,15 +123,16 @@ data:
           - uid: rule-v3-pod-restarts
             title: "Pod Container High Restart Spike"
             condition: C
-            for: 1m
+            for: 2m
             no_data_state: OK
             exec_err_state: OK
             labels:
-              severity: critical
+              severity: warning
               cluster: homelabs
             annotations:
               summary: "Pod Container Restarts High"
               description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} container {{ $labels.container }} restarted > 3 times in 15 minutes."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-pod-restarts"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -124,7 +141,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: "sum(increase(kube_pod_container_status_restarts_total[15m])) by (namespace, pod, container)"
+                  expr: 'sum(increase(kube_pod_container_status_restarts_total{cluster="homelabs"}[15m])) by (namespace, pod, container)'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -153,7 +170,7 @@ data:
           - uid: rule-v3-container-oom
             title: "Pod Container Terminated via OOMKilled"
             condition: C
-            for: 0s
+            for: 1m
             no_data_state: OK
             exec_err_state: OK
             labels:
@@ -162,6 +179,7 @@ data:
             annotations:
               summary: "Container Terminated (OOMKilled)"
               description: "Container {{ $labels.container }} in pod {{ $labels.pod }} (namespace {{ $labels.namespace }}) terminated due to Out Of Memory."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-container-oom"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -170,7 +188,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: 'sum(kube_pod_container_status_terminated_reason{reason="OOMKilled"}) by (namespace, pod, container)'
+                  expr: 'sum(kube_pod_container_status_last_terminated_reason{cluster="homelabs", reason="OOMKilled"} * on(namespace, pod, container) group_left() (increase(kube_pod_container_status_restarts_total{cluster="homelabs"}[15m]) > 0)) by (namespace, pod, container)'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -208,6 +226,7 @@ data:
             annotations:
               summary: "Pod in Unhealthy State"
               description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is in Failed or Pending state for > 5 minutes."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-pod-unhealthy"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -216,7 +235,54 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: 'sum(kube_pod_status_phase{phase=~"Failed|Pending"}) by (namespace, pod)'
+                  expr: 'sum(kube_pod_status_phase{cluster="homelabs", phase=~"Failed|Pending"}) by (namespace, pod)'
+                  refId: A
+              - refId: B
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: reduce
+                  reducer: last
+                  expression: A
+                  refId: B
+              - refId: C
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                  refId: C
+
+          - uid: rule-v3-deployment-rollout
+            title: "Deployment Replica Mismatch / Rollout Degraded"
+            condition: C
+            for: 5m
+            no_data_state: OK
+            exec_err_state: OK
+            labels:
+              severity: critical
+              cluster: homelabs
+            annotations:
+              summary: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has unavailable replicas"
+              description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has fewer available replicas than desired for > 5m."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-deployment-rollout"
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: '(kube_deployment_spec_replicas{cluster="homelabs"} - kube_deployment_status_replicas_available{cluster="homelabs"}) > 0'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -247,18 +313,19 @@ data:
         folder: Cluster Production Alerts
         interval: 1m
         rules:
-          - uid: rule-v3-node-mem
-            title: "Node RAM Memory Usage Exceeds 85%"
+          - uid: rule-v3-node-not-ready
+            title: "Kubernetes Node Not Ready"
             condition: C
-            for: 3m
-            no_data_state: OK
-            exec_err_state: OK
+            for: 2m
+            no_data_state: Alerting
+            exec_err_state: Alerting
             labels:
-              severity: warning
+              severity: critical
               cluster: homelabs
             annotations:
-              summary: "Node Memory Usage is > 85%"
-              description: "Cluster node memory usage exceeds 85% for 3+ minutes."
+              summary: "Kubernetes Node {{ $labels.node }} is NotReady"
+              description: "Node readiness status is 0 for > 2 minutes."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-node-not-ready"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -267,7 +334,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: "((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100"
+                  expr: 'sum(kube_node_status_condition{cluster="homelabs", condition="Ready", status="true"}) by (node)'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -289,7 +356,54 @@ data:
                   expression: B
                   conditions:
                     - evaluator:
-                        params: [85]
+                        params: [1]
+                        type: lt
+                  refId: C
+
+          - uid: rule-v3-node-mem
+            title: "Node RAM Memory Usage Exceeds 90%"
+            condition: C
+            for: 5m
+            no_data_state: OK
+            exec_err_state: OK
+            labels:
+              severity: warning
+              cluster: homelabs
+            annotations:
+              summary: "Node Memory Usage is > 90%"
+              description: "Cluster node memory usage exceeds 90% for 5+ minutes."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-node-mem"
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: '((node_memory_MemTotal_bytes{cluster="homelabs"} - node_memory_MemAvailable_bytes{cluster="homelabs"}) / node_memory_MemTotal_bytes{cluster="homelabs"}) * 100'
+                  refId: A
+              - refId: B
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: reduce
+                  reducer: last
+                  expression: A
+                  refId: B
+              - refId: C
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        params: [90]
                         type: gt
                   refId: C
 
@@ -305,6 +419,7 @@ data:
             annotations:
               summary: "Node CPU Usage is > 85%"
               description: "Cluster node CPU usage exceeds 85% for 5+ minutes."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-node-cpu"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -313,7 +428,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: '100 - (avg(rate(node_cpu_seconds_total{job="prometheus.scrape.node_exporter", mode="idle"}[5m])) * 100)'
+                  expr: '100 - (avg(rate(node_cpu_seconds_total{cluster="homelabs", job="prometheus.scrape.node_exporter", mode="idle"}[5m])) * 100)'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -351,6 +466,7 @@ data:
             annotations:
               summary: "Node Disk Free Space Low (<15%)"
               description: "Root filesystem free disk space is below 15%."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-node-disk"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -359,7 +475,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: '((node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100)'
+                  expr: '((node_filesystem_avail_bytes{cluster="homelabs", mountpoint="/"} / node_filesystem_size_bytes{cluster="homelabs", mountpoint="/"}) * 100)'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -393,7 +509,7 @@ data:
           - uid: rule-v3-tls-expiring
             title: "Domain SSL TLS Expiration Under 14 Days"
             condition: C
-            for: 1m
+            for: 5m
             no_data_state: OK
             exec_err_state: OK
             labels:
@@ -401,7 +517,8 @@ data:
               cluster: homelabs
             annotations:
               summary: "TLS Certificate Expiring Soon"
-              description: "Domain TLS certificate expires in < 14 days."
+              description: "Active TLS certificate for {{ $labels.sans }} expires in < 14 days."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-tls-expiring"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -410,7 +527,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: "((traefik_tls_certs_not_after - time()) / 86400)"
+                  expr: '(max by (sans) (traefik_tls_certs_not_after{cluster="homelabs", job="prometheus.scrape.traefik"}) - time()) / 86400'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -448,6 +565,7 @@ data:
             annotations:
               summary: "Database/Cache High RAM Usage"
               description: "Database or Redis container RAM usage > 800MB."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-database-mem"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -456,7 +574,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: 'sum(container_memory_working_set_bytes{pod=~".*(postgresql|database|redis).*", container=""}) by (namespace, pod)'
+                  expr: 'sum(container_memory_working_set_bytes{cluster="homelabs", pod=~".*(postgresql|database|redis).*"}) by (namespace, pod)'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -493,7 +611,8 @@ data:
               cluster: homelabs
             annotations:
               summary: "Ingress HTTP 5xx Server Errors Spike"
-              description: "More than 5% of HTTP requests returned 5xx errors."
+              description: "More than 5% of HTTP requests returned 5xx errors over 5m."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-ingress-5xx"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -502,7 +621,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: '(sum(rate(traefik_entrypoint_requests_total{code=~"5.."}[5m])) / sum(rate(traefik_entrypoint_requests_total[5m]))) * 100'
+                  expr: '(sum(rate(traefik_entrypoint_requests_total{cluster="homelabs", job="prometheus.scrape.traefik", code=~"5.."}[5m])) / (sum(rate(traefik_entrypoint_requests_total{cluster="homelabs", job="prometheus.scrape.traefik"}[5m])) > 0.1)) * 100'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -528,8 +647,8 @@ data:
                         type: gt
                   refId: C
 
-          - uid: rule-v3-loki-errors
-            title: "Loki Log Error Ingestion Spike"
+          - uid: rule-v3-ingress-latency
+            title: "Traefik Ingress High P95 Response Latency (>2s)"
             condition: C
             for: 5m
             no_data_state: OK
@@ -538,17 +657,18 @@ data:
               severity: warning
               cluster: homelabs
             annotations:
-              summary: "High Error Log Rate"
-              description: "Cluster recorded > 20 error log entries per minute."
+              summary: "Elevated Ingress P95 Latency (>2s)"
+              description: "Service {{ $labels.service }} P95 response latency is above 2 seconds for > 5m."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-ingress-latency"
             data:
               - refId: A
-                datasourceUid: Loki
+                datasourceUid: VictoriaMetrics
                 relativeTimeRange:
                   from: 300
                   to: 0
                 model:
                   editorMode: code
-                  expr: 'sum(rate({namespace=~".+"} |~ "(?i)(error|exception|fatal)" [5m])) * 60'
+                  expr: 'histogram_quantile(0.95, sum(rate(traefik_service_request_duration_seconds_bucket{cluster="homelabs", job="prometheus.scrape.traefik"}[5m])) by (le, service))'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -570,7 +690,54 @@ data:
                   expression: B
                   conditions:
                     - evaluator:
-                        params: [20]
+                        params: [2]
+                        type: gt
+                  refId: C
+
+          - uid: rule-v3-loki-errors
+            title: "Loki Log Error Ingestion Spike"
+            condition: C
+            for: 5m
+            no_data_state: OK
+            exec_err_state: OK
+            labels:
+              severity: warning
+              cluster: homelabs
+            annotations:
+              summary: "High Error Log Rate in Application Workloads"
+              description: "Application namespaces recorded > 50 error log entries per minute for 5m."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#rule-v3-loki-errors"
+            data:
+              - refId: A
+                datasourceUid: Loki
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: 'sum(rate({namespace=~"backend|production|staging|development|immich|harbor|vault|database"} |~ "(?i)(\"level\":\"error\"|level=error|exception|fatal|panic)" [5m])) * 60'
+                  refId: A
+              - refId: B
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: reduce
+                  reducer: last
+                  expression: A
+                  refId: B
+              - refId: C
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        params: [50]
                         type: gt
                   refId: C
 
@@ -590,7 +757,8 @@ data:
               cluster: homelabs
             annotations:
               summary: "Grafana Alloy collector is down or not scraping"
-              description: "Alloy instance {{ $labels.instance }} has been down for >2m. Metrics and logs collection may be impaired."
+              description: "Alloy collector self-scrape metric is below 1 for >2m. Metrics, logs, and traces collection may be impaired."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#obs-alloy-down"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -599,7 +767,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: 'up{job=~".*alloy.*"} == 0 or absent(up{job=~".*alloy.*"})'
+                  expr: 'max(up{cluster="homelabs", namespace="monitoring", pod=~"alloy-.*"})'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -621,8 +789,8 @@ data:
                   expression: B
                   conditions:
                     - evaluator:
-                        params: [0]
-                        type: gt
+                        params: [1]
+                        type: lt
                   refId: C
 
           - uid: obs-victoriametrics-down
@@ -636,7 +804,8 @@ data:
               cluster: homelabs
             annotations:
               summary: "VictoriaMetrics is down"
-              description: "VictoriaMetrics has been unreachable for >2m. All metrics queries will fail."
+              description: "VictoriaMetrics self-scrape metric is below 1 for >2m."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#obs-victoriametrics-down"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -645,7 +814,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: 'up{job=~".*vmsingle.*|.*victoria-metrics.*"} == 0 or absent(up{job=~".*victoria.*"})'
+                  expr: 'max(up{cluster="homelabs", namespace="monitoring", pod=~"vmsingle-.*"})'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -667,8 +836,8 @@ data:
                   expression: B
                   conditions:
                     - evaluator:
-                        params: [0]
-                        type: gt
+                        params: [1]
+                        type: lt
                   refId: C
 
           - uid: obs-loki-down
@@ -682,7 +851,8 @@ data:
               cluster: homelabs
             annotations:
               summary: "Loki log backend is down"
-              description: "Loki has been unreachable for >2m. Log ingestion and queries will fail."
+              description: "Loki self-scrape metric is below 1 for >2m."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#obs-loki-down"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -691,7 +861,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: 'up{job=~".*loki.*"} == 0 or absent(up{job=~".*loki.*"})'
+                  expr: 'max(up{cluster="homelabs", namespace="monitoring", pod="loki-0"})'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -713,8 +883,55 @@ data:
                   expression: B
                   conditions:
                     - evaluator:
-                        params: [0]
-                        type: gt
+                        params: [1]
+                        type: lt
+                  refId: C
+
+          - uid: obs-tempo-down
+            title: "Tempo Trace Backend Down"
+            condition: C
+            for: 2m
+            no_data_state: Alerting
+            exec_err_state: Alerting
+            labels:
+              severity: critical
+              cluster: homelabs
+            annotations:
+              summary: "Grafana Tempo trace backend is down"
+              description: "Tempo pod self-scrape metric is below 1 for >2m."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#obs-tempo-down"
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: 'max(up{cluster="homelabs", namespace="monitoring", pod="tempo-0"})'
+                  refId: A
+              - refId: B
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: reduce
+                  reducer: last
+                  expression: A
+                  refId: B
+              - refId: C
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        params: [1]
+                        type: lt
                   refId: C
 
           - uid: obs-scrape-target-down
@@ -727,8 +944,9 @@ data:
               severity: warning
               cluster: homelabs
             annotations:
-              summary: "A scrape target is down"
-              description: "Target {{ $labels.job }} ({{ $labels.instance }}) has been down for >5m."
+              summary: "Scrape target {{ $labels.job }} is down"
+              description: "Target {{ $labels.job }} ({{ $labels.instance }}) has been down (up == 0) for >5m."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#obs-scrape-target-down"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -737,7 +955,7 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: 'up == 0'
+                  expr: 'up{cluster="homelabs"} == 0'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"
@@ -766,15 +984,16 @@ data:
           - uid: obs-blackbox-probe-failed
             title: "Blackbox Probe Failed"
             condition: C
-            for: 5m
+            for: 3m
             no_data_state: OK
             exec_err_state: OK
             labels:
-              severity: warning
+              severity: critical
               cluster: homelabs
             annotations:
-              summary: "External endpoint probe failed"
-              description: "Endpoint {{ $labels.target }} is unreachable (probe_success=0)."
+              summary: "Endpoint probe failed: {{ $labels.job }}"
+              description: "Service endpoint probe {{ $labels.job }} ({{ $labels.instance }}) returned probe_success=0 for >3m."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#obs-blackbox-probe-failed"
             data:
               - refId: A
                 datasourceUid: VictoriaMetrics
@@ -783,7 +1002,54 @@ data:
                   to: 0
                 model:
                   editorMode: code
-                  expr: 'probe_success == 0'
+                  expr: 'probe_success{cluster="homelabs"} == 0'
+                  refId: A
+              - refId: B
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: reduce
+                  reducer: last
+                  expression: A
+                  refId: B
+              - refId: C
+                datasourceUid: "__expr__"
+                relativeTimeRange:
+                  from: 0
+                  to: 0
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                  refId: C
+
+          - uid: obs-otel-export-failed
+            title: "OpenTelemetry Collector or Loki Export Failures"
+            condition: C
+            for: 5m
+            no_data_state: OK
+            exec_err_state: OK
+            labels:
+              severity: warning
+              cluster: homelabs
+            annotations:
+              summary: "Telemetry export drops detected in Alloy"
+              description: "Alloy is dropping logs or spans when exporting to Loki/Tempo."
+              runbook_url: "https://github.com/frengkysorituamanurung/homelabs/blob/main/docs/observability/alerting-and-runbooks.md#obs-otel-export-failed"
+            data:
+              - refId: A
+                datasourceUid: VictoriaMetrics
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                model:
+                  editorMode: code
+                  expr: 'sum(rate(loki_write_dropped_bytes_total{cluster="homelabs"}[5m])) + sum(rate(otelcol_exporter_send_failed_spans_total{cluster="homelabs"}[5m]) or vector(0))'
                   refId: A
               - refId: B
                 datasourceUid: "__expr__"

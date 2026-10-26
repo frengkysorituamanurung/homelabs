@@ -29,3 +29,10 @@ spec:
       tag: v2.20.0
     tolerations:
       - operator: Exists
+    resources:
+      requests:
+        cpu: 20m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi

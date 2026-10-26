@@ -71,7 +71,11 @@
           "editorMode": "code",
           "expr": "sum(increase(kube_pod_container_status_restarts_total[1h]))",
           "legendFormat": "Container Restarts (1h)",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Container Restarts Spikes (1h)",
@@ -124,7 +128,11 @@
           "editorMode": "code",
           "expr": "sum(kube_pod_container_status_terminated_reason{reason=\"OOMKilled\"})",
           "legendFormat": "OOMKilled Count",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "OOMKilled Containers Count",
@@ -177,7 +185,11 @@
           "editorMode": "code",
           "expr": "sum(kube_pod_container_status_waiting_reason{reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull\"})",
           "legendFormat": "Unhealthy Pods",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Unhealthy Pod Waiting Reasons",
@@ -227,7 +239,11 @@
           "editorMode": "code",
           "expr": "sum(increase(kube_pod_container_status_restarts_total[5m])) by (pod, namespace)",
           "legendFormat": "{{namespace}} / {{pod}}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Pod Container Restart Spikes Timeline",
@@ -265,7 +281,11 @@
           "editorMode": "code",
           "expr": "sum(kube_pod_status_phase{phase=~\"Failed|Pending\"}) by (pod, namespace)",
           "legendFormat": "{{namespace}} / {{pod}}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Failed & Pending Pods History",
@@ -308,9 +328,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "{namespace=~\".*\"} |= \"error\" or \"exception\" or \"fatal\" or \"OOMKilled\"",
+          "expr": "{cluster=\"homelabs\"} |~ \"(?i)(error|exception|fatal|OOMKilled|type=Warning)\"",
           "queryType": "range",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          }
         }
       ],
       "title": "Real-Time Cluster Failure & Error Logs Stream",

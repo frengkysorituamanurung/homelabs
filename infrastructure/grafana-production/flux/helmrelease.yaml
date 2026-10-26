@@ -33,7 +33,14 @@ spec:
       repository: grafana/grafana
       tag: "12.3.1"
       pullPolicy: Always
-    # adminPassword moved to grafana-credentials secret (Vault)
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 768Mi
 
     persistence:
       enabled: true
@@ -64,11 +71,55 @@ spec:
             access: proxy
             url: http://vmsingle-victoria-metrics-single-server.monitoring.svc.cluster.local:8428
             isDefault: true
+            jsonData:
+              httpMethod: POST
+              timeInterval: "15s"
           - name: Loki
             uid: Loki
             type: loki
             access: proxy
             url: http://loki.monitoring.svc.cluster.local:3100
+            jsonData:
+              derivedFields:
+                - datasourceUid: Tempo
+                  matcherRegex: '"(?:trace_id|TraceId)":"([a-fA-F0-9]{16,32})"'
+                  name: TraceID
+                  url: "$${__value.raw}"
+                  urlDisplayLabel: "Inspect Trace in Tempo"
+          - name: Tempo
+            uid: Tempo
+            type: tempo
+            access: proxy
+            url: http://tempo.monitoring.svc.cluster.local:3200
+            jsonData:
+              tracesToLogsV2:
+                datasourceUid: Loki
+                spanStartTimeShift: "-2m"
+                spanEndTimeShift: "2m"
+                filterByTraceID: false
+                filterBySpanID: false
+                customQuery: true
+                query: '{cluster="homelabs"} |= "$${__trace.traceId}"'
+              tracesToMetrics:
+                datasourceUid: VictoriaMetrics
+                spanStartTimeShift: "-5m"
+                spanEndTimeShift: "5m"
+                tags:
+                  - key: service.name
+                    value: service
+                queries:
+                  - name: "Ingress Request Rate (RPS)"
+                    query: 'sum(rate(traefik_service_requests_total[5m]))'
+                  - name: "Ingress P95 Latency"
+                    query: 'histogram_quantile(0.95, sum(rate(traefik_service_request_duration_seconds_bucket[5m])) by (le))'
+              serviceMap:
+                datasourceUid: VictoriaMetrics
+              nodeGraph:
+                enabled: true
+              search:
+                hide: false
+              lokiSearch:
+                datasourceUid: Loki
 
     grafana.ini:
       analytics:
@@ -78,8 +129,10 @@ spec:
         domain: grafana.frengky.xyz
         root_url: "https://grafana.frengky.xyz"
         enforce_domain: false
+      dashboards:
+        default_home_dashboard_path: /tmp/dashboards/Core Observability/homelab-home-dashboard.json
 
-    # envFromSecret: grafana-telegram-credentials  # enable once token is in Vault (secret/telegram botToken)
+    envFromSecret: grafana-telegram-credentials
 
     service:
       type: ClusterIP
@@ -108,4 +161,3 @@ spec:
         subPath: cluster-rules.yaml
         mountPath: /etc/grafana/provisioning/alerting/cluster-rules.yaml
         readOnly: true
-

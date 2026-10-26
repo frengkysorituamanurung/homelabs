@@ -32,9 +32,18 @@ spec:
       retentionPeriod: 30d
       extraArgs:
         memory.allowedPercent: "40"
+        search.maxQueryLen: "65536"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          cpu: "1"
+          memory: 1536Mi
       persistentVolume:
         size: 10Gi
         storageClass: local-path
       service:
-        type: LoadBalancer
+        type: ClusterIP
+        clusterIP: "10.43.72.0"
         servicePort: 8428

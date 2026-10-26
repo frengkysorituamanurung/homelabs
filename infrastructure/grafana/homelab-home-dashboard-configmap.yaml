@@ -5,51 +5,327 @@ metadata:
   namespace: monitoring
   labels:
     grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Core Observability"
 data:
   homelab-home-dashboard.json: |
     {
+      "uid": "homelab-home-dashboard",
+      "title": "1. Home Server Overview",
+      "tags": [
+        "observability",
+        "home",
+        "sre"
+      ],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 2,
+      "refresh": "30s",
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "links": [
+        {
+          "title": "1. Home Server Overview",
+          "url": "/d/homelab-home-dashboard",
+          "type": "link",
+          "icon": "apps",
+          "keepTime": true
+        },
+        {
+          "title": "2. Kubernetes Cluster",
+          "url": "/d/k8s-workloads-health",
+          "type": "link",
+          "icon": "cloud",
+          "keepTime": true
+        },
+        {
+          "title": "3. Node & Infrastructure",
+          "url": "/d/physical-server-monitoring",
+          "type": "link",
+          "icon": "monitor",
+          "keepTime": true
+        },
+        {
+          "title": "4. Application Monitoring",
+          "url": "/d/app-http-golden-signals",
+          "type": "link",
+          "icon": "bolt",
+          "keepTime": true
+        },
+        {
+          "title": "5. Logs & Troubleshooting",
+          "url": "/d/loki-logs-explorer",
+          "type": "link",
+          "icon": "file-alt",
+          "keepTime": true
+        },
+        {
+          "title": "6. Distributed Tracing",
+          "url": "/d/distributed-tracing-tempo",
+          "type": "link",
+          "icon": "sitemap",
+          "keepTime": true
+        },
+        {
+          "title": "7. Observability Stack Health",
+          "url": "/d/observability-stack-health",
+          "type": "link",
+          "icon": "heart",
+          "keepTime": true
+        },
+        {
+          "title": "Grafana Explore",
+          "url": "/explore",
+          "type": "link",
+          "icon": "compass",
+          "keepTime": true
+        }
+      ],
+      "templating": {
+        "list": [
+          {
+            "name": "namespace",
+            "label": "Namespace",
+            "type": "query",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "VictoriaMetrics"
+            },
+            "query": {
+              "query": "label_values(kube_pod_info{cluster=\"homelabs\"}, namespace)",
+              "refId": "StandardVariableQuery"
+            },
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 1,
+            "current": {
+              "selected": true,
+              "text": [
+                "All"
+              ],
+              "value": [
+                "$__all"
+              ]
+            }
+          }
+        ]
+      },
       "annotations": {
         "list": [
           {
             "builtIn": 1,
-            "datasource": "-- Grafana --",
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
             "enable": true,
             "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
             "name": "Annotations & Alerts",
             "type": "dashboard"
           }
         ]
       },
-      "editable": true,
-      "fiscalYearStartMonth": 0,
-      "graphTooltip": 1,
-      "id": null,
-      "links": [],
-      "liveNow": false,
       "panels": [
         {
-          "id": 33,
+          "id": 1,
           "type": "row",
-          "title": "Homelab Home Dashboard - Cluster Overview",
+          "title": "Cluster & Infrastructure Vital Signs",
+          "collapsed": false,
           "gridPos": {
-            "h": 1,
-            "w": 24,
             "x": 0,
-            "y": 0
+            "y": 0,
+            "w": 24,
+            "h": 1
           },
-          "collapsed": false
+          "panels": []
         },
         {
+          "id": 2,
+          "type": "stat",
+          "title": "Node Readiness",
+          "description": "",
           "datasource": {
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
+          "gridPos": {
+            "x": 0,
+            "y": 1,
+            "w": 3,
+            "h": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "sum(kube_node_status_condition{cluster=\"homelabs\", condition=\"Ready\", status=\"true\"})",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "thresholds"
+              "unit": "none",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 1
+                  }
+                ]
               },
-              "mappings": [],
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "1": {
+                      "text": "READY",
+                      "color": "green"
+                    },
+                    "0": {
+                      "text": "NOT READY",
+                      "color": "red"
+                    }
+                  }
+                }
+              ]
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Synthetic Probes Up",
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "gridPos": {
+            "x": 3,
+            "y": 1,
+            "w": 3,
+            "h": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "sum(probe_success{cluster=\"homelabs\"}) / count(probe_success{cluster=\"homelabs\"}) * 100",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 90
+                  },
+                  {
+                    "color": "green",
+                    "value": 100
+                  }
+                ]
+              },
+              "mappings": []
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "Node CPU Usage",
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "gridPos": {
+            "x": 6,
+            "y": 1,
+            "w": 3,
+            "h": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "100 - (avg(rate(node_cpu_seconds_total{cluster=\"homelabs\", job=\"prometheus.scrape.node_exporter\", mode=\"idle\"}[5m])) * 100)",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -67,59 +343,119 @@ data:
                   }
                 ]
               },
-              "unit": "percent"
+              "mappings": []
             },
             "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 0,
-            "y": 1
-          },
-          "id": 1,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "auto"
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "100 - (avg(rate(node_cpu_seconds_total{job=\"prometheus.scrape.node_exporter\", mode=\"idle\"}[5m])) * 100)",
-              "legendFormat": "CPU Usage",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Node CPU Usage",
-          "type": "stat"
+          }
         },
         {
+          "id": 5,
+          "type": "stat",
+          "title": "Node RAM Usage",
+          "description": "",
           "datasource": {
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
+          "gridPos": {
+            "x": 9,
+            "y": 1,
+            "w": 3,
+            "h": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "((node_memory_MemTotal_bytes{cluster=\"homelabs\"} - node_memory_MemAvailable_bytes{cluster=\"homelabs\"}) / node_memory_MemTotal_bytes{cluster=\"homelabs\"}) * 100",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "thresholds"
+              "unit": "percent",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 80
+                  },
+                  {
+                    "color": "red",
+                    "value": 90
+                  }
+                ]
               },
-              "mappings": [],
+              "mappings": []
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 6,
+          "type": "stat",
+          "title": "Root Disk Used (/storage)",
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 1,
+            "w": 3,
+            "h": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "((node_filesystem_size_bytes{cluster=\"homelabs\", mountpoint=\"/\"} - node_filesystem_avail_bytes{cluster=\"homelabs\", mountpoint=\"/\"}) / node_filesystem_size_bytes{cluster=\"homelabs\", mountpoint=\"/\"}) * 100",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -133,766 +469,119 @@ data:
                   },
                   {
                     "color": "red",
-                    "value": 90
+                    "value": 85
                   }
                 ]
               },
-              "unit": "percent"
+              "mappings": []
             },
             "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 6,
-            "y": 1
-          },
-          "id": 2,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "auto"
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100",
-              "legendFormat": "Memory Usage",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Node Memory Usage",
-          "type": "stat"
+          }
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "purple",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "bytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 12,
-            "y": 1
-          },
-          "id": 3,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "auto"
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
-              "legendFormat": "Used RAM",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Used RAM Bytes",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "blue",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 18,
-            "y": 1
-          },
-          "id": 4,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "auto"
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "sum(kube_pod_status_phase{phase=\"Running\"})",
-              "legendFormat": "Active Pods",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Total Active Pods",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 0,
-            "y": 5
-          },
-          "id": 5,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "sum(kube_pod_status_phase{namespace=~\"$namespace\", phase=\"Running\"})",
-              "legendFormat": "Running Pods",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Running Pods",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 1
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 6,
-            "y": 5
-          },
-          "id": 6,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "sum(kube_pod_status_phase{namespace=~\"$namespace\", phase=\"Pending\"})",
-              "legendFormat": "Pending Pods",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Pending Pods",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 1
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 12,
-            "y": 5
-          },
           "id": 7,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "sum(kube_pod_status_phase{namespace=~\"$namespace\", phase=\"Failed\"})",
-              "legendFormat": "Failed Pods",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Failed Pods",
-          "type": "stat"
-        },
-        {
+          "type": "stat",
+          "title": "Disk Available",
+          "description": "",
           "datasource": {
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
+          "gridPos": {
+            "x": 15,
+            "y": 1,
+            "w": 3,
+            "h": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "node_filesystem_avail_bytes{cluster=\"homelabs\", mountpoint=\"/\"}",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
+              "unit": "bytes",
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
+                    "color": "red",
                     "value": null
                   },
                   {
-                    "color": "orange",
-                    "value": 1
-                  },
-                  {
-                    "color": "red",
-                    "value": 5
+                    "color": "green",
+                    "value": 100000000000
                   }
                 ]
               },
-              "unit": "short"
+              "mappings": []
             },
             "overrides": []
+          }
+        },
+        {
+          "id": 8,
+          "type": "stat",
+          "title": "Running Pods",
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
           },
           "gridPos": {
-            "h": 4,
-            "w": 6,
             "x": 18,
-            "y": 5
+            "y": 1,
+            "w": 3,
+            "h": 4
           },
-          "id": 8,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
           "targets": [
             {
+              "refId": "A",
               "datasource": {
                 "type": "prometheus",
                 "uid": "VictoriaMetrics"
               },
-              "editorMode": "code",
-              "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=~\"$namespace\"}[24h]))",
-              "legendFormat": "Restarts (24h)",
-              "range": true,
-              "refId": "A"
+              "expr": "sum(kube_pod_status_phase{cluster=\"homelabs\", namespace=~\"$namespace\", phase=\"Running\"})",
+              "editorMode": "code"
             }
           ],
-          "title": "Container Restarts (24h)",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 1
-                  },
-                  {
-                    "color": "red",
-                    "value": 5
-                  }
-                ]
-              },
-              "unit": "short"
-            }
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 0,
-            "y": 9
-          },
-          "id": 9,
           "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
             "colorMode": "value",
             "graphMode": "area",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ]
-            }
-          },
-          "targets": [
-            {
-              "editorMode": "code",
-              "expr": "sum(increase(kube_pod_container_status_restarts_total[1h]))",
-              "legendFormat": "Container Restarts (1h)",
-              "refId": "A"
-            }
-          ],
-          "title": "Container Restarts Spikes (1h)",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
+            "justifyMode": "auto"
           },
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 1
-                  }
-                ]
-              },
-              "unit": "short"
-            }
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 6,
-            "y": 9
-          },
-          "id": 10,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ]
-            }
-          },
-          "targets": [
-            {
-              "editorMode": "code",
-              "expr": "sum(kube_pod_container_status_terminated_reason{reason=\"OOMKilled\"})",
-              "legendFormat": "OOMKilled Count",
-              "refId": "A"
-            }
-          ],
-          "title": "OOMKilled Containers Count",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 1
-                  }
-                ]
-              },
-              "unit": "short"
-            }
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 12,
-            "y": 9
-          },
-          "id": 11,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ]
-            }
-          },
-          "targets": [
-            {
-              "editorMode": "code",
-              "expr": "sum(kube_pod_container_status_waiting_reason{reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull\"})",
-              "legendFormat": "Unhealthy Pods",
-              "refId": "A"
-            }
-          ],
-          "title": "Unhealthy Pod Waiting Reasons",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "unit": "reqps"
-            }
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 18,
-            "y": 9
-          },
-          "id": 12,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ]
-            }
-          },
-          "targets": [
-            {
-              "editorMode": "code",
-              "expr": "sum(rate(traefik_entrypoint_requests_total[1m]))",
-              "legendFormat": "Total Ingress RPS",
-              "refId": "A"
-            }
-          ],
-          "title": "Total Ingress Requests (RPS)",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "unit": "short"
-            }
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 0,
-            "y": 13
-          },
-          "id": 13,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ]
-            }
-          },
-          "targets": [
-            {
-              "editorMode": "code",
-              "expr": "sum(traefik_open_connections)",
-              "legendFormat": "Open Connections",
-              "refId": "A"
-            }
-          ],
-          "title": "Traefik Open Connections",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "unit": "Bps"
-            }
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 6,
-            "y": 13
-          },
-          "id": 14,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ]
-            }
-          },
-          "targets": [
-            {
-              "editorMode": "code",
-              "expr": "sum(rate(traefik_entrypoint_requests_bytes_total[1m]))",
-              "legendFormat": "Inbound Bps",
-              "refId": "A"
-            }
-          ],
-          "title": "Inbound Ingress Bandwidth",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "unit": "Bps"
-            }
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 12,
-            "y": 13
-          },
-          "id": 15,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ]
-            }
-          },
-          "targets": [
-            {
-              "editorMode": "code",
-              "expr": "sum(rate(traefik_entrypoint_responses_bytes_total[1m]))",
-              "legendFormat": "Outbound Bps",
-              "refId": "A"
-            }
-          ],
-          "title": "Outbound Ingress Bandwidth",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
+              "unit": "none",
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -902,59 +591,128 @@ data:
                   }
                 ]
               },
-              "unit": "reqps"
+              "mappings": []
             },
             "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 18,
-            "y": 13
-          },
-          "id": 16,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "sum(rate(traefik_service_requests_total{service=~\"$service\"}[5m]))",
-              "legendFormat": "RPS",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Total Request Rate (RPS)",
-          "type": "stat"
+          }
         },
         {
+          "id": 9,
+          "type": "stat",
+          "title": "Unhealthy / Waiting Pods",
+          "description": "",
           "datasource": {
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
+          "gridPos": {
+            "x": 21,
+            "y": 1,
+            "w": 3,
+            "h": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "sum(kube_pod_status_phase{cluster=\"homelabs\", namespace=~\"$namespace\", phase=~\"Pending|Failed\"}) + (sum(kube_pod_container_status_waiting{cluster=\"homelabs\", namespace=~\"$namespace\"}) or vector(0))",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "thresholds"
+              "unit": "none",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
               },
-              "mappings": [],
-              "max": 100,
-              "min": 0,
+              "mappings": []
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 10,
+          "type": "row",
+          "title": "Service Health, Traffic & Alerts",
+          "collapsed": false,
+          "gridPos": {
+            "x": 0,
+            "y": 5,
+            "w": 24,
+            "h": 1
+          },
+          "panels": []
+        },
+        {
+          "id": 11,
+          "type": "stat",
+          "title": "Pod Restarts (Last 1h)",
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 6,
+            "w": 4,
+            "h": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "sum(increase(kube_pod_container_status_restarts_total{cluster=\"homelabs\", namespace=~\"$namespace\"}[1h]))",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -968,131 +726,172 @@ data:
                   },
                   {
                     "color": "red",
-                    "value": 5
+                    "value": 4
                   }
                 ]
               },
-              "unit": "percent"
+              "mappings": []
             },
             "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 0,
-            "y": 17
-          },
-          "id": 17,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "(sum(rate(traefik_service_requests_total{service=~\"$service\", code=~\"5..\"}[5m])) / sum(rate(traefik_service_requests_total{service=~\"$service\"}[5m]))) * 100",
-              "legendFormat": "5xx Error Rate",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "HTTP 5xx Server Error Rate (%)",
-          "type": "stat"
+          }
         },
         {
+          "id": 12,
+          "type": "stat",
+          "title": "Bound PVCs",
+          "description": "",
           "datasource": {
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
+          "gridPos": {
+            "x": 4,
+            "y": 6,
+            "w": 4,
+            "h": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "count(kube_persistentvolumeclaim_status_phase{cluster=\"homelabs\", phase=\"Bound\"})",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "max": 100,
-              "min": 0,
+              "unit": "none",
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
                   {
                     "color": "green",
                     "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 5
-                  },
-                  {
-                    "color": "red",
-                    "value": 15
                   }
                 ]
               },
-              "unit": "percent"
+              "mappings": []
             },
             "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 6,
-            "y": 17
-          },
-          "id": 18,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "(sum(rate(traefik_service_requests_total{service=~\"$service\", code=~\"4..\"}[5m])) / sum(rate(traefik_service_requests_total{service=~\"$service\"}[5m]))) * 100",
-              "legendFormat": "4xx Error Rate",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "HTTP 4xx Client Error Rate (%)",
-          "type": "stat"
+          }
         },
         {
+          "id": 13,
+          "type": "stat",
+          "title": "Ingress Traffic (RPS)",
+          "description": "",
           "datasource": {
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
+          "gridPos": {
+            "x": 8,
+            "y": 6,
+            "w": 4,
+            "h": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "sum(rate(traefik_entrypoint_requests_total{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\"}[5m]))",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "thresholds"
+              "unit": "reqps",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
               },
-              "mappings": [],
+              "mappings": []
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 14,
+          "type": "stat",
+          "title": "Ingress P95 Latency",
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 6,
+            "w": 4,
+            "h": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "histogram_quantile(0.95, sum(rate(traefik_service_request_duration_seconds_bucket{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\"}[5m])) by (le))",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -1106,332 +905,58 @@ data:
                   },
                   {
                     "color": "red",
-                    "value": 1.0
+                    "value": 2.0
                   }
                 ]
               },
-              "unit": "s"
+              "mappings": []
             },
             "overrides": []
+          }
+        },
+        {
+          "id": 15,
+          "type": "stat",
+          "title": "TLS Cert Expiry (*.frengky.xyz)",
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
           },
           "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 12,
-            "y": 17
+            "x": 16,
+            "y": 6,
+            "w": 4,
+            "h": 4
           },
-          "id": 19,
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "(max(traefik_tls_certs_not_after{cluster=\"homelabs\", job=\"prometheus.scrape.traefik\"}) - time()) / 86400",
+              "editorMode": "code"
+            }
+          ],
           "options": {
+            "reduceOptions": {
+              "values": false,
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "orientation": "auto",
+            "textMode": "auto",
             "colorMode": "value",
             "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "histogram_quantile(0.95, sum(rate(traefik_service_request_duration_seconds_bucket{service=~\"$service\"}[5m])) by (le))",
-              "legendFormat": "P95 Latency",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "P95 Response Latency",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
+            "justifyMode": "auto"
           },
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "max": 100,
-              "min": 0,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 75
-                  },
-                  {
-                    "color": "red",
-                    "value": 90
-                  }
-                ]
-              },
-              "unit": "percent"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 18,
-            "y": 17
-          },
-          "id": 20,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "100 - (avg(rate(node_cpu_seconds_total{instance=~\"$instance\", mode=\"idle\"}[5m])) * 100)",
-              "legendFormat": "CPU Usage",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "CPU Usage (%)",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "max": 100,
-              "min": 0,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 75
-                  },
-                  {
-                    "color": "red",
-                    "value": 90
-                  }
-                ]
-              },
-              "unit": "percent"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 0,
-            "y": 21
-          },
-          "id": 21,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "((node_memory_MemTotal_bytes{instance=~\"$instance\"} - node_memory_MemAvailable_bytes{instance=~\"$instance\"}) / node_memory_MemTotal_bytes{instance=~\"$instance\"}) * 100",
-              "legendFormat": "RAM Usage",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "RAM Memory Usage (%)",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "max": 100,
-              "min": 0,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 75
-                  },
-                  {
-                    "color": "red",
-                    "value": 90
-                  }
-                ]
-              },
-              "unit": "percent"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 6,
-            "y": 21
-          },
-          "id": 22,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "((node_filesystem_size_bytes{instance=~\"$instance\", mountpoint=\"/\"} - node_filesystem_avail_bytes{instance=~\"$instance\", mountpoint=\"/\"}) / node_filesystem_size_bytes{instance=~\"$instance\", mountpoint=\"/\"}) * 100",
-              "legendFormat": "Root Disk Usage",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Root Disk (/) Usage (%)",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "blue",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "short",
-              "decimals": 1,
-              "suffix": " Days"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 12,
-            "y": 21
-          },
-          "id": 23,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "(time() - node_boot_time_seconds{instance=~\"$instance\"}) / 86400",
-              "legendFormat": "Uptime",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Host System Uptime (day)",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
+              "unit": "d",
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -1441,7 +966,7 @@ data:
                   },
                   {
                     "color": "yellow",
-                    "value": 7
+                    "value": 14
                   },
                   {
                     "color": "green",
@@ -1449,530 +974,278 @@ data:
                   }
                 ]
               },
-              "unit": "d"
-            }
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 18,
-            "y": 21
-          },
-          "id": 24,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ]
-            }
-          },
-          "targets": [
-            {
-              "editorMode": "code",
-              "expr": "(min(traefik_tls_certs_not_after) - time()) / 86400",
-              "legendFormat": "Days Until Expiration",
-              "refId": "A"
-            }
-          ],
-          "title": "Next TLS Certificate Expiration (Days)",
-          "type": "stat"
+              "mappings": []
+            },
+            "overrides": []
+          }
         },
         {
+          "id": 16,
+          "type": "alertlist",
+          "title": "Active & Firing Alerts",
+          "gridPos": {
+            "x": 20,
+            "y": 6,
+            "w": 4,
+            "h": 10
+          },
+          "options": {
+            "showOptions": "current",
+            "maxItems": 10,
+            "sortOrder": 1,
+            "dashboardAlerts": false,
+            "stateFilter": {
+              "firing": true,
+              "pending": true,
+              "noData": false,
+              "normal": false,
+              "error": true
+            }
+          }
+        },
+        {
+          "id": 17,
+          "type": "timeseries",
+          "title": "CPU & RAM Utilization Trend (%)",
+          "description": "",
           "datasource": {
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "unit": "bytes"
-            }
-          },
           "gridPos": {
-            "h": 4,
-            "w": 6,
             "x": 0,
-            "y": 25
-          },
-          "id": 25,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ]
-            }
+            "y": 10,
+            "w": 10,
+            "h": 6
           },
           "targets": [
             {
-              "editorMode": "code",
-              "expr": "sum(container_memory_working_set_bytes{namespace=\"vault\", pod=\"vault-0\"})",
-              "legendFormat": "Vault RAM",
-              "refId": "A"
-            }
-          ],
-          "title": "Vault Server Memory",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "Loki"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "blue",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "pps"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 6,
-            "y": 25
-          },
-          "id": 26,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "loki",
-                "uid": "Loki"
-              },
-              "editorMode": "code",
-              "expr": "sum(rate({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"}[5m]))",
-              "legendFormat": "Log Rate",
-              "queryType": "range",
-              "refId": "A"
-            }
-          ],
-          "title": "Log Ingestion Rate (Lines/sec)",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "Loki"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 1
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 12,
-            "y": 25
-          },
-          "id": 27,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "loki",
-                "uid": "Loki"
-              },
-              "editorMode": "code",
-              "expr": "sum(rate({namespace=~\"$namespace\", pod=~\"($deployment).*\", pod=~\"$pod\"} |~ \"(?i)(error|exception|fail|fatal)\" [5m])) * 60",
-              "legendFormat": "Errors / min",
-              "queryType": "range",
-              "refId": "A"
-            }
-          ],
-          "title": "Error Logs Rate (Errors/min)",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 18,
-            "y": 25
-          },
-          "id": 28,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "targets": [
-            {
+              "refId": "A",
               "datasource": {
                 "type": "prometheus",
                 "uid": "VictoriaMetrics"
               },
-              "editorMode": "code",
-              "expr": "count(cnpg_backends_total)",
-              "legendFormat": "Instances",
-              "range": true,
-              "refId": "A"
+              "expr": "100 - (avg(rate(node_cpu_seconds_total{cluster=\"homelabs\", job=\"prometheus.scrape.node_exporter\", mode=\"idle\"}[5m])) * 100)",
+              "legendFormat": "CPU Usage %",
+              "editorMode": "code"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "((node_memory_MemTotal_bytes{cluster=\"homelabs\"} - node_memory_MemAvailable_bytes{cluster=\"homelabs\"}) / node_memory_MemTotal_bytes{cluster=\"homelabs\"}) * 100",
+              "legendFormat": "RAM Usage %",
+              "editorMode": "code"
             }
           ],
-          "title": "CNPG Instances",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "lineInterpolation": "smooth"
-              },
-              "unit": "s"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 29
-          },
-          "id": 29,
           "options": {
             "legend": {
-              "displayMode": "table",
-              "placement": "bottom"
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true,
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
             },
             "tooltip": {
-              "mode": "multi"
+              "mode": "multi",
+              "sort": "desc"
             }
           },
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "max(cnpg_pg_replication_lag) by (cluster)",
-              "legendFormat": "{{cluster}} lag",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "CNPG Replication Lag",
-          "type": "timeseries"
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "fillOpacity": 15,
+                "gradientMode": "opacity",
+                "showPoints": "never",
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                }
+              }
+            },
+            "overrides": []
+          }
         },
         {
+          "id": 18,
+          "type": "timeseries",
+          "title": "Host & Tailscale Network Activity",
+          "description": "",
           "datasource": {
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 50
-                  },
-                  {
-                    "color": "red",
-                    "value": 100
-                  }
-                ]
-              },
-              "unit": "Mbits"
-            },
-            "overrides": []
-          },
           "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 12,
-            "y": 29
+            "x": 10,
+            "y": 10,
+            "w": 10,
+            "h": 6
           },
-          "id": 30,
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "sum(rate(node_network_receive_bytes_total{cluster=\"homelabs\", device=~\"eth0|tailscale0\"}[5m])) by (device)",
+              "legendFormat": "Rx {{device}}",
+              "editorMode": "code"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "VictoriaMetrics"
+              },
+              "expr": "sum(rate(node_network_transmit_bytes_total{cluster=\"homelabs\", device=~\"eth0|tailscale0\"}[5m])) by (device)",
+              "legendFormat": "Tx {{device}}",
+              "editorMode": "code"
+            }
+          ],
           "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true,
               "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
             }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "(sum(rate(node_network_receive_bytes_total{device=\"eth1\"}[1m])) * 8) / 1000000",
-              "legendFormat": "Download Speed",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Current Download Speed (Mbps)",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
           },
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 30
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "Mbits"
+              "unit": "Bps",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "fillOpacity": 15,
+                "gradientMode": "opacity",
+                "showPoints": "never",
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                }
+              }
             },
             "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 18,
-            "y": 29
-          },
-          "id": 31,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
-          },
-          "pluginVersion": "10.0.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "VictoriaMetrics"
-              },
-              "editorMode": "code",
-              "expr": "(sum(rate(node_network_transmit_bytes_total{device=\"eth1\"}[1m])) * 8) / 1000000",
-              "legendFormat": "Upload Speed",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Current Upload Speed (Mbps)",
-          "type": "stat"
+          }
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "orange",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "bytes"
-            },
-            "overrides": []
-          },
+          "id": 19,
+          "type": "row",
+          "title": "Endpoint Availability & Recent Cluster Warnings",
+          "collapsed": false,
           "gridPos": {
-            "h": 4,
-            "w": 6,
             "x": 0,
-            "y": 33
+            "y": 16,
+            "w": 24,
+            "h": 1
           },
-          "id": 32,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            }
+          "panels": []
+        },
+        {
+          "id": 20,
+          "type": "table",
+          "title": "Synthetic HTTP Endpoint Probes (Blackbox)",
+          "description": "1 = Healthy (HTTP 2xx/3xx), 0 = Unreachable",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
           },
-          "pluginVersion": "10.0.0",
+          "gridPos": {
+            "x": 0,
+            "y": 17,
+            "w": 8,
+            "h": 7
+          },
           "targets": [
             {
+              "refId": "A",
               "datasource": {
                 "type": "prometheus",
                 "uid": "VictoriaMetrics"
               },
-              "editorMode": "code",
-              "expr": "sum(container_memory_working_set_bytes{namespace=\"harbor\", container!=\"\"})",
-              "legendFormat": "Harbor RAM",
-              "range": true,
-              "refId": "A"
+              "expr": "probe_success{cluster=\"homelabs\"}",
+              "format": "table",
+              "instant": true,
+              "editorMode": "code"
             }
           ],
-          "title": "Harbor Registry RAM",
-          "type": "stat"
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "__name__": true,
+                  "job": true,
+                  "cluster": true
+                }
+              }
+            }
+          ],
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 21,
+          "type": "logs",
+          "title": "Recent Cluster Warning Events & Error Logs Summary",
+          "description": "",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "gridPos": {
+            "x": 8,
+            "y": 17,
+            "w": 16,
+            "h": 7
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "loki",
+                "uid": "Loki"
+              },
+              "expr": "{cluster=\"homelabs\"} |~ \"(?i)(type=Warning|level=error|\\\"level\\\":\\\"error\\\"|OOMKilled|CrashLoopBackOff)\"",
+              "editorMode": "code"
+            }
+          ],
+          "options": {
+            "showTime": true,
+            "showLabels": true,
+            "showCommonLabels": false,
+            "wrapLogMessage": true,
+            "prettifyLogMessage": false,
+            "enableLogDetails": true,
+            "dedupStrategy": "none",
+            "sortOrder": "Descending"
+          }
         }
-      ],
-      "refresh": "10s",
-      "schemaVersion": 38,
-      "style": "dark",
-      "tags": [
-        "home",
-        "overview"
-      ],
-      "time": {
-        "from": "now-1h",
-        "to": "now"
-      },
-      "timepicker": {
-        "refresh_intervals": [
-          "5s",
-          "10s",
-          "30s",
-          "1m",
-          "5m"
-        ]
-      },
-      "timezone": "browser",
-      "title": "Homelab Home Dashboard",
-      "uid": "homelab-home-dashboard",
-      "version": 1,
-      "description": "Central home dashboard for homelab cluster monitoring."
+      ]
     }

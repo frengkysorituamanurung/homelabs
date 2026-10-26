@@ -52,12 +52,16 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"github\", pod=~\"github-postgresql.*\"})",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"umami\", pod=~\"umami-postgresql.*\"})",
           "legendFormat": "GitHub Postgres RAM",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
-      "title": "GitHub PostgreSQL Memory",
+      "title": "Umami PostgreSQL Memory",
       "type": "stat"
     },
     {
@@ -94,7 +98,11 @@
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"harbor\", pod=~\"harbor-database.*\"})",
           "legendFormat": "Harbor DB RAM",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Harbor Database Memory",
@@ -130,9 +138,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{pod=~\".*(postgresql|database).*\", container!=\"\"}) by (pod, namespace)",
+          "expr": "sum(container_memory_working_set_bytes{pod=~\".*(postgresql|database).*\", pod!=\"\"}) by (pod, namespace)",
           "legendFormat": "{{namespace}} / {{pod}}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Database Memory Usage History",
@@ -184,7 +196,11 @@
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"harbor\", pod=~\"harbor-redis.*\"})",
           "legendFormat": "Harbor Redis RAM",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Harbor Redis Memory",
@@ -224,7 +240,11 @@
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"harbor\", pod=~\"harbor-redis.*\"})",
           "legendFormat": "Harbor Redis RAM",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Harbor Redis Memory",
@@ -260,9 +280,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{pod=~\".*redis.*\", container!=\"\"}) by (pod, namespace)",
+          "expr": "sum(container_memory_working_set_bytes{pod=~\".*redis.*\", pod!=\"\"}) by (pod, namespace)",
           "legendFormat": "{{namespace}} / {{pod}}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Redis Caches Memory Usage History",
@@ -314,7 +338,11 @@
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"backend\", pod=~\"qdrant.*\"})",
           "legendFormat": "Qdrant RAM",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Qdrant Vector DB Memory",
@@ -352,7 +380,11 @@
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"backend\", pod=~\"qdrant.*\"})",
           "legendFormat": "Qdrant RAM Usage",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          }
         }
       ],
       "title": "Qdrant Memory Usage Timeline",

@@ -14,6 +14,7 @@ resources:
   - pilot-cloudnative-pg.yaml
   - pilot-vmsingle.yaml
   - pilot-loki.yaml
+  - pilot-tempo.yaml
   - pilot-harbor.yaml
   - pilot-vault.yaml
   - pilot-garage-ui.yaml

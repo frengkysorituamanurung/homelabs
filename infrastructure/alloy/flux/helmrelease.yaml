@@ -27,71 +27,32 @@ spec:
       image:
         repository: docker.io/grafana/alloy
         tag: v1.21.2
+      extraPorts:
+        - name: otlp-grpc
+          port: 4317
+          targetPort: 4317
+          protocol: TCP
+        - name: otlp-http
+          port: 4318
+          targetPort: 4318
+          protocol: TCP
       configMap:
         content: |-
-           discovery.kubernetes "pods" {
-             role = "pod"
-           }
-
-           discovery.relabel "pods" {
-             targets = discovery.kubernetes.pods.targets
-             rule {
-               source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
-               regex         = "prometheus-node-exporter"
-               action        = "drop"
-             }
-           }
-
-           prometheus.scrape "kubernetes_pods" {
-             targets    = discovery.relabel.pods.output
-             forward_to = [prometheus.remote_write.vm.receiver]
-           }
-
+           // =========================================================================
+           // 1. PROMETHEUS REMOTE WRITE DESTINATION (VictoriaMetrics)
+           // =========================================================================
            prometheus.remote_write "vm" {
              endpoint {
                url = "http://vmsingle-victoria-metrics-single-server.monitoring.svc.cluster.local:8428/api/v1/write"
              }
-           }
-
-           discovery.kubernetes "pods_logs" {
-             role = "pod"
-           }
-
-           discovery.relabel "pods_logs" {
-             targets = discovery.kubernetes.pods_logs.targets
-             rule {
-               source_labels = ["__meta_kubernetes_namespace"]
-               target_label  = "namespace"
-             }
-             rule {
-               source_labels = ["__meta_kubernetes_pod_name"]
-               target_label  = "pod"
-             }
-             rule {
-               source_labels = ["__meta_kubernetes_pod_container_name"]
-               target_label  = "container"
+             external_labels = {
+               cluster = "homelabs",
              }
            }
 
-           discovery.kubernetes "kube_state_metrics" {
-             role = "service"
-           }
-
-           discovery.relabel "kube_state_metrics" {
-             targets = discovery.kubernetes.kube_state_metrics.targets
-
-             rule {
-               source_labels = ["__meta_kubernetes_service_name"]
-               regex = "kube-state-metrics"
-               action = "keep"
-             }
-           }
-
-           prometheus.scrape "kube_state_metrics" {
-             targets    = discovery.relabel.kube_state_metrics.output
-             forward_to = [prometheus.remote_write.vm.receiver]
-           }
-
+           // =========================================================================
+           // 2. INFRASTRUCTURE & KUBERNETES CORE METRICS
+           // =========================================================================
            discovery.kubernetes "nodes" {
              role = "node"
            }
@@ -100,11 +61,9 @@ spec:
              targets           = discovery.kubernetes.nodes.targets
              scheme            = "https"
              bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-
              tls_config {
                insecure_skip_verify = true
              }
-
              forward_to = [prometheus.remote_write.vm.receiver]
            }
 
@@ -113,21 +72,44 @@ spec:
              metrics_path      = "/metrics/cadvisor"
              scheme            = "https"
              bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-
              tls_config {
                insecure_skip_verify = true
              }
-
              forward_to = [prometheus.remote_write.vm.receiver]
            }
 
-           discovery.kubernetes "node_exporter" {
+           prometheus.scrape "apiserver" {
+             targets = [{
+               "__address__" = "kubernetes.default.svc.cluster.local:443",
+             }]
+             scheme            = "https"
+             bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+             tls_config {
+               insecure_skip_verify = true
+             }
+             forward_to = [prometheus.remote_write.vm.receiver]
+           }
+
+           discovery.kubernetes "services" {
              role = "service"
            }
 
-           discovery.relabel "node_exporter" {
-             targets = discovery.kubernetes.node_exporter.targets
+           discovery.relabel "kube_state_metrics" {
+             targets = discovery.kubernetes.services.targets
+             rule {
+               source_labels = ["__meta_kubernetes_service_name"]
+               regex         = "kube-state-metrics"
+               action        = "keep"
+             }
+           }
 
+           prometheus.scrape "kube_state_metrics" {
+             targets    = discovery.relabel.kube_state_metrics.output
+             forward_to = [prometheus.remote_write.vm.receiver]
+           }
+
+           discovery.relabel "node_exporter" {
+             targets = discovery.kubernetes.services.targets
              rule {
                source_labels = ["__meta_kubernetes_service_name"]
                regex         = ".*node-exporter.*"
@@ -140,24 +122,86 @@ spec:
              forward_to = [prometheus.remote_write.vm.receiver]
            }
 
-           discovery.kubernetes "traefik" {
-             role = "service"
+           // =========================================================================
+           // 3. PLATFORM & OBSERVABILITY COMPONENT METRICS
+           // =========================================================================
+           discovery.kubernetes "pods" {
+             role = "pod"
            }
 
-           discovery.relabel "traefik" {
-             targets = discovery.kubernetes.traefik.targets
-
+           // Scrape only container ports explicitly named for metrics or annotated
+           discovery.relabel "kubernetes_pods" {
+             targets = discovery.kubernetes.pods.targets
              rule {
-               source_labels = ["__meta_kubernetes_service_name"]
-               regex         = "traefik"
+               source_labels = ["__meta_kubernetes_pod_phase"]
+               regex         = "Pending|Succeeded|Failed|Completed"
+               action        = "drop"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+               regex         = "prometheus-node-exporter|kube-state-metrics"
+               action        = "drop"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_namespace"]
+               regex         = "flux-system"
+               action        = "drop"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_container_port_name", "__meta_kubernetes_pod_label_app_kubernetes_io_instance"]
+               regex         = "(http-metrics|metrics|prom-metrics);.*|http;(vmsingle|loki|tempo|finance-backend-dev)|grafana;grafana-production"
                action        = "keep"
              }
-
              rule {
-               source_labels = ["__address__"]
-               regex         = "(.*):.*"
-               target_label  = "__address__"
-               replacement   = "${1}:9100"
+               source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+               regex         = "traefik"
+               action        = "drop"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_label_cnpg_io_cluster"]
+               regex         = ".+"
+               action        = "drop"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_namespace"]
+               target_label  = "namespace"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_name"]
+               target_label  = "pod"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_container_name"]
+               target_label  = "container"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+               target_label  = "app"
+             }
+           }
+
+           prometheus.scrape "kubernetes_pods" {
+             targets    = discovery.relabel.kubernetes_pods.output
+             forward_to = [prometheus.remote_write.vm.receiver]
+           }
+
+           // Annotated pods ( removed duplicate block since kubernetes_pods, flux, and traefik handle all ports )
+
+           // Traefik metrics (via pod port 9100)
+           discovery.relabel "traefik" {
+             targets = discovery.kubernetes.pods.targets
+             rule {
+               source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_label_app_kubernetes_io_name", "__meta_kubernetes_pod_container_port_name"]
+               regex         = "kube-system;traefik;metrics"
+               action        = "keep"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_namespace"]
+               target_label  = "namespace"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_name"]
+               target_label  = "pod"
              }
            }
 
@@ -167,13 +211,9 @@ spec:
              forward_to   = [prometheus.remote_write.vm.receiver]
            }
 
-           discovery.kubernetes "garage" {
-             role = "service"
-           }
-
+           // Garage object storage metrics
            discovery.relabel "garage" {
-             targets = discovery.kubernetes.garage.targets
-
+             targets = discovery.kubernetes.services.targets
              rule {
                source_labels = ["__meta_kubernetes_service_name"]
                regex         = "garage-metrics"
@@ -186,6 +226,7 @@ spec:
              forward_to = [prometheus.remote_write.vm.receiver]
            }
 
+           // Flux CD controllers metrics (deduplicated per pod on port 8080)
            discovery.kubernetes "flux" {
              role = "pod"
              namespaces {
@@ -195,18 +236,18 @@ spec:
 
            discovery.relabel "flux" {
              targets = discovery.kubernetes.flux.targets
-
              rule {
-               source_labels = ["__meta_kubernetes_namespace"]
-               regex         = "flux-system"
+               source_labels = ["__meta_kubernetes_pod_container_port_name"]
+               regex         = "http-prom"
                action        = "keep"
              }
-
              rule {
-               source_labels = ["__address__"]
-               regex         = "(.*):.*"
-               target_label  = "__address__"
-               replacement   = "${1}:8080"
+               source_labels = ["__meta_kubernetes_namespace"]
+               target_label  = "namespace"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_name"]
+               target_label  = "pod"
              }
            }
 
@@ -216,70 +257,25 @@ spec:
              forward_to   = [prometheus.remote_write.vm.receiver]
            }
 
-           discovery.relabel "annotated_pods" {
-             targets = discovery.kubernetes.pods.targets
-
-             rule {
-               source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
-               regex         = "true"
-               action        = "keep"
-             }
-
-             rule {
-               source_labels = ["__meta_kubernetes_pod_ip", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
-               separator     = ":"
-               target_label  = "__address__"
-               replacement   = "$1:$2"
-             }
-
-             rule {
-               source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
-               target_label  = "__metrics_path__"
-               replacement   = "$1"
-             }
-           }
-
-           prometheus.scrape "annotated_pods" {
-             targets    = discovery.relabel.annotated_pods.output
-             forward_to = [prometheus.remote_write.vm.receiver]
-           }
-
-           discovery.kubernetes "blackbox" {
-             role = "service"
-           }
-
-           discovery.relabel "blackbox" {
-             targets = discovery.kubernetes.blackbox.targets
-
-             rule {
-               source_labels = ["__meta_kubernetes_service_name"]
-               regex         = "blackbox-exporter"
-               action        = "keep"
-             }
-
-             rule {
-               source_labels = ["__address__"]
-               regex         = "(.*):.*"
-               target_label  = "__address__"
-               replacement   = "${1}:9115"
-             }
-           }
-
-           discovery.kubernetes "cnpg" {
-             role = "pod"
-           }
-
+           // CloudNativePG PostgreSQL clusters
            discovery.relabel "cnpg" {
-             targets = discovery.kubernetes.cnpg.targets
+             targets = discovery.kubernetes.pods.targets
+             rule {
+               source_labels = ["__meta_kubernetes_pod_label_cnpg_io_cluster", "__meta_kubernetes_pod_container_port_name"]
+               regex         = ".+;metrics"
+               action        = "keep"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_namespace"]
+               target_label  = "namespace"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_name"]
+               target_label  = "pod"
+             }
              rule {
                source_labels = ["__meta_kubernetes_pod_label_cnpg_io_cluster"]
-               regex         = ".+"
-               action        = "keep"
-             }
-             rule {
-               source_labels = ["__meta_kubernetes_pod_ip"]
-               target_label  = "__address__"
-               replacement   = "$1:9187"
+               target_label  = "cluster"
              }
            }
 
@@ -288,27 +284,240 @@ spec:
              forward_to = [prometheus.remote_write.vm.receiver]
            }
 
+           // =========================================================================
+           // 4. BLACKBOX SYNTHETIC PROBING (Internal & External Endpoints)
+           // =========================================================================
+           discovery.relabel "blackbox" {
+             targets = discovery.kubernetes.services.targets
+             rule {
+               source_labels = ["__meta_kubernetes_service_name"]
+               regex         = "blackbox-exporter-prometheus-blackbox-exporter"
+               action        = "keep"
+             }
+           }
+
            prometheus.scrape "blackbox_self" {
              targets    = discovery.relabel.blackbox.output
              forward_to = [prometheus.remote_write.vm.receiver]
            }
 
-           prometheus.scrape "blackbox_probe" {
-             targets = [
-               {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://grafana.frengky.xyz", "__param_module" = "http_2xx"},
-               {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://vault.frengky.xyz", "__param_module" = "http_2xx"},
-               {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://harbor.frengky.xyz", "__param_module" = "http_2xx"},
-               {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://gitea.frengky.xyz", "__param_module" = "http_2xx"},
-               {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://glance.frengky.xyz", "__param_module" = "http_2xx"},
-               {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://hello.frengky.xyz", "__param_module" = "http_2xx"},
-               {"__address__" = "blackbox-exporter.monitoring.svc.cluster.local:9115", "__param_target" = "https://service-a.frengky.xyz", "__param_module" = "http_2xx"},
-             ]
-             forward_to  = [prometheus.remote_write.vm.receiver]
-             metrics_path = "/probe"
+           prometheus.exporter.blackbox "endpoints" {
+             config_file = ""
+             config      = "{ modules: { http_2xx: { prober: http, timeout: 5s, http: { valid_http_versions: [HTTP/1.1, HTTP/2.0], valid_status_codes: [200, 201, 204, 301, 302, 303, 307, 308], follow_redirects: true, tls_config: { insecure_skip_verify: true } } } } }"
+             target {
+               name    = "grafana"
+               address = "http://grafana-production.monitoring.svc.cluster.local:80/api/health"
+               module  = "http_2xx"
+             }
+             target {
+               name    = "vault"
+               address = "http://vault.vault.svc.cluster.local:8200/v1/sys/health"
+               module  = "http_2xx"
+             }
+             target {
+               name    = "harbor"
+               address = "http://harbor-core.harbor.svc.cluster.local:80/api/v2.0/health"
+               module  = "http_2xx"
+             }
+             target {
+               name    = "glance"
+               address = "http://glance.frontend.svc.cluster.local:8080/"
+               module  = "http_2xx"
+             }
+             target {
+               name    = "hello-world"
+               address = "http://hello-world.frontend.svc.cluster.local:80/"
+               module  = "http_2xx"
+             }
+             target {
+               name    = "service-a"
+               address = "http://service-a-generic-app.production.svc.cluster.local:80/"
+               module  = "http_2xx"
+             }
+             target {
+               name    = "test-gitops"
+               address = "http://test-gitops.backend.svc.cluster.local:8080/health"
+               module  = "http_2xx"
+             }
+             target {
+               name    = "sample-api"
+               address = "http://sample-api.backend.svc.cluster.local:8080/"
+               module  = "http_2xx"
+             }
+             target {
+               name    = "finance-backend"
+               address = "http://finance-backend.development.svc.cluster.local:8080/api/health"
+               module  = "http_2xx"
+             }
+             target {
+               name    = "uptime-kuma"
+               address = "http://uptime-kuma.uptime-kuma.svc.cluster.local:3001/"
+               module  = "http_2xx"
+             }
+             target {
+               name    = "umami"
+               address = "http://umami-umami.umami.svc.cluster.local:80/api/heartbeat"
+               module  = "http_2xx"
+             }
            }
 
-           loki.source.kubernetes "pods_logs" {
-             targets    = discovery.relabel.pods_logs.output
+           prometheus.scrape "blackbox_probe" {
+             targets    = prometheus.exporter.blackbox.endpoints.targets
+             forward_to = [prometheus.remote_write.vm.receiver]
+           }
+
+           // =========================================================================
+           // 5. CENTRALIZED LOGS PIPELINE (Filesystem Discovery + Enrichment + Loki)
+           // =========================================================================
+           discovery.relabel "pods_logs" {
+             targets = discovery.kubernetes.pods.targets
+             rule {
+               source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+               target_label  = "__path__"
+               separator     = "/"
+               replacement   = "/var/log/pods/*$1/*.log"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_namespace"]
+               target_label  = "namespace"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_name"]
+               target_label  = "pod"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_container_name"]
+               target_label  = "container"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+               target_label  = "app"
+             }
+             rule {
+               source_labels = ["__meta_kubernetes_pod_node_name"]
+               target_label  = "node"
+             }
+           }
+
+           local.file_match "pods_logs" {
+             path_targets = discovery.relabel.pods_logs.output
+           }
+
+           loki.source.file "pods_logs" {
+             targets               = local.file_match.pods_logs.targets
+             tail_from_end         = true
+             legacy_positions_file = ""
+             forward_to            = [loki.process.pods_logs.receiver]
+           }
+
+           loki.process "pods_logs" {
+             stage.cri {}
+
+             stage.drop {
+               older_than          = "168h"
+               drop_counter_reason = "too_old_for_loki"
+             }
+
+             stage.label_drop {
+               values = ["filename"]
+             }
+
+             stage.static_labels {
+               values = {
+                 cluster = "homelabs",
+               }
+             }
+
+             // Extract JSON fields if the log line is structured JSON (e.g. finance-backend or traefik accesslog)
+             stage.json {
+               expressions = {
+                 trace_id       = "trace_id",
+                 TraceId        = "TraceId",
+                 span_id        = "span_id",
+                 SpanId         = "SpanId",
+                 method         = "method",
+                 RequestMethod  = "RequestMethod",
+                 path           = "path",
+                 RequestPath    = "RequestPath",
+                 status         = "status",
+                 OriginStatus   = "OriginStatus",
+                 RequestHost    = "RequestHost",
+                 level_json     = "level",
+               }
+               drop_malformed = false
+             }
+
+             stage.template {
+               source   = "trace_id"
+               template = "{{`{{ if .trace_id }}{{ .trace_id }}{{ else if .TraceId }}{{ .TraceId }}{{ end }}`}}"
+             }
+
+             stage.template {
+               source   = "span_id"
+               template = "{{`{{ if .span_id }}{{ .span_id }}{{ else if .SpanId }}{{ .SpanId }}{{ end }}`}}"
+             }
+
+             stage.template {
+               source   = "method"
+               template = "{{`{{ if .method }}{{ .method }}{{ else if .RequestMethod }}{{ .RequestMethod }}{{ end }}`}}"
+             }
+
+             stage.template {
+               source   = "path"
+               template = "{{`{{ if .path }}{{ .path }}{{ else if .RequestPath }}{{ .RequestPath }}{{ end }}`}}"
+             }
+
+             stage.template {
+               source   = "status"
+               template = "{{`{{ if .status }}{{ .status }}{{ else if .OriginStatus }}{{ .OriginStatus }}{{ end }}`}}"
+             }
+
+             // Extract log level from logfmt or standard text logs
+             stage.regex {
+               expression = "(?i)(?:level|lvl|severity)=[\"]?(?P<level_kv>debug|info|warn|warning|error|fatal|critical|panic)[\"]?"
+             }
+
+             stage.template {
+               source   = "level"
+               template = "{{`{{ if .level_json }}{{ ToLower .level_json }}{{ else if .level_kv }}{{ ToLower .level_kv }}{{ else }}info{{ end }}`}}"
+             }
+
+             stage.labels {
+               values = {
+                 level = "level",
+               }
+             }
+
+             stage.structured_metadata {
+               values = {
+                 trace_id = "trace_id",
+                 span_id  = "span_id",
+                 method   = "method",
+                 path     = "path",
+                 status   = "status",
+                 host     = "RequestHost",
+               }
+             }
+
+             forward_to = [loki.write.default.receiver]
+           }
+
+           // =========================================================================
+           // 6. KUBERNETES CLUSTER EVENTS PIPELINE -> LOKI
+           // =========================================================================
+           loki.source.kubernetes_events "cluster_events" {
+             job_name   = "integrations/kubernetes/eventhandler"
+             log_format = "logfmt"
+             forward_to = [loki.process.cluster_events.receiver]
+           }
+
+           loki.process "cluster_events" {
+             stage.static_labels {
+               values = {
+                 cluster = "homelabs",
+                 source  = "k8s-events",
+               }
+             }
              forward_to = [loki.write.default.receiver]
            }
 
@@ -318,9 +527,42 @@ spec:
              }
            }
 
+           // =========================================================================
+           // 7. OPENTELEMETRY TRACING PIPELINE -> GRAFANA TEMPO
+           // =========================================================================
+           otelcol.receiver.otlp "default" {
+             grpc {
+               endpoint = "0.0.0.0:4317"
+             }
+             http {
+               endpoint = "0.0.0.0:4318"
+             }
+             output {
+               traces  = [otelcol.processor.batch.default.input]
+             }
+           }
+
+           otelcol.processor.batch "default" {
+             timeout         = "5s"
+             send_batch_size = 512
+             output {
+               traces = [otelcol.exporter.otlp.tempo.input]
+             }
+           }
+
+           otelcol.exporter.otlp "tempo" {
+             client {
+               endpoint = "tempo.monitoring.svc.cluster.local:4317"
+               tls {
+                 insecure             = true
+                 insecure_skip_verify = true
+               }
+             }
+           }
+
       mounts:
         varlog: true
-        dockercontainers: true
+        dockercontainers: false
 
       extraEnv:
         - name: GOMEMLIMIT
