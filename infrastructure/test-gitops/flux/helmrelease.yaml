@@ -27,6 +27,7 @@ spec:
       baseNamespace: backend
       baseName: test-gitops
       environment: production
+      disableSecrets: true
       image:
         repository: harbor.frengky.xyz/backend/test-gitops
         tag: "b1e31f2"
