@@ -100,7 +100,7 @@ spec:
     ingress:
       enabled: true
       hosts:
-        - host: uptime.frengky.xyz
+        - host: status.frengky.xyz
           paths:
             - path: /
               pathType: Prefix
@@ -177,7 +177,7 @@ and add `clusters/production/flux-system/uptime-kuma.yaml` to the top-level `kus
 
 ## 8. Add Ingress / DNS
 
-- The Helm values above create an Ingress for `uptime.frengky.xyz`.
+- The Helm values above create an Ingress for `status.frengky.xyz`.
 - For **private** (Tailscale) access: create a Gray-cloud A record in Cloudflare → `100.120.133.63`.
 - For **public** access: add a Public Hostname in Cloudflare Tunnel → `http://traefik.kube-system.svc.cluster.local:80`.
 
@@ -205,7 +205,7 @@ kubectl get pods -n uptime-kuma
 kubectl get ingress -n uptime-kuma
 ```
 
-Check the UI at `https://uptime.frengky.xyz`.
+Check the UI at `https://status.frengky.xyz`.
 
 ---
 

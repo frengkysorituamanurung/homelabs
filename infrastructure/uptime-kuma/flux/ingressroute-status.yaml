@@ -7,15 +7,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`status.frengky.xyz`) && Path(`/`)
-      kind: Rule
-      middlewares:
-        - name: redirect-to-status
-          namespace: uptime-kuma
-      services:
-        - name: uptime-kuma
-          port: 3001
-    - match: Host(`status.frengky.xyz`) && (PathPrefix(`/status`) || PathPrefix(`/assets`) || PathPrefix(`/upload`) || PathPrefix(`/api`) || PathPrefix(`/socket.io`))
+    - match: Host(`status.frengky.xyz`)
       kind: Rule
       services:
         - name: uptime-kuma
