@@ -1,0 +1,47 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: test-gitops
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: ./k8s/clusters/production/applications/apps/production/backend/test-gitops
+      version: "1.0.0"
+      sourceRef:
+        kind: GitRepository
+        name: homelabs
+        namespace: flux-system
+  releaseName: test-gitops
+  targetNamespace: backend
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    generic-app:
+      baseNamespace: backend
+      baseName: test-gitops
+      environment: production
+      image:
+        repository: harbor.frengky.xyz/backend/test-gitops
+        tag: "latest"
+        pullPolicy: Always
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      service:
+        enabled: true
+        type: ClusterIP
+        ports:
+          - name: http
+            port: 8080
+      ingress:
+        enabled: true
+        hosts:
+          - host: test-gitops.frengky.xyz
+            path: /
+            port: 8080

@@ -31,6 +31,7 @@ resources:
   - pilot-bentopdf.yaml
   - pilot-mcp-bridge.yaml
   - pilot-service-a.yaml
+  - pilot-test-gitops.yaml
   - pilot-reloader.yaml
   - pilot-glance.yaml
   - pilot-ckx.yaml

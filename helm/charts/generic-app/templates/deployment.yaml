@@ -81,6 +81,10 @@ spec:
       {{- if $values.dnsPolicy }}
       dnsPolicy: {{ $values.dnsPolicy }}
       {{- end }}
+      {{- if $values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml $values.imagePullSecrets | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ $values.baseName | default .Chart.Name }}
           image: "{{ $values.image.repository }}:{{ $values.image.tag | default .Chart.AppVersion }}"

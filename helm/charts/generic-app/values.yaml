@@ -6,6 +6,7 @@ image:
   pullPolicy: Always
   tag: ""
 
+imagePullSecrets: []
 baseName: ""
 baseNamespace: ""
 environment: ""
