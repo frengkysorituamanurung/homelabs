@@ -50,6 +50,20 @@ harbor.frengky.xyz/backend/test-gitops:<git-sha>
 
 ---
 
+## 2.1 Vault (central secret store)
+
+Secrets are also stored in Vault for central management:
+
+```bash
+vault kv put secret/test-gitops/tailscale authKey='tskey-auth-...'
+vault kv put secret/test-gitops/harbor username='robot$backend+ci-pusher-test-gitops' password='<pusher-secret>'
+vault kv put secret/test-gitops/gitops token='<PAT>'
+```
+
+GitHub Secrets remain the source used by CI; Vault is the backup/central store.
+
+---
+
 ## 3. GitHub Secrets (repo `sorivalabs/test-gitops`)
 
 Set dengan `gh secret set`:
