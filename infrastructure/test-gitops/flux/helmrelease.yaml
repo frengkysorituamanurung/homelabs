@@ -29,7 +29,7 @@ spec:
       environment: production
       image:
         repository: harbor.frengky.xyz/backend/test-gitops
-        tag: "latest"
+        tag: "b1e31f2"
         pullPolicy: Always
       imagePullSecrets:
         - name: harbor-pull-secret
