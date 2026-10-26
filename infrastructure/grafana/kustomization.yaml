@@ -4,3 +4,4 @@ resources:
   - alerts-configmap.yaml
   - dashboards-configmap.yaml
   - cnpg-dashboard-configmap.yaml
+  - homelab-home-dashboard-configmap.yaml
